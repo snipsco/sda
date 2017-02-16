@@ -5,3 +5,8 @@ authors = ["Mathieu Poumeyrol <kali@zoy.org>", "Morten Dahl <mortendahlcs@gmail.
 
 [dependencies]
 sda-protocol = { path= "../protocol" }
+threshold-secret-sharing = "0.2"
+error-chain = { version = "0.8", default-features=false }
+serde = "0.8"
+serde_derive = "0.8"
+serde_json = "0.8"

@@ -1,6 +1,7 @@
 
 //! Parameters for the cryptographic primitives supported by the system.
 
+/// Supported secret sharing schemes and their parameters.
 pub enum LinearSecretSharingScheme {
 
     Additive {
@@ -13,6 +14,8 @@ pub enum LinearSecretSharingScheme {
     BasicShamir {
         /// Number of shares to generate for each secret.
         share_count: usize,
+        /// Number of shares needed to reconstruct.
+        privacy_threshold: usize,
         /// Prime number specifying the prime field in which to operate.
         prime_modulus: i64,
     },
@@ -22,6 +25,8 @@ pub enum LinearSecretSharingScheme {
         secret_count: usize,
         /// Number of shares to generate for each vector of secrets.
         share_count: usize,
+        /// Number of shares needed to reconstruct.
+        privacy_threshold: usize,
         /// Prime number specifying the prime field in which to operate.
         prime_modulus: i64,
         /// TODO
@@ -32,6 +37,56 @@ pub enum LinearSecretSharingScheme {
 
 }
 
+/// Derived properties of the secret sharing schemes.
+impl LinearSecretSharingScheme {
+
+    pub fn input_size(&self) -> usize {
+        match *self {
+            LinearSecretSharingScheme::Additive {..} => 1,
+            LinearSecretSharingScheme::BasicShamir {..} => 1,
+            LinearSecretSharingScheme::PackedShamir { secret_count, .. } => secret_count,
+        }
+    }
+
+    pub fn output_size(&self) -> usize {
+        match *self {
+            LinearSecretSharingScheme::Additive { share_count, .. } => share_count,
+            LinearSecretSharingScheme::BasicShamir { share_count, .. } => share_count,
+            LinearSecretSharingScheme::PackedShamir { share_count, .. } => share_count,
+        }
+    }
+
+    pub fn privacy_threshold(&self) -> usize {
+        match *self {
+            LinearSecretSharingScheme::Additive { share_count, .. } => share_count - 1,
+            LinearSecretSharingScheme::BasicShamir { privacy_threshold, .. } => privacy_threshold,
+            LinearSecretSharingScheme::PackedShamir { privacy_threshold, .. } => privacy_threshold,
+        }
+    }
+
+    pub fn reconstruction_threshold(&self) -> usize {
+        match *self {
+            LinearSecretSharingScheme::Additive { share_count, .. } => share_count,
+            LinearSecretSharingScheme::BasicShamir { privacy_threshold, .. } => privacy_threshold + 1,
+            LinearSecretSharingScheme::PackedShamir { privacy_threshold, secret_count, .. } => privacy_threshold + secret_count,
+        }
+    }
+
+}
+
+pub enum AdditiveEncryptionKey {
+    
+    Sodium {
+        encryption_key: Vec<u8>
+    },
+
+    PackedPaillier {
+        encryption_key: Vec<u8>
+    },
+
+}
+
+/// Supported additive encryption schemes and their parameters.
 pub enum AdditiveEncryptionScheme {
 
     Sodium,
@@ -43,16 +98,27 @@ pub enum AdditiveEncryptionScheme {
         component_bitsize: usize,
         /// Maximum number of bits each component value may occupy in a fresh ciphertext, i.e.
         /// in a fresh ciphertext each value must be strictly upper bounded by 2^value_max_bitsize.
-        value_max_bitsize: usize,
+        max_value_bitsize: usize,
+        /// Minimum size of the (plaintext) modulus in bits.
+        min_modulus_bitsize: usize,
     }
 
 }
 
+/// Derived properties of the additive encryption schemes.
 impl AdditiveEncryptionScheme {
-    fn additive_capability(&self) -> usize {
+
+    pub fn batch_size(&self) -> usize {
         match self {
-            Sodium => 1,
-            PackedPaillier => 5 // TODO
+            &AdditiveEncryptionScheme::Sodium {..} => 1,
+            &AdditiveEncryptionScheme::PackedPaillier { component_count, .. } => component_count
         }
     }
+
+    // fn additive_capability(&self) -> usize {
+    //     match self {
+    //         Sodium => 1,
+    //         PackedPaillier { min_modulus_bitsize, } => 5 // TODO
+    //     }
+    // }
 }
