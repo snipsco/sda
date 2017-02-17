@@ -1,12 +1,18 @@
 [package]
 name = "sda-client"
 version = "0.1.0"
-authors = ["Mathieu Poumeyrol <kali@zoy.org>", "Morten Dahl <mortendahlcs@gmail.com>"]
+authors = [
+    "Mathieu Poumeyrol <kali@zoy.org>", 
+    "Morten Dahl <mortendahlcs@gmail.com>"
+]
 
 [dependencies]
 sda-protocol = { path= "../protocol" }
-threshold-secret-sharing = "0.2"
 error-chain = { version = "0.8", default-features=false }
 serde = "0.8"
 serde_derive = "0.8"
 serde_json = "0.8"
+threshold-secret-sharing = "0.2"
+sodiumoxide = "0.0.13"
+integer-encoding = "1.0"
+rand = "0.3"

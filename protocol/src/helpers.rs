@@ -1,9 +1,24 @@
 
 use super::*;
 
+impl Agent {
+    pub fn new() -> Agent {
+        Agent {
+            id: AgentId::new(),
+            auth_token: None,
+        }
+    }
+}
+
+impl AgentId {
+    pub fn new() -> AgentId {
+        AgentId(Uuid::new_v4())
+    }
+}
+
 // impl From<&'static str> for AgentId {
 //     fn from(s: &'static str) -> AgentId {
-//         AgentId(s)
+//         AgentId(Uuid::from(s))
 //     }
 // }
 

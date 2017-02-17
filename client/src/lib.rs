@@ -8,32 +8,50 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 extern crate threshold_secret_sharing as tss;
+extern crate sodiumoxide;
+extern crate integer_encoding;
+extern crate rand;
 
-mod keys;
 mod crypto;
-mod errors;
+mod trust;
 mod user;
 // mod clerk;
 
-use sda_protocol::*;
-use keys::*;
 use crypto::*;
-pub use errors::*;
+pub use sda_protocol::*;
+pub use trust::*;
 pub use user::*;
 // pub use clerk::*;
 
-pub struct SdaClient<'l, S: 'l, K: 'l> {
-    agent: &'l Agent,
-    key_service: &'l K,
-    sda_service: &'l S,
+pub struct SdaClient<T, S> {
+    agent: Agent,
+    trust_store: T,
+    sda_service: S,
 }
 
-impl<'l, S: 'l, K: 'l> SdaClient<'l, S, K> {
-    pub fn new(agent: &'l Agent, key_service: &'l K, sda_service: &'l S) -> SdaClient<'l, S, K> {
+impl<T, S> SdaClient<T, S> {
+    pub fn new(agent: Agent, trust_store: T, sda_service: S) -> SdaClient<T, S> {
         SdaClient {
             agent: agent,
-            key_service: key_service,
+            trust_store: trust_store,
             sda_service: sda_service,
         }
     }
 }
+
+mod errors {
+    error_chain!{
+        types {
+            SdaClientError, SdaClientErrorKind, SdaClientResultExt, SdaClientResult;
+        }
+        foreign_links {
+            Protocol(::sda_protocol::SdaError);
+            Io(::std::io::Error);
+            SerdeJson(::serde_json::Error);
+            NumParseInt(::std::num::ParseIntError);
+            TimeSystemTime(::std::time::SystemTimeError);
+        }
+
+    }
+}
+pub use errors::*;

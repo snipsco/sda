@@ -1,15 +1,18 @@
 
-pub trait KeyService {
-    // TODO
+use super::*;
+
+pub trait TrustedCommitteeStore {
+    // fn save_trusted_committee(&self, committee: Committee) -> SdaClientResult<()>;
+    fn load_trusted_committee(&self, committee: &CommitteeId) -> SdaClientResult<Committee>;
+    // fn drop_trusted_committee(&self, committee: &CommitteeId) -> SdaClientResult<()>;
 }
 
-// use super::*;
-
-// pub trait SecurityAgent { // TODO rename to
-//     fn save_authenticator(&mut self, server: &str, authenticator: &str) -> SdaClientResult<()>;
-//     fn seal(pk: &RawData, data: &[u8]) -> SdaClientResult<Vec<u8>>;
-//     fn unseal(&self, data: &[u8]) -> SdaClientResult<Vec<u8>>;
-// }
+pub trait TrustedKeysetStore {
+    // fn save_trusted_keyset(&self, keyset: Keyset) -> SdaClientResult<()>;
+    fn load_trusted_keyset(&self, keyset: &KeysetId) -> SdaClientResult<Keyset>;
+    // fn drop_trusted_keyset(&self, keyset: &KeysetId) -> SdaClientResult<()>;
+    // fn verify_keyset(&self, keyset: Keyset) -> SdaClientResult<bool>;
+}
 
 // mod file {
 

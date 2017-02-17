@@ -2,7 +2,7 @@
 use super::*;
 use std::collections::HashMap;
 
-pub struct UserInput(pub [i64]);
+pub struct UserInput(pub Vec<i64>);
 
 pub type RawData = Vec<u8>;
 
@@ -11,7 +11,7 @@ pub struct EncryptionKey(pub RawData);
 pub struct VerificationKey(pub RawData);
 pub struct Signature(pub RawData);
 
-#[derive(Clone, PartialEq, Eq, Hash)] // TODO could we use Copy instead?
+#[derive(Clone, Debug, Hash, PartialEq, Eq)] // TODO could we use Copy instead?
 pub struct AgentId(pub Uuid);
 
 /// Identifies any agent accessing the SDA service (including users, clerks, and admins).
@@ -20,6 +20,7 @@ pub struct Agent {
     pub auth_token: Option<AuthToken>,
 }
 
+#[derive(PartialEq, Eq)]
 pub struct CommitteeId(pub Uuid);
 
 pub struct Committee {
@@ -33,7 +34,7 @@ pub struct AssociatedEncryptionKey {
     pub signature: Signature,
 }
 
-#[derive(Clone)] // TODO could we use Copy instead?
+#[derive(Clone, Debug)] // TODO could we use Copy instead?
 pub struct AggregationId(pub Uuid);
 
 pub struct Aggregation {
@@ -46,6 +47,7 @@ pub struct Aggregation {
     pub keyset: KeysetId,
 }
 
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub struct KeysetId(pub Uuid);
 
 pub struct Keyset {
@@ -95,9 +97,11 @@ pub struct ClerkingResult {
     // TODO result
 }
 
+#[derive(Debug)]
 pub struct ParticipationId(pub Uuid);
 
 /// Description of an user's input to an aggregation.
+#[derive(Debug)]
 pub struct Participation {
     pub id: ParticipationId,
     pub user: AgentId,

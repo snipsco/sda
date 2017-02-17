@@ -115,10 +115,4 @@ impl AdditiveEncryptionScheme {
         }
     }
 
-    // fn additive_capability(&self) -> usize {
-    //     match self {
-    //         Sodium => 1,
-    //         PackedPaillier { min_modulus_bitsize, } => 5 // TODO
-    //     }
-    // }
 }
