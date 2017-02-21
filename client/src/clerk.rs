@@ -33,10 +33,8 @@ impl<T, S> Clerk for SdaClient<T, S>
                 Ok(false)
             },
             Some(job) => {
-                // process
                 let result = self.process_job(&job)?;
-                // post result
-                let _ = self.sda_service.push_clerking_result(&self.agent, &result)?;
+                self.sda_service.push_clerking_result(&self.agent, &result)?;
                 Ok(true)
             }
         }
