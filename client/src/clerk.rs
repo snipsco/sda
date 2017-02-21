@@ -11,7 +11,7 @@ pub trait Clerk {
     fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool>;
 
     /// Execute clerking process once: download, process, and upload the next job pending on the service, if any.
-    fn clerk_once(&self) -> SdaClientResult<()>;
+    fn clerk_once(&self) -> SdaClientResult<bool>;
 
     /// Execute routine clerking chores, including registering if not done so already.
     fn run_chores(&self) -> SdaClientResult<()>;
@@ -20,74 +20,51 @@ pub trait Clerk {
 
 impl<T, S> Clerk for SdaClient<T, S> 
     where
-        S: SdaAggregationService
+        S: SdaClerkingService
 {
 
     fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool> {
-        // TODO
+        unimplemented!()
     }
 
-    // fn update_profile(&self) -> SdaClientResult<()> {
-    //     // TODO
-    //     self.register();
-    //     self.post_profile()
-    // }
-
-    fn clerk_once(&self) -> SdaClientResult<()> {
-        // TODO
-        let job = self.get_job();
-        let result = self.process_job(job);
-        self.post_result(result)
+    fn clerk_once(&self) -> SdaClientResult<bool> {
+        // pull any pending job
+        // TODO better way of doing this?
+        match self.sda_service.pull_clerking_job(&self.agent, &self.agent.id)? {
+            None => {
+                Ok(false)
+            },
+            Some(job) => {
+                // process
+                let result = self.process_job(&job)?;
+                // post result
+                let _ = self.sda_service.push_clerking_result(&self.agent, &result)?;
+                Ok(true)
+            }
+        }
     }
 
     fn run_chores(&self) -> SdaClientResult<()> {
-        self.register_as_clerk(false);
-        while self.clerk_once() {
-            // keep clerking until no more tasks
-            // TODO put in safety measure to prevent long loops
+        // register if we haven't done so already
+        self.register_as_clerk(false)?;
+        // repeatedly process jobs
+        let max_iterations = 10;
+        for _ in 0..max_iterations {
+            if self.clerk_once()? { 
+                continue
+            } else {
+                break
+            }
         }
+        Ok(())
     }
 
 }
 
-/// Fine-tuned clerk operations, not needed for basic use.
-// pub trait Operations {
+impl<T, S> SdaClient<T, S> {
 
-//     fn get_job(&self) -> SdaClientResult<Option<ClerkingJob>>;
+    fn process_job(&self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
+        unimplemented!()
+    }
 
-//     fn process_job(&self, job: AsRef<ClerkingJob>) -> SdaClientResult<ClerkingResult>;
-
-//     fn post_result(&self, result: AsRef<ClerkingResult>) -> SdaClientResult<()>;
-
-// }
-
-// impl<S: SdaAggregationService> Operations for SdaClient<S> {
-
-//     fn get_job(&self) -> SdaClientResult<Option<ClerkingJob>> {
-//         // TODO
-//     }
-
-//     fn process_job(&self, job: AsRef<ClerkingJob>) -> SdaClientResult<ClerkingResult> {
-//         // TODO
-//     }
-
-//     fn post_result(&self, result: AsRef<ClerkingResult>) -> SdaClientResult<()> {
-//         // TODO
-//     }
-
-// }
-
-// #[cfg(test)]
-// mod tests {
-
-//     #[test]
-//     fn test_first_register() {
-//         let agent = FileSecurityAgent::new();
-//         let service = ClientHttpTunnel::new(&agent);
-//         let client: SdaClerk = SdaClient::new(service, agent);
-
-//         let success = client.register(false)?;
-//         assert!(success);
-//     }
-
-// }
+}

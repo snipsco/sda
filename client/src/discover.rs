@@ -3,7 +3,7 @@ use super::*;
 
 pub trait Discover {
 
-    fn list_aggregations_by_title(&self, filter: &str) -> SdaClientResult<Vec<AggregationId>>;
+    fn list_aggregations(&self, filter: &str) -> SdaClientResult<Vec<AggregationId>>;
 
     fn pull_aggregation(&self, aggregation: &AggregationId) -> SdaClientResult<Option<Aggregation>>;
 
@@ -19,7 +19,7 @@ impl<T, S> Discover for SdaClient<T, S>
         T: TrustStore,
 {
 
-    fn list_aggregations_by_title(&self, filter: &str) -> SdaClientResult<Vec<AggregationId>> {
+    fn list_aggregations(&self, filter: &str) -> SdaClientResult<Vec<AggregationId>> {
         Ok(self.sda_service.list_aggregations_by_title(&self.agent, filter)?)
     }
 
@@ -36,13 +36,3 @@ impl<T, S> Discover for SdaClient<T, S>
     }
 
 }
-
-// pub trait Operations {
-
-//     fn get_job(&self) -> SdaClientResult<Option<ClerkingJob>>;
-
-//     fn process_job(&self, job: AsRef<ClerkingJob>) -> SdaClientResult<ClerkingResult>;
-
-//     fn post_result(&self, result: AsRef<ClerkingResult>) -> SdaClientResult<()>;
-
-// }

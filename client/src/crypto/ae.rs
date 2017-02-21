@@ -5,8 +5,6 @@ use super::*;
 
 use std::sync::{Once, ONCE_INIT};
 
-static SODIUM_INITIALIZED: Once = ONCE_INIT;
-
 pub trait ShareEncryptor {
 
     /// Generate shares for values.
@@ -20,6 +18,8 @@ pub trait ShareEncryptor {
 pub trait EncryptorConstruction {
     fn new_share_encryptor(&self, ek: &EncryptionKey) -> SdaClientResult<Box<ShareEncryptor>>;
 }
+
+static SODIUM_INITIALIZED: Once = ONCE_INIT;
 
 impl EncryptorConstruction for AdditiveEncryptionScheme {
 

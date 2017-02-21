@@ -19,7 +19,7 @@ mod trust;
 // mod identity;
 mod discover;
 mod participate;
-// mod clerk;
+mod clerk;
 
 pub use errors::*;
 pub use sda_protocol::*;
@@ -28,7 +28,7 @@ pub use trust::*;
 // pub use identity::*;
 pub use discover::*;
 pub use participate::*;
-// pub use clerk::*;
+pub use clerk::*;
 
 
 pub struct SdaClient<T, S> {
