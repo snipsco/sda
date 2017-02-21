@@ -2,18 +2,22 @@
 extern crate sda_client;
 
 use sda_client::*;
+use std::collections::HashMap;
 
 
 pub trait Mock {
     fn mock() -> Self;
 }
 
-
-pub struct MockSdaService {}
+pub struct MockSdaService {
+    profiles: HashMap<AgentId, Profile>,
+}
 
 impl Mock for MockSdaService {
     fn mock() -> Self {
-        MockSdaService {}
+        MockSdaService {
+            profiles: HashMap::new(),
+        }
     }
 }
 
@@ -23,6 +27,54 @@ impl SdaService for MockSdaService {
     }
 } 
 
+impl SdaIdentityService for MockSdaService {
+
+    fn update_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaResult<Profile> {
+        
+        // println!("update_profile");
+
+        // if profile.owner == AgentId::default() {
+
+        //     // this is a new profile
+        //     let mut new_profile = profile.clone();
+        //     new_profile.owner = AgentId::new();
+        //     self.profiles.insert(profile.owner, profile.clone());
+
+
+
+        // } else if caller.id == profile.owner {
+            
+        // } else {
+        //     return Err("Could not update the profile; make sure you are the owner")
+        // }
+
+        // if self.profiles.contains(profile) {
+        //     self.profiles.insert(profile.owner, profile.clone());
+        //     return profile.clone()
+        
+        // } else {
+            
+
+
+        // }
+        
+        
+        let returned_profile = if profile.owner == AgentId::default() {
+            let mut updated_profile = profile.clone();
+            updated_profile.owner = AgentId::new();
+            updated_profile
+        } else {
+            profile.clone()
+        };
+        Ok(returned_profile)
+    }
+
+    fn pull_committee(&self, caller: &Agent, committee: &CommitteeId) -> SdaResult<Option<Committee>> {
+        unimplemented!()
+    }
+
+}
+
 impl SdaAggregationService for MockSdaService {
 
     fn find_aggregations(&self, caller: &Agent, filter: Option<&str>) -> SdaResult<Vec<AggregationId>> {
@@ -30,14 +82,6 @@ impl SdaAggregationService for MockSdaService {
     }
 
     fn pull_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>> {
-        unimplemented!()
-    }
-
-    fn pull_committee(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Committee>> {
-        unimplemented!()
-    }
-
-    fn pull_clerk_profile(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkProfile>> {
         unimplemented!()
     }
 
@@ -53,11 +97,15 @@ impl UserSdaAggregationService for MockSdaService {
 }
 
 
-pub struct MockTrustStore {}
+pub struct MockTrustStore {
+    signing_keypair: Option<(SigningKey, VerificationKey)>,
+}
 
 impl Mock for MockTrustStore {
     fn mock() -> Self {
-        MockTrustStore {}
+        MockTrustStore {
+            signing_keypair: None,
+        }
     }
 }
 
@@ -80,6 +128,13 @@ impl TrustedKeysetStore for MockTrustStore {
         } else {
             Err("Keyset not found")?
         }
+    }
+}
+
+impl IdentityStore for MockTrustStore {
+    fn save_signature_keypair(&mut self, vk: &VerificationKey, sk: &SigningKey) -> SdaClientResult<()> {
+        self.signing_keypair = Some((sk.clone(), vk.clone()));
+        Ok(())
     }
 }
 
@@ -175,6 +230,12 @@ impl Mock for AssociatedEncryptionKey {
     }
 }
 
+impl Mock for LinearMaskingScheme {
+    fn mock() -> Self { 
+        LinearMaskingScheme::None
+    }
+}
+
 impl Mock for LinearSecretSharingScheme {
     fn mock() -> Self {
         LinearSecretSharingScheme::Additive {
@@ -196,10 +257,13 @@ impl Mock for Aggregation {
             id: AggregationId::mock(),
             title: "Mock".to_string(),
             vector_dimension: 5,
-            secret_sharing_scheme: LinearSecretSharingScheme::mock(),
-            encryption_scheme: AdditiveEncryptionScheme::mock(),
+            recipient: AgentId::mock(),
             committee: CommitteeId::mock(),
             keyset: KeysetId::mock(),
+            masking_scheme: LinearMaskingScheme::mock(),
+            committee_sharing_scheme: LinearSecretSharingScheme::mock(),
+            recipient_encryption_scheme: AdditiveEncryptionScheme::mock(),
+            committee_encryption_scheme: AdditiveEncryptionScheme::mock(),
         }
     }
 }

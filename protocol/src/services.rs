@@ -10,8 +10,11 @@ pub trait SdaService {
 /// Common operations used by all parties.
 pub trait SdaDiscoveryService : SdaService {
 
-    /// Search for aggregations matching the filter.
-    fn list_aggregations(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>>;
+    /// Search for aggregations with titles matching the filter.
+    fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>>;
+
+    /// Search for aggregations with specific recipient.
+    fn list_aggregations_by_recipient(&self, caller: &Agent, recipient: &AgentId) -> SdaResult<Vec<AggregationId>>;
 
     /// Retrieve an aggregation and its description.
     fn pull_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>>;
