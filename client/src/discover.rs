@@ -13,10 +13,9 @@ pub trait Discover {
 
 }
 
-impl<T, S> Discover for SdaClient<T, S>
+impl<L, I, S> Discover for SdaClient<L, I, S>
     where 
-        S: SdaDiscoveryService,
-        T: TrustStore,
+        S: SdaDiscoveryService
 {
 
     fn list_aggregations(&self, filter: &str) -> SdaClientResult<Vec<AggregationId>> {

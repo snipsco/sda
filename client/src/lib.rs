@@ -1,5 +1,5 @@
 
-extern crate sda_protocol;
+//! TODO
 
 #[macro_use]
 extern crate error_chain;
@@ -12,36 +12,47 @@ extern crate sodiumoxide;
 extern crate integer_encoding;
 extern crate rand;
 
+extern crate sda_protocol;
+
 
 mod errors;
 mod crypto;
+mod store;
 mod trust;
-// mod identity;
+mod identity;
+mod fetch;
+// mod profile;
 mod discover;
 mod participate;
 mod clerk;
 
-pub use errors::*;
+
 pub use sda_protocol::*;
+pub use errors::*;
 use crypto::*;
-pub use trust::*;
-// pub use identity::*;
-pub use discover::*;
-pub use participate::*;
-pub use clerk::*;
+use store::*;
+use trust::*;
+use identity::*;
+use fetch::*;
+// pub use profile::*;
+pub use discover::{Discover};
+pub use participate::{Participate};
+pub use clerk::{Clerk};
 
 
-pub struct SdaClient<T, S> {
+pub struct SdaClient<L, I, S> {
     agent: Agent,
-    trust_store: T,
+    local_store: L,
+    identity: I,
     sda_service: S,
 }
 
-impl<T, S> SdaClient<T, S> {
-    pub fn new(agent: Agent, trust_store: T, sda_service: S) -> SdaClient<T, S> {
+impl<L, I, S> SdaClient<L, I, S> {
+    pub fn new(agent: Agent, local_store: L, identity: I, sda_service: S) -> SdaClient<L, I, S> {
         SdaClient {
             agent: agent,
-            trust_store: trust_store,
+            local_store: local_store,
+            identity: identity,
             sda_service: sda_service,
         }
     }

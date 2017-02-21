@@ -1,32 +1,70 @@
 
 use super::*;
 
-pub trait TrustStore {
+pub trait TrustPolicy<ID> {
+    fn is_flagged_as_trusted(&self, id: &ID) -> SdaClientResult<bool>;
+    fn flag_as_trusted(&mut self, id: &ID) -> SdaClientResult<()>;
+    fn unflag_as_trusted(&mut self, id: &ID) -> SdaClientResult<()>;
+}
 
-    fn has_committee(&self, committee: &CommitteeId) -> SdaClientResult<bool>;
-    fn save_committee(&self, committee: &Committee) -> SdaClientResult<()>;
-    fn load_committee(&self, committee: &CommitteeId) -> SdaClientResult<Committee>;
-    fn drop_committee(&self, committee: &CommitteeId) -> SdaClientResult<()>;
 
-    fn has_keyset(&self, keyset: &KeysetId) -> SdaClientResult<bool>;
-    fn save_keyset(&self, keyset: &Keyset) -> SdaClientResult<()>;
-    fn load_keyset(&self, keyset: &KeysetId) -> SdaClientResult<Keyset>;
-    fn drop_keyset(&self, keyset: &KeysetId) -> SdaClientResult<()>;
+impl<L, I, S> TrustPolicy<AggregationId> for SdaClient<L, I, S> {
+    
+    // TODO
 
-    fn has_profile(&self, profile: &AgentId) -> SdaClientResult<bool>;
-    fn save_profile(&self, profile: &Profile) -> SdaClientResult<()>;
-    fn load_profile(&self, profile: &AgentId) -> SdaClientResult<Profile>;
-    fn drop_profile(&self, profile: &AgentId) -> SdaClientResult<()>;
+    fn is_flagged_as_trusted(&self, id: &AggregationId) -> SdaClientResult<bool> {
+        unimplemented!()
+    }
 
-    fn verify_signature(&self, signature: &Signature, message: &Vec<u8>, vk: &VerificationKey) -> SdaClientResult<bool>;
+    fn flag_as_trusted(&mut self, id: &AggregationId) -> SdaClientResult<()> {
+        unimplemented!()
+    }
+
+    fn unflag_as_trusted(&mut self, id: &AggregationId) -> SdaClientResult<()> {
+        unimplemented!()
+    }
 
 }
 
-pub trait IdentityStore {
-    fn replace_identity_keypair(&mut self) -> SdaClientResult<()>;
-    fn export_verification_key(&self) -> SdaClientResult<VerificationKey>;
-    fn sign_message(&self, message: Vec<u8>) -> SdaClientResult<Signature>;
+impl<L, I, S> TrustPolicy<CommitteeId> for SdaClient<L, I, S> {
+    
+    // TODO
+
+    fn is_flagged_as_trusted(&self, id: &CommitteeId) -> SdaClientResult<bool> {
+        unimplemented!()
+    }
+
+    fn flag_as_trusted(&mut self, id: &CommitteeId) -> SdaClientResult<()> {
+        unimplemented!()
+    }
+
+    fn unflag_as_trusted(&mut self, id: &CommitteeId) -> SdaClientResult<()> {
+        unimplemented!()
+    }
+
 }
+
+impl<L, I, S> TrustPolicy<KeysetId> for SdaClient<L, I, S> {
+    
+    // TODO
+
+    fn is_flagged_as_trusted(&self, id: &KeysetId) -> SdaClientResult<bool> {
+        unimplemented!()
+    }
+
+    fn flag_as_trusted(&mut self, id: &KeysetId) -> SdaClientResult<()> {
+        unimplemented!()
+    }
+
+    fn unflag_as_trusted(&mut self, id: &KeysetId) -> SdaClientResult<()> {
+        unimplemented!()
+    }
+
+}
+
+
+
+
 
 
 // mod file {

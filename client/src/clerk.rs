@@ -18,7 +18,7 @@ pub trait Clerk {
 
 }
 
-impl<T, S> Clerk for SdaClient<T, S> 
+impl<L, I, S> Clerk for SdaClient<L, I, S> 
     where
         S: SdaClerkingService
 {
@@ -57,7 +57,7 @@ impl<T, S> Clerk for SdaClient<T, S>
 
 }
 
-impl<T, S> SdaClient<T, S> {
+impl<L, I, S> SdaClient<L, I, S> {
 
     fn process_job(&self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
         unimplemented!()
