@@ -22,9 +22,11 @@ pub use uuid::Uuid;
 pub use errors::*;
 
 mod crypto;
-mod protocol;
+mod messages;
+mod services;
 mod helpers;
 
 pub use crypto::*;
-pub use protocol::*;
+pub use messages::*;
+pub use services::*;
 pub use helpers::*;

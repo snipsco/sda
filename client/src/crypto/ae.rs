@@ -68,7 +68,8 @@ impl ShareEncryptor for SodiumWrapper {
             encoded_values.extend(&buf[0..size]);
         }
         // encrypt
-        vec![sodiumoxide::crypto::sealedbox::seal(&*encoded_values, &self.pk)]
+        let raw_data = sodiumoxide::crypto::sealedbox::seal(&*encoded_values, &self.pk);
+        vec![Encryption(raw_data)]
     }
 
 }

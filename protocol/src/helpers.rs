@@ -16,6 +16,20 @@ impl AgentId {
     }
 }
 
+impl ParticipationId {
+    pub fn new() -> ParticipationId {
+        ParticipationId(Uuid::new_v4())
+    }
+}
+
+impl Default for VerificationKey {
+    fn default() -> Self {
+        VerificationKey::Sodium { 
+            key: vec![0; 32]
+        }
+    }
+}
+
 // impl From<&'static str> for AgentId {
 //     fn from(s: &'static str) -> AgentId {
 //         AgentId(Uuid::from(s))

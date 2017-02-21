@@ -22,7 +22,7 @@ pub trait ShareGeneratorConstruction {
 
 impl ShareGeneratorConstruction for LinearSecretSharingScheme {
 
-    fn new_share_generator<'a>(&self) -> SdaClientResult<Box<ShareGenerator>> {
+    fn new_share_generator(&self) -> SdaClientResult<Box<ShareGenerator>> {
 
         match *self {
 
@@ -112,7 +112,7 @@ impl<G: BatchShareGenerator> ShareGenerator for G {
 
 }
 
-struct AdditiveSecretSharing {
+pub struct AdditiveSecretSharing {
     share_count: usize,
     modulus: i64,
     rng: OsRng,

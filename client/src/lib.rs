@@ -12,16 +12,24 @@ extern crate sodiumoxide;
 extern crate integer_encoding;
 extern crate rand;
 
+
+mod errors;
 mod crypto;
 mod trust;
-mod user;
+// mod identity;
+mod discover;
+mod participate;
 // mod clerk;
 
-use crypto::*;
+pub use errors::*;
 pub use sda_protocol::*;
+use crypto::*;
 pub use trust::*;
-pub use user::*;
+// pub use identity::*;
+pub use discover::*;
+pub use participate::*;
 // pub use clerk::*;
+
 
 pub struct SdaClient<T, S> {
     agent: Agent,
@@ -38,20 +46,3 @@ impl<T, S> SdaClient<T, S> {
         }
     }
 }
-
-mod errors {
-    error_chain!{
-        types {
-            SdaClientError, SdaClientErrorKind, SdaClientResultExt, SdaClientResult;
-        }
-        foreign_links {
-            Protocol(::sda_protocol::SdaError);
-            Io(::std::io::Error);
-            SerdeJson(::serde_json::Error);
-            NumParseInt(::std::num::ParseIntError);
-            TimeSystemTime(::std::time::SystemTimeError);
-        }
-
-    }
-}
-pub use errors::*;

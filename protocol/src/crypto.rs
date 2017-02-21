@@ -1,6 +1,49 @@
 
 //! Parameters for the cryptographic primitives supported by the system.
 
+use super::*;
+
+pub type RawData = Vec<u8>;
+
+#[derive(Debug)]
+pub struct Encryption(pub RawData);
+pub struct Signature(pub RawData);
+
+pub struct EncryptionKey(pub RawData);
+
+#[derive(Clone)]
+pub enum SigningKey {
+
+    Sodium {
+        key: Vec<u8>, // TODO replace with [u8; 64]
+    }
+
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub enum VerificationKey {
+
+    Sodium {
+        key: Vec<u8>, // TODO replace with [u8; 32]
+    }
+
+}
+
+/// Supported masking schemes and their parameters.
+pub enum LinearMaskingScheme {
+
+    None,
+
+    // Seeded {
+    //     modulus: i64,
+    // },
+
+    Full {
+        modulus: i64,
+    },
+
+}
+
 /// Supported secret sharing schemes and their parameters.
 pub enum LinearSecretSharingScheme {
 
@@ -33,7 +76,7 @@ pub enum LinearSecretSharingScheme {
         omega_secrets: i64,
         /// TODO
         omega_shares: i64,
-    }
+    },
 
 }
 
