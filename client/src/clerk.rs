@@ -28,8 +28,6 @@ impl<T, S> Clerk for SdaClient<T, S>
     }
 
     fn clerk_once(&self) -> SdaClientResult<bool> {
-        // pull any pending job
-        // TODO better way of doing this?
         match self.sda_service.pull_clerking_job(&self.agent, &self.agent.id)? {
             None => {
                 Ok(false)

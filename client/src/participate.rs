@@ -27,56 +27,24 @@ impl<T, S> Participate for SdaClient<T, S>
 
     fn quickjoin_aggregation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<Aggregation> {
 
-        let aggregation = self.sda_service.pull_aggregation(&self.agent, aggregation_id)?
-            .ok_or("Aggregation not found on service")?;
-
-        // make sure we have committee
-        let committee = if self.trust_store.has_committee(&aggregation.committee)? {
-            self.trust_store.load_committee(&aggregation.committee)?
-        } else {
-            self.sda_service.pull_committee(&self.agent, &aggregation.committee)?
-                .ok_or("Committee not found on service")?
-        };
-
-        // make sure we have keyset
-        let keyset = if self.trust_store.has_keyset(&aggregation.keyset)? {
-            self.trust_store.load_keyset(&aggregation.keyset)?
-        } else {
-            self.sda_service.pull_keyset(&self.agent, &aggregation.keyset)?
-                .ok_or("Keyset not found on service")?
-        };
-        let keys = &keyset.keys;
+        // make sure we have objects of interest
+        let aggregation = self.fetch_aggregation(aggregation_id)?;
+        let committee = self.fetch_committee(&aggregation.committee)?;
+        let keyset = self.fetch_keyset(&aggregation.keyset)?;
 
         // make sure keyset checks out with recipient and clerks
-        if keys.len() != 1 + committee.clerks.len() { 
+        if keyset.keys.len() != 1 + committee.clerks.len() { 
             Err("Sizes of keyset and committee do not match")?
         }
-        if !keys.contains_key(&aggregation.recipient) { 
+        if !keyset.keys.contains_key(&aggregation.recipient) { 
             Err("Keyset is missing key for recipient")?
         }
-        if !committee.clerks.iter().all(|clerk_id| { keys.contains_key(clerk_id) }) {
-            Err("Keyset is missing key for clerk")?
+        if !committee.clerks.iter().all(|clerk_id| { keyset.keys.contains_key(clerk_id) }) {
+            Err("Keyset is missing key for some clerks")?
         }
 
         // make sure the signatures on the encryption keys in keyset check out
-        for (owner, associated_key) in keys.iter() {
-
-            // make sure we have the verification key
-            let profile = if self.trust_store.has_profile(&owner)? {
-                self.trust_store.load_profile(&owner)?
-            } else {
-                self.sda_service.pull_profile(&self.agent, &owner)?
-                    .ok_or("Profile not found on service")?
-            };
-            let verification_key = profile.verification_key;
-
-            // verify that the signature checks out for the encryption key
-            let signature = &associated_key.signature;
-            let encryption_key = &associated_key.key;
-            if !self.trust_store.verify_signature(signature, &encryption_key.0, &verification_key)? {
-                Err("Signature verification failed for encryption key")?
-            }
-        }
+        self.verify_keys_in_keyset(&keyset)?;
 
         // save if we made it this far
         self.trust_store.save_keyset(&keyset)?;
@@ -106,7 +74,7 @@ impl<T, S> Participate for SdaClient<T, S>
 
         // encryptions for the participation; we'll fill this one up as we go along
         use std::collections::HashMap;
-        let mut encryptions: HashMap<AgentId, Vec<Encryption>> = HashMap::new(); //<AgentId, Vec<Encryption>>;
+        let mut encryptions: HashMap<AgentId, Vec<Encryption>> = HashMap::new();
 
         // mask the secrets
         let mut secret_masker = aggregation.masking_scheme.new_secret_masker()?;
@@ -118,7 +86,6 @@ impl<T, S> Participate for SdaClient<T, S>
         let mask_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key.key)?;
         let recipient_encryptions = mask_encryptor.encrypt(&*recipient_mask);
         // .. and add to collection
-        println!("{:?}", &recipient_encryptions);
         encryptions.insert(aggregation.recipient.clone(), recipient_encryptions);
 
         // share the committee's masked secrets: each inner vector corresponds to the shares of a single clerk
@@ -154,6 +121,64 @@ impl<T, S> Participate for SdaClient<T, S>
 
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()> {
         Ok(self.sda_service.push_participation(&self.agent, input)?)
+    }
+
+}
+
+impl<T, S> SdaClient<T, S>
+    where
+        T: TrustStore,
+        S: SdaDiscoveryService,
+ {
+
+    fn verify_keys_in_keyset(&self, keyset: &Keyset) -> SdaClientResult<()> {
+
+        for (owner, associated_key) in keyset.keys.iter() {
+
+            // make sure we have the verification key
+            let profile = if self.trust_store.has_profile(&owner)? {
+                self.trust_store.load_profile(&owner)?
+            } else {
+                self.sda_service.pull_profile(&self.agent, &owner)?
+                    .ok_or("Profile not found on service")?
+            };
+            let verification_key = profile.verification_key;
+
+            // verify that the signature checks out for the encryption key
+            let signature = &associated_key.signature;
+            let encryption_key = &associated_key.key;
+            if !self.trust_store.verify_signature(signature, &encryption_key.0, &verification_key)? {
+                Err("Signature verification failed for encryption key")?
+            }
+        }
+
+        Ok(())
+    }
+
+    fn fetch_aggregation(&self, aggregation: &AggregationId) -> SdaClientResult<Aggregation> {
+        // TODO better way of wrapping?
+        Ok(self.sda_service.pull_aggregation(&self.agent, aggregation)?
+            .ok_or("Aggregation not found on service")?)
+    }
+
+    fn fetch_committee(&self, committee: &CommitteeId) -> SdaClientResult<Committee> {
+        if self.trust_store.has_committee(committee)? {
+            self.trust_store.load_committee(committee)
+        } else {
+            // TODO better way of wrapping?
+            Ok(self.sda_service.pull_committee(&self.agent, committee)?
+                .ok_or("Committee not found on service")?)
+        }
+    }
+
+    fn fetch_keyset(&self, keyset: &KeysetId) -> SdaClientResult<Keyset> {
+        if self.trust_store.has_keyset(&keyset)? {
+            self.trust_store.load_keyset(&keyset)
+        } else {
+            // TODO better way of wrapping?
+            Ok(self.sda_service.pull_keyset(&self.agent, &keyset)?
+                .ok_or("Keyset not found on service")?)
+        }
     }
 
 }
