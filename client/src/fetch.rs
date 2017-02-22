@@ -6,17 +6,17 @@ pub trait Fetch<ID, O> {
     fn fetch(&self, id: &ID) -> SdaClientResult<O>;
 }
 
-pub trait FetchAndSave<ID, O> {
-    fn fetch_and_save(&mut self, id: &ID) -> SdaClientResult<O>;
+pub trait CachedFetch<ID, O> {
+    fn cached_fetch(&mut self, id: &ID) -> SdaClientResult<O>;
 }
 
 /// Generic implementation combining fetching and storage.
-impl<ID, O, T> FetchAndSave<ID, O> for T
+impl<ID, O, T> CachedFetch<ID, O> for T
     where
         T: Store<ID, O>,
         T: Fetch<ID, O>,
 {
-    fn fetch_and_save(&mut self, id: &ID) -> SdaClientResult<O> {
+    fn cached_fetch(&mut self, id: &ID) -> SdaClientResult<O> {
         if self.has(id)? {
             self.load(id)
         } else {

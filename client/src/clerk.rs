@@ -60,6 +60,7 @@ impl<L, I, S> Clerk for SdaClient<L, I, S>
 impl<L, I, S> SdaClient<L, I, S> {
 
     fn process_job(&self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
+        // TODO
         unimplemented!()
     }
 

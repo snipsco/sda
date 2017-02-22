@@ -3,30 +3,27 @@
 
 use super::*;
 
-pub type RawData = Vec<u8>;
 
 #[derive(Debug)]
-pub struct Encryption(pub RawData);
-pub struct Signature(pub RawData);
-
-pub struct EncryptionKey(pub RawData);
-
-#[derive(Clone)]
-pub enum SigningKey {
-
-    Sodium {
-        key: Vec<u8>, // TODO replace with [u8; 64]
-    }
-
+pub enum Encryption {
+    Sodium(Vec<u8>)
 }
 
-#[derive(Clone, Eq, PartialEq)]
+pub enum Signature {
+    Sodium([u8; 64])
+}
+
+pub enum EncryptionKey {
+    Sodium([u8; 0]) // TODO what is right size?
+}
+
+pub enum SigningKey {
+    Sodium([u8; 64])
+}
+
+#[derive(Eq, PartialEq)]
 pub enum VerificationKey {
-
-    Sodium {
-        key: Vec<u8>, // TODO replace with [u8; 32]
-    }
-
+    Sodium([u8; 32])
 }
 
 /// Supported masking schemes and their parameters.

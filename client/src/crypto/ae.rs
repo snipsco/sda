@@ -25,9 +25,9 @@ impl EncryptorConstruction for AdditiveEncryptionScheme {
 
     fn new_share_encryptor(&self, ek: &EncryptionKey) -> SdaClientResult<Box<ShareEncryptor>> {
 
-        match *self {
+        match (self, ek) {
 
-            AdditiveEncryptionScheme::Sodium {} => {
+            (&AdditiveEncryptionScheme::Sodium{}, &EncryptionKey::Sodium(raw_ek)) => {
 
                 // initialise Sodium per recommendations; 
                 // documentation hints it's okay to do so more than once but we'll play it safe
@@ -35,7 +35,7 @@ impl EncryptorConstruction for AdditiveEncryptionScheme {
                     sodiumoxide::init();
                 });
 
-                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*ek.0)
+                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
 
                 let encryptor = SodiumWrapper {
@@ -69,7 +69,7 @@ impl ShareEncryptor for SodiumWrapper {
         }
         // encrypt
         let raw_data = sodiumoxide::crypto::sealedbox::seal(&*encoded_values, &self.pk);
-        vec![Encryption(raw_data)]
+        vec![Encryption::Sodium(raw_data)]
     }
 
 }

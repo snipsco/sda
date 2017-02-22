@@ -21,7 +21,7 @@ pub trait Participate {
 
 }
 
-impl<L, I, S> Participate for SdaClient<L, I, S>
+impl<L,I,S> Participate for SdaClient<L,I,S>
     where
         L: Store<AggregationId, Aggregation>,
         L: Store<CommitteeId, Committee>,
@@ -34,9 +34,9 @@ impl<L, I, S> Participate for SdaClient<L, I, S>
     fn quickjoin_aggregation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
 
         // fetch objects of interest and save if successful
-        let aggregation = self.fetch_and_save(aggregation_id)?;
-        let committee = self.fetch_and_save(&aggregation.committee)?;
-        let keyset = self.fetch_and_save(&aggregation.keyset)?;
+        let aggregation = self.cached_fetch(aggregation_id)?;
+        let committee = self.cached_fetch(&aggregation.committee)?;
+        let keyset = self.cached_fetch(&aggregation.keyset)?;
 
         // make sure keyset checks out with recipient and clerks
         if keyset.keys.len() != 1 + committee.clerks.len() { 
@@ -130,28 +130,19 @@ impl<L, I, S> Participate for SdaClient<L, I, S>
 
 }
 
-impl<L, I, S> SdaClient<L, I, S>
+impl<L,I,S> SdaClient<L,I,S>
     where
         L: Store<AgentId, Profile>
  {
 
     fn verify_keys_in_keyset(&self, keyset: &Keyset) -> SdaClientResult<()> {
-
-        for (owner, associated_key) in keyset.keys.iter() {
-
-            // get corresponding profile and verification key
-            let profile = self.local_store.load(&owner)?;
-            let verification_key = profile.verification_key;
-
-            // verify that the signature checks out for the encryption key
-            let signature = &associated_key.signature;
-            let encryption_key = &associated_key.key;
-            // TODO
-            if !self.trust_store.verify_signature(signature, &encryption_key.0, &verification_key)? {
+        for (claimed_owner, associated_key) in keyset.keys.iter() {
+            // load profile for claimed owner and verify that the signature checks out for the encryption key
+            let profile = self.local_store.load(&claimed_owner)?;
+            if !profile.signature_is_valid(&associated_key)? {
                 Err("Signature verification failed for encryption key")?
             }
         }
-
         Ok(())
     }
 

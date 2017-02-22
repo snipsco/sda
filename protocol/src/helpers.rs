@@ -24,8 +24,22 @@ impl ParticipationId {
 
 impl Default for VerificationKey {
     fn default() -> Self {
-        VerificationKey::Sodium { 
-            key: vec![0; 32]
+        VerificationKey::Sodium([0; 32])
+    }
+}
+
+impl Clone for SigningKey {
+    fn clone(&self) -> Self {
+        match self {
+            &SigningKey::Sodium(raw_sk) => SigningKey::Sodium(raw_sk)
+        }
+    }
+}
+
+impl Clone for VerificationKey {
+    fn clone(&self) -> Self {
+        match self {
+            &VerificationKey::Sodium(raw_vk) => VerificationKey::Sodium(raw_vk)
         }
     }
 }
