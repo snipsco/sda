@@ -1,8 +1,6 @@
 
 //! Parameters for the cryptographic primitives supported by the system.
 
-use super::*;
-
 
 #[derive(Debug)]
 pub enum Encryption {
@@ -28,15 +26,11 @@ pub enum VerificationKey {
 
 /// Supported masking schemes and their parameters.
 pub enum LinearMaskingScheme {
-
+    
     None,
 
-    // Seeded {
-    //     modulus: i64,
-    // },
-
-    Full {
-        modulus: i64,
+    Full { 
+        modulus: i64 
     },
 
 }
@@ -154,5 +148,5 @@ impl AdditiveEncryptionScheme {
             &AdditiveEncryptionScheme::PackedPaillier { component_count, .. } => component_count
         }
     }
-
+    
 }

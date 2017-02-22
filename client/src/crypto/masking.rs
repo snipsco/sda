@@ -12,9 +12,7 @@ pub trait SecretMaskerConstruction {
 }
 
 impl SecretMaskerConstruction for LinearMaskingScheme {
-
     fn new_secret_masker(&self) -> SdaClientResult<Box<SecretMasker>> {
-
         match *self {
 
             LinearMaskingScheme::None => {
@@ -22,21 +20,10 @@ impl SecretMaskerConstruction for LinearMaskingScheme {
                 Ok(Box::new(masker))
             },
 
-            // LinearMaskingScheme::Full { modulus } => {
-            //     let generator = AdditiveSecretSharing {
-            //         share_count: 2,
-            //         modulus: modulus,
-            //         rng: OsRng::new()?,
-            //     };
-            //     Ok(Box::new(generator))
-            // },
-
-            // TODO implement
             _ => unimplemented!(),
+
         }
-
     }
-
 }
 
 struct NoneMasker {}

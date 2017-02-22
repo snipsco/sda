@@ -19,12 +19,16 @@ pub use self::ae::*;
 
 // TODO which module should the below belong to?
 
+pub enum DecryptionKey {
+    Sodium([u8; 0]) // TODO what is the right size?
+}
+
 pub trait SignatureVerification<O> {
     fn signature_is_valid(&self, object: &O) -> SdaClientResult<bool>;
 }
 
-impl SignatureVerification<AssociatedEncryptionKey> for Profile {
-    fn signature_is_valid(&self, signed_encryption_key: &AssociatedEncryptionKey) -> SdaClientResult<bool> {
+impl SignatureVerification<SignedEncryptionKey> for Profile {
+    fn signature_is_valid(&self, signed_encryption_key: &SignedEncryptionKey) -> SdaClientResult<bool> {
 
         let raw_msg = match &signed_encryption_key.key {
             &EncryptionKey::Sodium(raw_ek) => raw_ek

@@ -10,8 +10,6 @@ pub trait TrustPolicy<ID> {
 
 impl<L, I, S> TrustPolicy<AggregationId> for SdaClient<L, I, S> {
     
-    // TODO
-
     fn is_flagged_as_trusted(&self, id: &AggregationId) -> SdaClientResult<bool> {
         unimplemented!()
     }
@@ -27,8 +25,6 @@ impl<L, I, S> TrustPolicy<AggregationId> for SdaClient<L, I, S> {
 }
 
 impl<L, I, S> TrustPolicy<CommitteeId> for SdaClient<L, I, S> {
-    
-    // TODO
 
     fn is_flagged_as_trusted(&self, id: &CommitteeId) -> SdaClientResult<bool> {
         unimplemented!()
@@ -45,8 +41,6 @@ impl<L, I, S> TrustPolicy<CommitteeId> for SdaClient<L, I, S> {
 }
 
 impl<L, I, S> TrustPolicy<KeysetId> for SdaClient<L, I, S> {
-    
-    // TODO
 
     fn is_flagged_as_trusted(&self, id: &KeysetId) -> SdaClientResult<bool> {
         unimplemented!()

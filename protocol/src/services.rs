@@ -32,7 +32,7 @@ pub trait SdaDiscoveryService : SdaService {
     fn update_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaResult<Profile>;
 
     /// Register new encryption key for agent.
-    fn push_encryption_key(&mut self, caller: &Agent, key: &AssociatedEncryptionKey) -> SdaResult<()>;
+    fn push_encryption_key(&mut self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()>;
 
 }
 

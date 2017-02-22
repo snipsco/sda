@@ -63,9 +63,6 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
 
     fn new_participation(&self, input: &ParticipantInput, aggregation: &AggregationId) -> SdaClientResult<Participation> {
 
-        // TODO:
-        // - clock timings
-
         // load objects of interest
         let aggregation = self.local_store.load(aggregation)?;
         let committee = self.local_store.load(&aggregation.committee)?;
@@ -79,7 +76,7 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
         }
 
         // encryptions for the participation; we'll fill this one up as we go along
-        let mut encryptions: HashMap<AgentId, Vec<Encryption>> = HashMap::new();
+        let mut encryptions: HashMap<AgentId, Encryption> = HashMap::new();
 
         // mask the secrets
         let mut secret_masker = aggregation.masking_scheme.new_secret_masker()?;
@@ -89,9 +86,9 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
         let recipient_encryption_key = keyset.keys.get(&aggregation.recipient)
             .ok_or("Could not find encryption key for recipient")?;
         let mask_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key.key)?;
-        let recipient_encryptions = mask_encryptor.encrypt(&*recipient_mask);
+        let recipient_encryption: Encryption = mask_encryptor.encrypt(&*recipient_mask)?;
         // .. and add to collection
-        encryptions.insert(aggregation.recipient.clone(), recipient_encryptions);
+        encryptions.insert(aggregation.recipient.clone(), recipient_encryption);
 
         // share the committee's masked secrets: each inner vector corresponds to the shares of a single clerk
         let mut share_generator = aggregation.committee_sharing_scheme.new_share_generator()?;
@@ -108,9 +105,9 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
 
             // encrypt shares
             let share_encryptor = aggregation.committee_encryption_scheme.new_share_encryptor(&clerk_encryption_key.key)?;
-            let clerk_encryptions = share_encryptor.encrypt(&*clerk_shares);
+            let clerk_encryption: Encryption = share_encryptor.encrypt(&*clerk_shares)?;
             // .. and add to collection
-            encryptions.insert(clerk_id.clone(), clerk_encryptions);
+            encryptions.insert(clerk_id.clone(), clerk_encryption);
         }
 
         // generate fresh id for this participation
@@ -140,7 +137,7 @@ impl<L,I,S> SdaClient<L,I,S>
             // load profile for claimed owner and verify that the signature checks out for the encryption key
             let profile = self.local_store.load(&claimed_owner)?;
             if !profile.signature_is_valid(&associated_key)? {
-                Err("Signature verification failed for encryption key")?
+                Err("Signature verification failed for clerk encryption key")?
             }
         }
         Ok(())

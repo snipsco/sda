@@ -34,10 +34,10 @@ pub struct Committee {
 
 pub struct Keyset {
     pub id: KeysetId,
-    pub keys: HashMap<AgentId, AssociatedEncryptionKey>,
+    pub keys: HashMap<AgentId, SignedEncryptionKey>,
 }
 
-pub struct AssociatedEncryptionKey {
+pub struct SignedEncryptionKey {
     pub key: EncryptionKey,
     pub signature: Signature,
 }
@@ -62,7 +62,7 @@ pub struct Participation {
     pub id: ParticipationId,
     pub participant: AgentId,
     pub aggregation: AggregationId,
-    pub encryptions: HashMap<AgentId, Vec<Encryption>>,
+    pub encryptions: HashMap<AgentId, Encryption>,
 }
 
 pub struct AggregationStatus {
@@ -99,11 +99,12 @@ pub struct Profile {
 /// Partial aggregation job to be performed by a clerk, including all inputs needed.
 pub struct ClerkingJob {
     pub aggregation: AggregationId,
+    pub encryptions: Vec<Encryption>,
 }
 
 /// Result of a partial aggregation job performed by a clerk.
 pub struct ClerkingResult {
     pub clerk: AgentId,
     pub aggregation: AggregationId,
-    // TODO result
+    pub encryption: Encryption,
 }
