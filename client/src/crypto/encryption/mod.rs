@@ -5,6 +5,18 @@ mod sodium;
 
 use super::*;
 
+
+pub trait KeypairGeneration {
+    fn keypair(&self) -> SdaClientResult<(EncryptionKey, DecryptionKey)>;
+}
+
+impl KeypairGeneration for AdditiveEncryptionScheme {
+    fn keypair(&self) -> SdaClientResult<(EncryptionKey, DecryptionKey)> {
+        
+    }
+}
+
+
 pub trait ShareEncryptor {
     /// Encrypt shares.
     fn encrypt(&self, shares: &[Share]) -> SdaClientResult<Encryption>;
@@ -22,8 +34,6 @@ impl EncryptorConstruction for AdditiveEncryptionScheme {
                 let encryptor = sodium::Encryptor::new(ek)?;
                 Ok(Box::new(encryptor))
             },
-
-            _ => unimplemented!(),
 
         }
     }
@@ -47,8 +57,6 @@ impl DecryptorConstruction for AdditiveEncryptionScheme {
                 let decryptor = sodium::Decryptor::new(ek, identity)?;
                 Ok(Box::new(decryptor))
             },
-
-            _ => unimplemented!(),
 
         }
     }

@@ -10,6 +10,8 @@ pub trait Clerk {
     /// Return value indicates whether this was the first time the service saw this clerk.
     fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool>;
 
+    fn register_new_keypair(&mut self, scheme: AdditiveEncryptionScheme) -> SdaClientResult<()>;
+
     /// Execute clerking process once: download, process, and upload the next job pending on the service, if any.
     fn clerk_once(&mut self) -> SdaClientResult<bool>;
 
@@ -33,8 +35,15 @@ impl<L,I,S> Clerk for SdaClient<L,I,S>
         unimplemented!()
     }
 
+    fn register_new_keypair(&mut self, scheme: AdditiveEncryptionScheme) -> SdaClientResult<()> {
+
+        let (pk, sk) = sodiumoxide::crypto::box_::gen_keypair();
+
+    }
+
     fn clerk_once(&mut self) -> SdaClientResult<bool> {
-        match self.sda_service.pull_clerking_job(&self.agent, &self.agent.id)? {
+        let job = self.sda_service.pull_clerking_job(&self.agent, &self.agent.id)?;
+        match job {
             None => {
                 Ok(false)
             },
@@ -76,8 +85,10 @@ impl<L,I,S> SdaClient<L,I,S>
 
     fn process_job(&mut self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
 
-        // TODO is this the right loading policy?
         let aggregation = self.cached_fetch(&job.aggregation)?;
+
+        // TODO what is the right policy for whether we want to help with this aggregation or not?
+
         let keyset = self.cached_fetch(&aggregation.keyset)?;
         let recipient = self.cached_fetch(&aggregation.recipient)?;
         

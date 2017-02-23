@@ -29,9 +29,9 @@ pub enum LinearMaskingScheme {
     
     None,
 
-    Full { 
-        modulus: i64 
-    },
+    // Full { 
+    //     modulus: i64 
+    // },
 
 }
 
@@ -108,34 +108,22 @@ impl LinearSecretSharingScheme {
 
 }
 
-pub enum AdditiveEncryptionKey {
-    
-    Sodium {
-        encryption_key: Vec<u8>
-    },
-
-    PackedPaillier {
-        encryption_key: Vec<u8>
-    },
-
-}
-
 /// Supported additive encryption schemes and their parameters.
 pub enum AdditiveEncryptionScheme {
 
     Sodium,
 
-    PackedPaillier {
-        /// Number of components in a plaintext/ciphertext.
-        component_count: usize,
-        /// Number of bits allocated to each component in a ciphertext.
-        component_bitsize: usize,
-        /// Maximum number of bits each component value may occupy in a fresh ciphertext, i.e.
-        /// in a fresh ciphertext each value must be strictly upper bounded by 2^value_max_bitsize.
-        max_value_bitsize: usize,
-        /// Minimum size of the (plaintext) modulus in bits.
-        min_modulus_bitsize: usize,
-    }
+    // PackedPaillier {
+    //     /// Number of components in a plaintext/ciphertext.
+    //     component_count: usize,
+    //     /// Number of bits allocated to each component in a ciphertext.
+    //     component_bitsize: usize,
+    //     /// Maximum number of bits each component value may occupy in a fresh ciphertext, i.e.
+    //     /// in a fresh ciphertext each value must be strictly upper bounded by 2^value_max_bitsize.
+    //     max_value_bitsize: usize,
+    //     /// Minimum size of the (plaintext) modulus in bits.
+    //     min_modulus_bitsize: usize,
+    // }
 
 }
 
@@ -145,7 +133,7 @@ impl AdditiveEncryptionScheme {
     pub fn batch_size(&self) -> usize {
         match self {
             &AdditiveEncryptionScheme::Sodium {..} => 1,
-            &AdditiveEncryptionScheme::PackedPaillier { component_count, .. } => component_count
+            // &AdditiveEncryptionScheme::PackedPaillier { component_count, .. } => component_count
         }
     }
     

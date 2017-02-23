@@ -11,6 +11,9 @@ pub struct AgentId(pub Uuid);
 #[derive(Debug)]
 pub struct ParticipationId(pub Uuid);
 
+#[derive(Debug)]
+pub struct SignedEncryptionKeyId(pub Uuid);
+
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub struct KeysetId(pub Uuid);
 
@@ -32,12 +35,9 @@ pub struct Committee {
     pub clerks: Vec<AgentId>,
 }
 
-pub struct Keyset {
-    pub id: KeysetId,
-    pub keys: HashMap<AgentId, SignedEncryptionKey>,
-}
-
 pub struct SignedEncryptionKey {
+    pub id: SignedEncryptionKeyId,
+    pub owner: AgentId,
     pub key: EncryptionKey,
     pub signature: Signature,
 }
@@ -49,11 +49,20 @@ pub struct Aggregation {
     // pub modulus: i64,  // TODO move here instead of in the primitives?
     pub recipient: AgentId,
     pub committee: CommitteeId,
-    pub keyset: KeysetId,
+    pub keys: Vec<SignedEncryptionKeyId>,
     pub masking_scheme: LinearMaskingScheme,
     pub committee_sharing_scheme: LinearSecretSharingScheme,
     pub recipient_encryption_scheme: AdditiveEncryptionScheme,
     pub committee_encryption_scheme: AdditiveEncryptionScheme,
+}
+
+/// Keys to be used with an aggregation. 
+///
+/// Having it as a separate resource allows clerks to save a bit on download in case they
+/// already have it in cache.
+pub struct Keyset {
+    pub id: KeysetId,
+    pub keys: HashMap<AgentId, SignedEncryptionKeyId>,
 }
 
 /// Description of an user's input to an aggregation.

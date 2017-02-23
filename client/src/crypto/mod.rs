@@ -9,12 +9,12 @@ pub type MaskedSecret = i64;
 pub type Share = i64;
 
 mod masking;
-mod lss;
-mod ae;
+mod sharing;
+mod encryption;
 
 pub use self::masking::*;
-pub use self::lss::*;
-pub use self::ae::*;
+pub use self::sharing::*;
+pub use self::encryption::*;
 
 
 // TODO which module should the below belong to?

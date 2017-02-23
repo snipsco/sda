@@ -22,8 +22,9 @@ impl BatchShareGenerator for AdditiveSecretSharing {
         assert_eq!(batch_input.len(), 1);
         let secret = batch_input[0];
 
-        // TODO we assume that the values are really i32 to prevent overflow -- make this explicit!!
-        // TODO specifically, that self.modulus fits within i32
+        // NOTE
+        // we assume that the values are really i32 to prevent overflow -- make this explicit!!
+        // specifically, that self.modulus fits within i32
 
         // pick share_count - 1 random values from group
         let mut shares: Vec<Share> = repeat(self.rng.gen_range(0_i64, self.modulus))

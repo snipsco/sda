@@ -1,4 +1,13 @@
 
+//! SDA services.
+///
+/// These follow the resource-oriented API design philosophy.
+
+// TODO use Google naming convension? 
+// - List, Get, Create, Update, and Delete;
+//   see https://cloud.google.com/apis/design/standard_methods
+//   and https://cloud.google.com/apis/design/custom_methods
+
 use super::*;
 
 /// Basic operations for all SDA services.
