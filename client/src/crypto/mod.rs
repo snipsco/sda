@@ -23,12 +23,40 @@ pub enum DecryptionKey {
     Sodium([u8; 0]) // TODO what is the right size?
 }
 
+
+// pub trait Signee {
+//     fn signer(&self) -> AgentId;
+//     fn signed(&self) -> Vec<u8>;
+//     fn signature(&self) -> Signature;
+// }
+
+// impl Signee for SignedEncryptionKey {
+//     fn signer(&self) -> AgentId {
+//         self.owner
+//     }
+//     fn signed(&self) -> {
+//         self.
+//     }
+//     fn signature(&self) -> Signature {
+//         self.signature
+//     }
+// }
+
+// impl<T: Signer, U: Signee> SignatureVerification<U> for T {
+//     fn signature_is_valid(&self, object: U) -> SdaClientResult<bool> {
+
+//     }
+// }
+
+
 pub trait SignatureVerification<O> {
     fn signature_is_valid(&self, object: &O) -> SdaClientResult<bool>;
 }
 
 impl SignatureVerification<SignedEncryptionKey> for Profile {
     fn signature_is_valid(&self, signed_encryption_key: &SignedEncryptionKey) -> SdaClientResult<bool> {
+
+        // TODO remember result to avoid running verification more than once
 
         let raw_msg = match &signed_encryption_key.key {
             &EncryptionKey::Sodium(raw_ek) => raw_ek
@@ -46,8 +74,6 @@ impl SignatureVerification<SignedEncryptionKey> for Profile {
                 Ok(is_valid)
             },
 
-            _ => unimplemented!()
         }
-
     }
 }

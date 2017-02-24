@@ -45,14 +45,14 @@ pub enum LinearSecretSharingScheme {
         modulus: i64,
     },
 
-    BasicShamir {
-        /// Number of shares to generate for each secret.
-        share_count: usize,
-        /// Number of shares needed to reconstruct.
-        privacy_threshold: usize,
-        /// Prime number specifying the prime field in which to operate.
-        prime_modulus: i64,
-    },
+    // BasicShamir {
+    //     /// Number of shares to generate for each secret.
+    //     share_count: usize,
+    //     /// Number of shares needed to reconstruct.
+    //     privacy_threshold: usize,
+    //     /// Prime number specifying the prime field in which to operate.
+    //     prime_modulus: i64,
+    // },
 
     PackedShamir {
         /// Dimension of secrets, i.e. number of components in vector.
@@ -77,7 +77,7 @@ impl LinearSecretSharingScheme {
     pub fn input_size(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive {..} => 1,
-            LinearSecretSharingScheme::BasicShamir {..} => 1,
+            // LinearSecretSharingScheme::BasicShamir {..} => 1,
             LinearSecretSharingScheme::PackedShamir { secret_count, .. } => secret_count,
         }
     }
@@ -85,7 +85,7 @@ impl LinearSecretSharingScheme {
     pub fn output_size(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive { share_count, .. } => share_count,
-            LinearSecretSharingScheme::BasicShamir { share_count, .. } => share_count,
+            // LinearSecretSharingScheme::BasicShamir { share_count, .. } => share_count,
             LinearSecretSharingScheme::PackedShamir { share_count, .. } => share_count,
         }
     }
@@ -93,7 +93,7 @@ impl LinearSecretSharingScheme {
     pub fn privacy_threshold(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive { share_count, .. } => share_count - 1,
-            LinearSecretSharingScheme::BasicShamir { privacy_threshold, .. } => privacy_threshold,
+            // LinearSecretSharingScheme::BasicShamir { privacy_threshold, .. } => privacy_threshold,
             LinearSecretSharingScheme::PackedShamir { privacy_threshold, .. } => privacy_threshold,
         }
     }
@@ -101,7 +101,7 @@ impl LinearSecretSharingScheme {
     pub fn reconstruction_threshold(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive { share_count, .. } => share_count,
-            LinearSecretSharingScheme::BasicShamir { privacy_threshold, .. } => privacy_threshold + 1,
+            // LinearSecretSharingScheme::BasicShamir { privacy_threshold, .. } => privacy_threshold + 1,
             LinearSecretSharingScheme::PackedShamir { privacy_threshold, secret_count, .. } => privacy_threshold + secret_count,
         }
     }

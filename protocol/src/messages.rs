@@ -49,20 +49,13 @@ pub struct Aggregation {
     // pub modulus: i64,  // TODO move here instead of in the primitives?
     pub recipient: AgentId,
     pub committee: CommitteeId,
-    pub keys: Vec<SignedEncryptionKeyId>,
+
+    /// Note that this could simply be a vector, but it's easier to work with a map for both participants and clerks
+    pub keyset: HashMap<AgentId, SignedEncryptionKeyId>,
     pub masking_scheme: LinearMaskingScheme,
     pub committee_sharing_scheme: LinearSecretSharingScheme,
     pub recipient_encryption_scheme: AdditiveEncryptionScheme,
     pub committee_encryption_scheme: AdditiveEncryptionScheme,
-}
-
-/// Keys to be used with an aggregation. 
-///
-/// Having it as a separate resource allows clerks to save a bit on download in case they
-/// already have it in cache.
-pub struct Keyset {
-    pub id: KeysetId,
-    pub keys: HashMap<AgentId, SignedEncryptionKeyId>,
 }
 
 /// Description of an user's input to an aggregation.

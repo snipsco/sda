@@ -40,22 +40,6 @@ impl<L, I, S> TrustPolicy<CommitteeId> for SdaClient<L, I, S> {
 
 }
 
-impl<L, I, S> TrustPolicy<KeysetId> for SdaClient<L, I, S> {
-
-    fn is_flagged_as_trusted(&self, id: &KeysetId) -> SdaClientResult<bool> {
-        unimplemented!()
-    }
-
-    fn flag_as_trusted(&mut self, id: &KeysetId) -> SdaClientResult<()> {
-        unimplemented!()
-    }
-
-    fn unflag_as_trusted(&mut self, id: &KeysetId) -> SdaClientResult<()> {
-        unimplemented!()
-    }
-
-}
-
 
 
 

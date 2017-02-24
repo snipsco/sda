@@ -55,13 +55,12 @@ pub struct Decryptor {
 }
 
 impl Decryptor {
-    pub fn new<I>(ek: &EncryptionKey, identity: &I) -> SdaClientResult<Decryptor>
-        where I: ExportDecryptionKey
+    pub fn new<KS>(id: &SignedEncryptionKeyId, key_store: &KS) -> SdaClientResult<Decryptor>
+        where KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>
     {
-        let dk = &identity.export_decryption_key(ek)?;
-        match (ek, dk) {
+        match key_store.export_decryption_key(id)? {
 
-            (&EncryptionKey::Sodium(raw_ek), &DecryptionKey::Sodium(raw_dk)) => {
+            (EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk)) => {
 
                 let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;

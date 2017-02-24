@@ -15,12 +15,10 @@ extern crate sda_protocol;
 
 mod errors;
 mod crypto;
-mod store;
+mod keystore;
 mod trust;
-mod identity;
-mod fetch;
+mod service;
 // mod profile;
-mod discover;
 mod participate;
 mod clerk;
 
@@ -28,29 +26,27 @@ mod clerk;
 pub use sda_protocol::*;
 pub use errors::*;
 use crypto::*;
-use store::*;
+use keystore::*;
 use trust::*;
-use identity::*;
-use fetch::*;
+use service::*;
 // pub use profile::*;
-pub use discover::{Discover};
 pub use participate::{Participate};
 pub use clerk::{Clerk};
 
 
-pub struct SdaClient<L, I, S> {
+ pub struct SdaClient<C, K, S> {
     agent: Agent,
-    local_store: L,
-    identity: I,
+    cache: C,
+    key_store: K,
     sda_service: S,
 }
 
-impl<L, I, S> SdaClient<L, I, S> {
-    pub fn new(agent: Agent, local_store: L, identity: I, sda_service: S) -> SdaClient<L, I, S> {
+impl<C, K, S> SdaClient<C, K, S> {
+    pub fn new(agent: Agent, cache: C, key_store: K, sda_service: S) -> SdaClient<C, K, S> {
         SdaClient {
             agent: agent,
-            local_store: local_store,
-            identity: identity,
+            cache: cache,
+            key_store: key_store,
             sda_service: sda_service,
         }
     }

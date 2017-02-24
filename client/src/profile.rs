@@ -1,6 +1,24 @@
 
 use super::*;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 pub trait IdentityManagement {
 
     fn new_profile(&mut self) -> SdaClientResult<Profile>;
@@ -40,6 +58,17 @@ impl<L, I, S> IdentityManagement for SdaClient<L, I, S>
 
     fn upload_profile(&mut self, profile: &Profile) -> SdaClientResult<Profile> {
         Ok(self.sda_service.update_profile(&self.agent, profile)?)
+    }
+
+}
+
+impl<L,I,S> SdaClient<L,I,S> {
+
+    fn register_new_encryption_key(&mut self, scheme: AdditiveEncryptionScheme) -> SdaClientResult<()> {
+        
+        //
+        let (pk, sk) = sodiumoxide::crypto::box_::gen_keypair();
+
     }
 
 }

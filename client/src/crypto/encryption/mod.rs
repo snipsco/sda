@@ -5,14 +5,14 @@ mod sodium;
 
 use super::*;
 
-
-pub trait KeypairGeneration {
-    fn keypair(&self) -> SdaClientResult<(EncryptionKey, DecryptionKey)>;
+pub trait GenerateKeypair {
+    fn new_keypair(&self) -> SdaClientResult<(EncryptionKey, DecryptionKey)>;
 }
 
-impl KeypairGeneration for AdditiveEncryptionScheme {
-    fn keypair(&self) -> SdaClientResult<(EncryptionKey, DecryptionKey)> {
-        
+impl GenerateKeypair for AdditiveEncryptionScheme {
+    fn new_keypair(&self) -> SdaClientResult<(EncryptionKey, DecryptionKey)> {
+        // TODO
+        unimplemented!()
     }
 }
 
@@ -45,16 +45,18 @@ pub trait ShareDecryptor {
     fn decrypt(&self, encryption: &Encryption) -> SdaClientResult<Vec<Share>>;
 }
 
-pub trait DecryptorConstruction {
-    fn new_share_decryptor<I: ExportDecryptionKey>(&self, ek: &EncryptionKey, identity: &I) -> SdaClientResult<Box<ShareDecryptor>>;
+pub trait DecryptorConstruction<ID, KS> {
+    fn new_share_decryptor(&self, id: &ID, key_store: &KS) -> SdaClientResult<Box<ShareDecryptor>>;
 }
 
-impl DecryptorConstruction for AdditiveEncryptionScheme {
-    fn new_share_decryptor<I: ExportDecryptionKey>(&self, ek: &EncryptionKey, identity: &I) -> SdaClientResult<Box<ShareDecryptor>> {
+impl<KS> DecryptorConstruction<SignedEncryptionKeyId, KS> for AdditiveEncryptionScheme
+    where KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>
+{
+    fn new_share_decryptor(&self, id: &SignedEncryptionKeyId, key_store: &KS) -> SdaClientResult<Box<ShareDecryptor>> {
         match self {
 
             &AdditiveEncryptionScheme::Sodium => {
-                let decryptor = sodium::Decryptor::new(ek, identity)?;
+                let decryptor = sodium::Decryptor::new(id, key_store)?;
                 Ok(Box::new(decryptor))
             },
 

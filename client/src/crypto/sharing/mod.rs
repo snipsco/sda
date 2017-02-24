@@ -48,8 +48,6 @@ impl ShareGeneratorConstruction for LinearSecretSharingScheme {
                 Ok(Box::new(generator))
             },
 
-            _ => unimplemented!(),
-
         }
     }
 }
@@ -127,6 +125,7 @@ impl ShareCombinerConstruction for LinearSecretSharingScheme {
                 Ok(Box::new(combiner))
             },
 
+            // TODO
             _ => unimplemented!(),
 
         }

@@ -9,8 +9,6 @@ pub trait Discover {
 
     fn pull_committee(&self, committee: &CommitteeId) -> SdaClientResult<Option<Committee>>;
 
-    fn pull_keyset(&self, keyset: &KeysetId) -> SdaClientResult<Option<Keyset>>;
-
 }
 
 impl<L, I, S> Discover for SdaClient<L, I, S>
@@ -28,10 +26,6 @@ impl<L, I, S> Discover for SdaClient<L, I, S>
 
     fn pull_committee(&self, committee: &CommitteeId) -> SdaClientResult<Option<Committee>> {
         Ok(self.sda_service.pull_committee(&self.agent, committee)?)
-    }
-
-    fn pull_keyset(&self, keyset: &KeysetId) -> SdaClientResult<Option<Keyset>> {
-        Ok(self.sda_service.pull_keyset(&self.agent, keyset)?)
     }
 
 }

@@ -8,13 +8,14 @@ use super::*;
 
 pub trait Participate {
 
-    fn quickjoin_aggregation(&mut self, aggregation: &AggregationId) -> SdaClientResult<()>;
+    /// This will store relevant objects in cache to enable offline computation of `new_participation`.
+    fn preload_for_participation(&mut self, aggregation: &AggregationId) -> SdaClientResult<()>;
 
     /// Create a new participation to the given aggregation.
     ///
-    /// Having this as a seperate method allows retrying in case of network failure without risk
-    /// of recomputation and double participation.
-    fn new_participation(&self, input: &ParticipantInput, aggregation: &AggregationId) -> SdaClientResult<Participation>;
+    /// Having this as a seperate method allows background computation and retrying in case of network failure,
+    /// without risk of recomputation and double participation.
+    fn new_participation(&mut self, input: &ParticipantInput, aggregation: &AggregationId, enforce_trusted: bool) -> SdaClientResult<Participation>;
 
     /// Upload participation to the service.
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()>;
@@ -23,56 +24,41 @@ pub trait Participate {
 
 impl<L,I,S> Participate for SdaClient<L,I,S>
     where
-        L: Store<AggregationId, Aggregation>,
-        L: Store<CommitteeId, Committee>,
-        L: Store<KeysetId, Keyset>,
-        L: Store<AgentId, Profile>,
+        L: Cache<AggregationId, Aggregation>,
+        L: Cache<CommitteeId, Committee>,
+        L: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
+        L: Cache<AgentId, Profile>,
         S: SdaDiscoveryService,
         S: SdaParticipationService,
 {
 
-    fn quickjoin_aggregation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
-
-        // fetch objects of interest and save if successful
+    fn preload_for_participation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
         let aggregation = self.cached_fetch(aggregation_id)?;
         let committee = self.cached_fetch(&aggregation.committee)?;
-        let keyset = self.cached_fetch(&aggregation.keyset)?;
-
-        // make sure keyset checks out with recipient and clerks
-        if keyset.keys.len() != 1 + committee.clerks.len() { 
-            Err("Sizes of keyset and committee do not match")?
+        for (owner_id, key_id) in aggregation.keyset.iter() {
+            let _: Profile = self.cached_fetch(owner_id)?;
+            let _: SignedEncryptionKey = self.cached_fetch(key_id)?;
         }
-        if !keyset.keys.contains_key(&aggregation.recipient) { 
-            Err("Keyset is missing key for recipient")?
-        }
-        if !committee.clerks.iter().all(|clerk_id| { keyset.keys.contains_key(clerk_id) }) {
-            Err("Keyset is missing key for some clerks")?
-        }
-
-        // make sure the signatures on the encryption keys in keyset check out
-        self.verify_keys_in_keyset(&keyset)?;
-
-        // if we made it this far we flag as trusted
-        self.flag_as_trusted(&aggregation.id)?;
-        self.flag_as_trusted(&committee.id)?;
-        self.flag_as_trusted(&keyset.id)?;
-
-        // ready for participation
         Ok(())
     }
 
-    fn new_participation(&self, input: &ParticipantInput, aggregation: &AggregationId) -> SdaClientResult<Participation> {
-
-        // load objects of interest
-        let aggregation = self.local_store.load(aggregation)?;
-        let committee = self.local_store.load(&aggregation.committee)?;
-        let keyset = self.local_store.load(&aggregation.keyset)?;
+    fn new_participation(&mut self, input: &ParticipantInput, aggregation: &AggregationId, require_trusted: bool) -> SdaClientResult<Participation> {
 
         let secrets = &input.0;
 
-        // make sure the dimension of the input match the aggregation
+        // load aggregation
+        let aggregation = self.cached_fetch(aggregation)?;
+        if require_trusted && !self.is_flagged_as_trusted(&aggregation.id)? { 
+            Err("Aggregation is required to be trusted but is not")? 
+        }
         if secrets.len() != aggregation.vector_dimension { 
             Err("The input length does not match the aggregation.")?
+        }
+
+        // load committee
+        let committee = self.cached_fetch(&aggregation.committee)?;
+        if require_trusted && !self.is_flagged_as_trusted(&committee.id)? {
+            Err("Committee is required to be trusted but is not")?
         }
 
         // encryptions for the participation; we'll fill this one up as we go along
@@ -82,12 +68,20 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
         let mut secret_masker = aggregation.masking_scheme.new_secret_masker()?;
         let (recipient_mask, committee_masked_secrets) = secret_masker.mask_secrets(secrets);
 
-        // encrypt the recipient's mask
-        let recipient_encryption_key = keyset.keys.get(&aggregation.recipient)
-            .ok_or("Could not find encryption key for recipient")?;
-        let mask_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key.key)?;
+        // fetch and verify recipient's encryption key
+        let recipient_id = &aggregation.recipient;
+        let recipient_signed_encryption_key_id = aggregation.keyset.get(&recipient_id)
+            .ok_or("Keyset missing encryption key for recipient")?;
+        let recipient_signed_encryption_key = self.cached_fetch(recipient_signed_encryption_key_id)?;
+        let recipient_profile = self.cached_fetch(recipient_id)?;
+        if !recipient_profile.signature_is_valid(&recipient_signed_encryption_key)? {
+            Err("Signature verification failed for recipient key")?
+        }
+        let recipient_encryption_key = recipient_signed_encryption_key.key;
+        // .. encrypt the recipient's mask using it
+        let mask_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key)?;
         let recipient_encryption: Encryption = mask_encryptor.encrypt(&*recipient_mask)?;
-        // .. and add to collection
+        // .. and add result to collection
         encryptions.insert(aggregation.recipient.clone(), recipient_encryption);
 
         // share the committee's masked secrets: each inner vector corresponds to the shares of a single clerk
@@ -97,16 +91,21 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
         // encrypt the committee's shares
         for clerk_index in 0..committee_shares_per_clerk.len() {
             let clerk_shares = &committee_shares_per_clerk[clerk_index];
-
-            // resolve encryption key for clerk
             let clerk_id = &committee.clerks[clerk_index];
-            let clerk_encryption_key = keyset.keys.get(&clerk_id)
-                .ok_or("Could not find encryption key for clerk")?;
 
-            // encrypt shares
-            let share_encryptor = aggregation.committee_encryption_scheme.new_share_encryptor(&clerk_encryption_key.key)?;
+            // fetch and verify clerk's encryption key
+            let clerk_signed_encryption_key_id = aggregation.keyset.get(&clerk_id)
+                .ok_or("Keyset missing encryption key for clerk")?;
+            let clerk_signed_encryption_key = self.cached_fetch(clerk_signed_encryption_key_id)?;
+            let clerk_profile = self.cached_fetch(clerk_id)?;
+            if !clerk_profile.signature_is_valid(&clerk_signed_encryption_key)? {
+                Err("Signature verification failed for clerk key")?
+            }
+            let clerk_encryption_key = clerk_signed_encryption_key.key;
+            // .. encrypt the clerk's shares using it
+            let share_encryptor = aggregation.committee_encryption_scheme.new_share_encryptor(&clerk_encryption_key)?;
             let clerk_encryption: Encryption = share_encryptor.encrypt(&*clerk_shares)?;
-            // .. and add to collection
+            // .. and add result to collection
             encryptions.insert(clerk_id.clone(), clerk_encryption);
         }
 
@@ -123,24 +122,6 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
 
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()> {
         Ok(self.sda_service.push_participation(&self.agent, input)?)
-    }
-
-}
-
-impl<L,I,S> SdaClient<L,I,S>
-    where
-        L: Store<AgentId, Profile>
- {
-
-    fn verify_keys_in_keyset(&self, keyset: &Keyset) -> SdaClientResult<()> {
-        for (claimed_owner, associated_key) in keyset.keys.iter() {
-            // load profile for claimed owner and verify that the signature checks out for the encryption key
-            let profile = self.local_store.load(&claimed_owner)?;
-            if !profile.signature_is_valid(&associated_key)? {
-                Err("Signature verification failed for clerk encryption key")?
-            }
-        }
-        Ok(())
     }
 
 }

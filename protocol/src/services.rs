@@ -31,9 +31,6 @@ pub trait SdaDiscoveryService : SdaService {
     /// Retrieve the associated committee.
     fn pull_committee(&self, caller: &Agent, committee: &CommitteeId) -> SdaResult<Option<Committee>>;
 
-    /// Retrieve the associated keyset.
-    fn pull_keyset(&self, caller: &Agent, keyset: &KeysetId) -> SdaResult<Option<Keyset>>;
-
     /// Retrieve the associated public profile.
     fn pull_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>>;
 
@@ -42,6 +39,8 @@ pub trait SdaDiscoveryService : SdaService {
 
     /// Register new encryption key for agent.
     fn push_encryption_key(&mut self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()>;
+
+    fn pull_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKeyId) -> SdaResult<Option<SignedEncryptionKey>>;
 
 }
 
