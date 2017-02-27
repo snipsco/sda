@@ -29,7 +29,7 @@ pub trait Participating {
 impl<L,I,S> Participating for SdaClient<L,I,S>
     where
         L: Cache<AggregationId, Aggregation>,
-        L: Cache<CommitteeId, Committee>,
+        L: Cache<AggregationId, Committee>,
         L: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
         L: Cache<AgentId, Agent>,
         S: SdaDiscoveryService,
@@ -37,33 +37,34 @@ impl<L,I,S> Participating for SdaClient<L,I,S>
 {
 
     fn preload_for_participation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
-        let aggregation = self.cached_fetch(aggregation_id)?;
-        let committee = self.cached_fetch(&aggregation.committee)?;
-        for (owner_id, key_id) in aggregation.keyset.iter() {
-            let _: Agent = self.cached_fetch(owner_id)?;
+        let aggregation: Aggregation = self.cached_fetch(aggregation_id)?;
+        // recipient data
+        let recipient = self.cached_fetch(&aggregation.recipient)?;
+        let recipient_key = self.cached_fetch(&aggregation.recipient_key)?;
+        // committee data
+        let committee: Committee = self.cached_fetch(&aggregation.id)?;
+        for (clerk_id, key_id) in committee.clerk_keys.iter() {
+            let _: Agent = self.cached_fetch(clerk_id)?;
             let _: SignedEncryptionKey = self.cached_fetch(key_id)?;
         }
         Ok(())
     }
 
-    fn new_participation(&mut self, input: &ParticipantInput, aggregation: &AggregationId, require_trusted: bool) -> SdaClientResult<Participation> {
+    fn new_participation(&mut self, input: &ParticipantInput, aggregation_id: &AggregationId, require_trusted: bool) -> SdaClientResult<Participation> {
 
         let secrets = &input.0;
 
         // load aggregation
-        let aggregation = self.cached_fetch(aggregation)?;
-        if require_trusted && !self.is_flagged_as_trusted(&aggregation.id)? { 
-            Err("Aggregation is required to be trusted but is not")? 
+        let aggregation: Aggregation = self.cached_fetch(aggregation_id)?;
+        if require_trusted && !self.is_flagged_as_trusted(&aggregation.recipient)? {
+            Err("Recipient is required to be trusted but is not")? 
         }
         if secrets.len() != aggregation.vector_dimension { 
             Err("The input length does not match the aggregation.")?
         }
 
         // load committee
-        let committee = self.cached_fetch(&aggregation.committee)?;
-        if require_trusted && !self.is_flagged_as_trusted(&committee.id)? {
-            Err("Committee is required to be trusted but is not")?
-        }
+        let committee: Committee = self.cached_fetch(aggregation_id)?;
 
         // encryptions for the participation; we'll fill this one up as we go along
         let mut encryptions: HashMap<AgentId, Encryption> = HashMap::new();
@@ -74,9 +75,7 @@ impl<L,I,S> Participating for SdaClient<L,I,S>
 
         // fetch and verify recipient's encryption key
         let recipient_id = &aggregation.recipient;
-        let recipient_signed_encryption_key_id = aggregation.keyset.get(&recipient_id)
-            .ok_or("Keyset missing encryption key for recipient")?;
-        let recipient_signed_encryption_key = self.cached_fetch(recipient_signed_encryption_key_id)?;
+        let recipient_signed_encryption_key = self.cached_fetch(&aggregation.recipient_key)?;
         let recipient = self.cached_fetch(recipient_id)?;
         if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
@@ -95,10 +94,10 @@ impl<L,I,S> Participating for SdaClient<L,I,S>
         // encrypt the committee's shares
         for clerk_index in 0..committee_shares_per_clerk.len() {
             let clerk_shares = &committee_shares_per_clerk[clerk_index];
-            let clerk_id = &committee.clerks[clerk_index];
+            let clerk_id = &committee.clerk_order[clerk_index];
 
             // fetch and verify clerk's encryption key
-            let clerk_signed_encryption_key_id = aggregation.keyset.get(&clerk_id)
+            let clerk_signed_encryption_key_id = committee.clerk_keys.get(&clerk_id)
                 .ok_or("Keyset missing encryption key for clerk")?;
             let clerk_signed_encryption_key = self.cached_fetch(clerk_signed_encryption_key_id)?;
             let clerk = self.cached_fetch(clerk_id)?;

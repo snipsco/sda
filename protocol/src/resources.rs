@@ -83,10 +83,12 @@ pub struct AggregationId(pub Uuid);
 /// Description of committee elected for an aggregation.
 pub struct Committee {
     pub aggregation: AggregationId,
-    /// Encryption keys of to be used for the clerks.
+    /// Order of the clerks in the committee.
+    pub clerk_order: Vec<AgentId>,
+    /// Encryption keys to be used.
     ///
     /// Note that while this could simply be a vector, it's easier to work with a map.
-    pub keyset: HashMap<AgentId, SignedEncryptionKeyId>,
+    pub clerk_keys: HashMap<AgentId, SignedEncryptionKeyId>,
 }
 
 /// Description of a participant's input to an aggregation.

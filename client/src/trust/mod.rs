@@ -8,33 +8,17 @@ pub trait TrustPolicy<ID> {
 }
 
 
-impl<L, I, S> TrustPolicy<AggregationId> for SdaClient<L, I, S> {
+impl<L, I, S> TrustPolicy<AgentId> for SdaClient<L, I, S> {
     
-    fn is_flagged_as_trusted(&self, id: &AggregationId) -> SdaClientResult<bool> {
+    fn is_flagged_as_trusted(&self, id: &AgentId) -> SdaClientResult<bool> {
         unimplemented!()
     }
 
-    fn flag_as_trusted(&mut self, id: &AggregationId) -> SdaClientResult<()> {
+    fn flag_as_trusted(&mut self, id: &AgentId) -> SdaClientResult<()> {
         unimplemented!()
     }
 
-    fn unflag_as_trusted(&mut self, id: &AggregationId) -> SdaClientResult<()> {
-        unimplemented!()
-    }
-
-}
-
-impl<L, I, S> TrustPolicy<CommitteeId> for SdaClient<L, I, S> {
-
-    fn is_flagged_as_trusted(&self, id: &CommitteeId) -> SdaClientResult<bool> {
-        unimplemented!()
-    }
-
-    fn flag_as_trusted(&mut self, id: &CommitteeId) -> SdaClientResult<()> {
-        unimplemented!()
-    }
-
-    fn unflag_as_trusted(&mut self, id: &CommitteeId) -> SdaClientResult<()> {
+    fn unflag_as_trusted(&mut self, id: &AgentId) -> SdaClientResult<()> {
         unimplemented!()
     }
 

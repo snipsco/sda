@@ -20,10 +20,10 @@ impl<L, I, S> Fetch<AggregationId, Aggregation> for SdaClient<L, I, S>
     }
 }
 
-impl<L, I, S> Fetch<CommitteeId, Committee> for SdaClient<L, I, S>
+impl<L, I, S> Fetch<AggregationId, Committee> for SdaClient<L, I, S>
     where S: SdaDiscoveryService
 {
-    fn fetch(&self, id: &CommitteeId) -> SdaClientResult<Committee> {
+    fn fetch(&self, id: &AggregationId) -> SdaClientResult<Committee> {
         Ok(self.sda_service.get_committee(&self.agent, id)?
             .ok_or("Committee not found on service")?)
     }
