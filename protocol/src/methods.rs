@@ -25,6 +25,9 @@ pub trait SdaDiscoveryService : SdaService {
     /// Retrieve the associated committee.
     fn get_committee(&self, caller: &Agent, committee: &CommitteeId) -> SdaResult<Option<Committee>>;
 
+    /// Create an agent.
+    fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()>;
+
     /// Retrieve the agent description.
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>>;
 

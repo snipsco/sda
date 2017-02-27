@@ -8,6 +8,7 @@ use std::collections::HashMap;
 /// Basic description of an agent, e.g. participants, clerks, and admins.
 ///
 /// Primary use is identification, including allowing services to perform access control and logging.
+#[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Agent {
     pub id: AgentId,
     /// Key used for verifying signatures from agent, if any.
@@ -15,7 +16,7 @@ pub struct Agent {
 }
 
 /// Unique agent identifier.
-#[derive(Clone, Default, Debug, Hash, PartialEq, Eq)] // TODO could we use Copy instead?
+#[derive(Clone, Default, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)] // TODO could we use Copy instead?
 pub struct AgentId(pub Uuid);
 
 /// Extended profile of an agent, providing information intended for increasing trust such as name and social handles.
