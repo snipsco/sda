@@ -32,15 +32,23 @@ POST   /aggregations/<AggregationId>
 DELETE /aggregations/<AggregationId>
 ```
 
+Committee
+```
+GET  /aggregations/<AggregationId>/committee/candidates
+GET  /aggregations/<AggregationId>/committee/suggestions
+POST /aggregations/<AggregationId>/committee
+GET  /aggregations/<AggregationId>/committee
+```
+
 Participate
 ```
-POST /aggregations/<AggregationId>/participations/<ParticipationId>
 GET  /aggregations/<AggregationId>/participations/<ParticipationId>
+POST /aggregations/<AggregationId>/participations/<ParticipationId>
 ```
 
 Clerking
 ```
-GET  /aggregations/<AggregationId>/jobs
+GET  /aggregations/-/jobs
 GET  /aggregations/<AggregationId>/jobs/<ClerkingJobId>
 POST /aggregations/<AggregationId>/jobs/<ClerkingJobId>/result
 ```
@@ -49,10 +57,4 @@ Get status and result
 ```
 GET /aggregations/<AggregationId>/status
 GET /aggregations/<AggregationId>/result
-```
-
-### Committees
-```
-POST /committee/<CommitteeId>
-GET  /committee/<CommitteeId>
 ```

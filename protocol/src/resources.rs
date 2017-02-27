@@ -64,12 +64,8 @@ pub struct Aggregation {
     // pub modulus: i64,  // TODO move here instead of in the primitives?
     /// Recipient of output vector.
     pub recipient: AgentId,
-    /// Associated committee.
-    pub committee: CommitteeId,
-    /// Encryption keys of to be used for the recipient and committee.
-    ///
-    /// Note that while this could simply be a vector, it's easier to work with a map.
-    pub keyset: HashMap<AgentId, SignedEncryptionKeyId>,
+    /// Encryption key to be used for encryptions to the recipient.
+    pub recipient_key: SignedEncryptionKeyId,
     /// Masking scheme and parameters to be used between the recipient and the committee.
     pub masking_scheme: LinearMaskingScheme,
     /// Scheme and parameters to be used for secret sharing between the clerks in the committee.
@@ -84,18 +80,14 @@ pub struct Aggregation {
 #[derive(Clone, Debug)] // TODO could we use Copy instead?
 pub struct AggregationId(pub Uuid);
 
-/// Description of committee elected for one or more aggregations.
-///
-/// Having this as a separate object allows for reuse of trusted committees.
+/// Description of committee elected for an aggregation.
 pub struct Committee {
-    pub id: CommitteeId,
-    pub name: Option<String>,
-    pub clerks: Vec<AgentId>,
+    pub aggregation: AggregationId,
+    /// Encryption keys of to be used for the clerks.
+    ///
+    /// Note that while this could simply be a vector, it's easier to work with a map.
+    pub keyset: HashMap<AgentId, SignedEncryptionKeyId>,
 }
-
-/// Unique committee identifier.
-#[derive(PartialEq, Eq)]
-pub struct CommitteeId(pub Uuid);
 
 /// Description of a participant's input to an aggregation.
 #[derive(Debug)]
