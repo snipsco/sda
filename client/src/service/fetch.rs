@@ -8,6 +8,9 @@ pub trait Fetch<ID, O> {
 }
 
 
+// TODO these should probably all return options instead of errors in case the resource wasn't found!
+
+
 impl<L, I, S> Fetch<AggregationId, Aggregation> for SdaClient<L, I, S>
     where S: SdaDiscoveryService
 {

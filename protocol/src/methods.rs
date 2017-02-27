@@ -32,7 +32,7 @@ pub trait SdaDiscoveryService : SdaService {
     fn upsert_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaResult<Profile>;
 
     /// Retrieve the associated public profile.
-    fn get_profile(&self, caller: &Agent, owner: &ProfileId) -> SdaResult<Option<Profile>>;
+    fn get_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>>;
 
     /// Register new encryption key for agent.
     fn create_encryption_key(&mut self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()>;
@@ -77,9 +77,11 @@ pub trait SdaAdministrationService : SdaService {
 
     /// Create a new aggregation on the service (without any associated result).
     /// If successful, the original id has been replaced by the returned id.
-    fn create_aggregation(&self, caller: &Agent, aggregation: &Aggregation) -> SdaResult<AggregationId>;
+    fn create_aggregation(&self, caller: &Agent, aggregation: &Aggregation) -> SdaResult<()>;
 
     /// Delete all information (including results) regarding an aggregation.
     fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<bool>;
+
+    fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()>;
 
 }
