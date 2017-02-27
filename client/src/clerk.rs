@@ -26,7 +26,7 @@ impl<C,KS,S> Clerking for SdaClient<C,KS,S>
         C: Cache<AggregationId, Committee>,
         C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey,DecryptionKey)>,
+        KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
         S: SdaClerkingService,
 {

@@ -11,6 +11,7 @@ extern crate threshold_secret_sharing as tss;
 extern crate sodiumoxide;
 extern crate integer_encoding;
 extern crate rand;
+extern crate jfs;
 
 extern crate sda_protocol;
 
