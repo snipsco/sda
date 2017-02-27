@@ -24,9 +24,9 @@ pub enum SigningKey {
 }
 
 /// Verification key for signatures.
-#[derive(Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum VerificationKey {
-    Sodium([u8; 32])
+    Sodium([u8; 32]) // FIXME serialize in b64 form
 }
 
 /// Supported masking schemes and their parameters.
