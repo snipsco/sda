@@ -1,4 +1,6 @@
 
+
+
 use super::*;
 use std::collections::HashMap;
 
@@ -10,8 +12,6 @@ pub struct Agent {
     pub id: AgentId,
     /// Key used for verifying signatures from agent, if any.
     pub verification_key: Option<VerificationKey>,
-    /// Extended profile of agent, if any.
-    pub profile: Option<ProfileId>,
 }
 
 /// Unique agent identifier.
@@ -27,9 +27,6 @@ pub struct Profile {
     pub keybase_id: Option<String>,
     pub website: Option<String>,
 }
-
-/// Unique profile identifier.
-pub struct ProfileId(pub Uuid);
 
 /// Encryption key signed by owner.
 pub struct SignedEncryptionKey {
@@ -106,6 +103,7 @@ pub struct ParticipationId(pub Uuid);
 ///
 /// Includes all inputs needed.
 pub struct ClerkingJob {
+    pub id: ClerkingJobId,
     pub clerk: AgentId,
     pub aggregation: AggregationId,
     pub encryptions: Vec<Encryption>,
@@ -113,10 +111,13 @@ pub struct ClerkingJob {
 
 /// Result of a partial aggregation job performed by a clerk.
 pub struct ClerkingResult {
-    pub clerk: AgentId,
+    pub job: ClerkingJobId,
     pub aggregation: AggregationId,
     pub encryption: Encryption,
 }
+
+#[derive(Clone)]
+pub struct ClerkingJobId(pub Uuid);
 
 /// Current status of an aggregation.
 pub struct AggregationStatus {

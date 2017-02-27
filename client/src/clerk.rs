@@ -115,7 +115,7 @@ impl<C,KS,S> SdaClient<C,KS,S>
         let recipient_encryption: Encryption = share_encryptor.encrypt(&fully_combined_shares)?;
         
         Ok(ClerkingResult {
-            clerk: self.agent.id.clone(),
+            job: job.id.clone(),
             aggregation: job.aggregation.clone(),
             encryption: recipient_encryption,
         })

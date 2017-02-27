@@ -6,7 +6,6 @@ impl Agent {
         Agent {
             id: AgentId::new(),
             verification_key: None,
-            profile: None,
         }
     }
 }
