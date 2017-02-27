@@ -53,7 +53,7 @@ pub trait SignatureVerification<O> {
     fn signature_is_valid(&self, object: &O) -> SdaClientResult<bool>;
 }
 
-impl SignatureVerification<SignedEncryptionKey> for Profile {
+impl SignatureVerification<SignedEncryptionKey> for Agent {
     fn signature_is_valid(&self, signed_encryption_key: &SignedEncryptionKey) -> SdaClientResult<bool> {
 
         // TODO remember result to avoid running verification more than once
@@ -67,7 +67,11 @@ impl SignatureVerification<SignedEncryptionKey> for Profile {
 
         match (wrapped_vk, wrapped_sig) {
 
-            (&VerificationKey::Sodium(raw_vk), &Signature::Sodium(raw_sig)) => {
+            (&None, _) => {
+                Err("No verification key found")?
+            },
+
+            (&Some(VerificationKey::Sodium(raw_vk)), &Signature::Sodium(raw_sig)) => {
                 let sig = sodiumoxide::crypto::sign::Signature(raw_sig);
                 let vk = sodiumoxide::crypto::sign::PublicKey(raw_vk);
                 let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &raw_msg, &vk);

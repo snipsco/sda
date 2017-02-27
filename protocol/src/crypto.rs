@@ -2,23 +2,28 @@
 //! Parameters for the cryptographic primitives supported by the system.
 
 
+/// Encryption (or ciphertext).
 #[derive(Debug)]
 pub enum Encryption {
     Sodium(Vec<u8>)
 }
 
-pub enum Signature {
-    Sodium([u8; 64])
-}
-
+/// Encryption key (aka public key).
 pub enum EncryptionKey {
     Sodium([u8; 0]) // TODO what is right size?
 }
 
+/// Signature.
+pub enum Signature {
+    Sodium([u8; 64])
+}
+
+/// Signing key for signatures.
 pub enum SigningKey {
     Sodium([u8; 64])
 }
 
+/// Verification key for signatures.
 #[derive(Eq, PartialEq)]
 pub enum VerificationKey {
     Sodium([u8; 32])

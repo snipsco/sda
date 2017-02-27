@@ -5,7 +5,8 @@ impl Agent {
     pub fn new() -> Agent {
         Agent {
             id: AgentId::new(),
-            auth_token: None,
+            verification_key: None,
+            profile: None,
         }
     }
 }

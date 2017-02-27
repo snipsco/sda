@@ -3,8 +3,9 @@
 
 use super::*;
 
-/// Basic tasks for a clerk.
-pub trait Clerk {
+
+/// Basic tasks needed by a clerk.
+pub trait Clerking {
 
     /// `force` means contacting the service even if the client believes its already registered.
     /// Return value indicates whether this was the first time the service saw this clerk.
@@ -18,11 +19,12 @@ pub trait Clerk {
 
 }
 
-impl<C,KS,S> Clerk for SdaClient<C,KS,S>
+
+impl<C,KS,S> Clerking for SdaClient<C,KS,S>
     where
         C: Cache<AggregationId, Aggregation>,
         C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
-        C: Cache<AgentId, Profile>,
+        C: Cache<AgentId, Agent>,
         KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey,DecryptionKey)>,
         S: SdaDiscoveryService,
         S: SdaClerkingService,
@@ -34,14 +36,14 @@ impl<C,KS,S> Clerk for SdaClient<C,KS,S>
     }
 
     fn clerk_once(&mut self) -> SdaClientResult<bool> {
-        let job = self.sda_service.pull_clerking_job(&self.agent, &self.agent.id)?;
+        let job = self.sda_service.get_clerking_job(&self.agent, &self.agent.id)?;
         match job {
             None => {
                 Ok(false)
             },
             Some(job) => {
                 let result = self.process_clerking_job(&job)?;
-                self.sda_service.push_clerking_result(&self.agent, &result)?;
+                self.sda_service.create_clerking_result(&self.agent, &result)?;
                 Ok(true)
             }
         }
@@ -65,11 +67,10 @@ impl<C,KS,S> Clerk for SdaClient<C,KS,S>
 }
 
 
-
 impl<C,KS,S> SdaClient<C,KS,S>
     where
         C: Cache<AggregationId, Aggregation>,
-        C: Cache<AgentId, Profile>,
+        C: Cache<AgentId, Agent>,
         C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
         KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
@@ -104,8 +105,8 @@ impl<C,KS,S> SdaClient<C,KS,S>
         let recipient_signed_encryption_key_id = aggregation.keyset.get(recipient_id)
             .ok_or("Keyset missing encryption key for recipient")?;
         let recipient_signed_encryption_key = self.cached_fetch(recipient_signed_encryption_key_id)?;
-        let recipient_profile = self.cached_fetch(recipient_id)?;
-        if !recipient_profile.signature_is_valid(&recipient_signed_encryption_key)? {
+        let recipient = self.cached_fetch(recipient_id)?;
+        if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }
         let recipient_encryption_key = recipient_signed_encryption_key.key;

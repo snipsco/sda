@@ -2,17 +2,21 @@
 use super::*;
 
 
+/// Basic caching.
 pub trait Cache<ID, O> {
     fn has(&self, id: &ID) -> SdaClientResult<bool>;
     fn save(&self, id: &ID, object: &O) -> SdaClientResult<()>;
     fn load(&self, id: &ID) -> SdaClientResult<O>;
 }
 
+
+/// Combined fetching and caching.
 pub trait CachedFetch<ID, O> {
     fn cached_fetch(&mut self, id: &ID) -> SdaClientResult<O>;
 }
 
 
+/// Generic projection of caching to SdaClient for convenience.
 impl<ID, O, C, K, S> Cache<ID, O> for SdaClient<C, K, S>
     where C: Cache<ID, O>
 {
@@ -31,7 +35,8 @@ impl<ID, O, C, K, S> Cache<ID, O> for SdaClient<C, K, S>
 
 }
 
-// Generic implementation for caching, combining fetching and storage.
+
+/// Generic implementation for caching, combining fetching and storage.
 impl<ID, O, T> CachedFetch<ID, O> for T
     where
         T: Cache<ID, O>,

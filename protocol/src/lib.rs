@@ -1,10 +1,11 @@
 
-//! This crate describes the common interface of SDA, including the operations
-//! exposed by an SDA service and the message format used.
+//! This crate describes the common interface of SDA, including the resources,
+//! methods, and message format exposed by an SDA service.
 //!
 //! As such it is lightweight crate referenced by most of the other (Rust) crates.
 //!
-//! It takes a REST approach whenever possible.
+//! It takes a resource-oriented REST approach whenever possible, 
+//! influenced by the [Google API Design Guide](https://cloud.google.com/apis/design/).
 
 #[macro_use]
 extern crate error_chain;
@@ -18,15 +19,15 @@ mod errors {
     }
 }
 
-pub use uuid::Uuid;
+use uuid::Uuid;
 pub use errors::*;
 
 mod crypto;
-mod messages;
-mod services;
+mod resources;
+mod methods;
 mod helpers;
 
 pub use crypto::*;
-pub use messages::*;
-pub use services::*;
+pub use resources::*;
+pub use methods::*;
 pub use helpers::*;

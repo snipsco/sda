@@ -6,7 +6,11 @@ use std::collections::HashMap;
 use super::*;
 
 
-pub trait Participate {
+pub struct ParticipantInput(pub Vec<i64>);
+
+
+/// Basic tasks needed by a participant.
+pub trait Participating {
 
     /// This will store relevant objects in cache to enable offline computation of `new_participation`.
     fn preload_for_participation(&mut self, aggregation: &AggregationId) -> SdaClientResult<()>;
@@ -22,12 +26,12 @@ pub trait Participate {
 
 }
 
-impl<L,I,S> Participate for SdaClient<L,I,S>
+impl<L,I,S> Participating for SdaClient<L,I,S>
     where
         L: Cache<AggregationId, Aggregation>,
         L: Cache<CommitteeId, Committee>,
         L: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
-        L: Cache<AgentId, Profile>,
+        L: Cache<AgentId, Agent>,
         S: SdaDiscoveryService,
         S: SdaParticipationService,
 {
@@ -36,7 +40,7 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
         let aggregation = self.cached_fetch(aggregation_id)?;
         let committee = self.cached_fetch(&aggregation.committee)?;
         for (owner_id, key_id) in aggregation.keyset.iter() {
-            let _: Profile = self.cached_fetch(owner_id)?;
+            let _: Agent = self.cached_fetch(owner_id)?;
             let _: SignedEncryptionKey = self.cached_fetch(key_id)?;
         }
         Ok(())
@@ -73,8 +77,8 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
         let recipient_signed_encryption_key_id = aggregation.keyset.get(&recipient_id)
             .ok_or("Keyset missing encryption key for recipient")?;
         let recipient_signed_encryption_key = self.cached_fetch(recipient_signed_encryption_key_id)?;
-        let recipient_profile = self.cached_fetch(recipient_id)?;
-        if !recipient_profile.signature_is_valid(&recipient_signed_encryption_key)? {
+        let recipient = self.cached_fetch(recipient_id)?;
+        if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }
         let recipient_encryption_key = recipient_signed_encryption_key.key;
@@ -97,8 +101,8 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
             let clerk_signed_encryption_key_id = aggregation.keyset.get(&clerk_id)
                 .ok_or("Keyset missing encryption key for clerk")?;
             let clerk_signed_encryption_key = self.cached_fetch(clerk_signed_encryption_key_id)?;
-            let clerk_profile = self.cached_fetch(clerk_id)?;
-            if !clerk_profile.signature_is_valid(&clerk_signed_encryption_key)? {
+            let clerk = self.cached_fetch(clerk_id)?;
+            if !clerk.signature_is_valid(&clerk_signed_encryption_key)? {
                 Err("Signature verification failed for clerk key")?
             }
             let clerk_encryption_key = clerk_signed_encryption_key.key;
@@ -121,7 +125,7 @@ impl<L,I,S> Participate for SdaClient<L,I,S>
     }
 
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()> {
-        Ok(self.sda_service.push_participation(&self.agent, input)?)
+        Ok(self.sda_service.create_participation(&self.agent, input)?)
     }
 
 }

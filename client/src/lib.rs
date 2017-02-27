@@ -1,4 +1,6 @@
 
+//! This crate provides the basic functionality needed by clerks and participants for interacting with an SDA service.
+
 #[macro_use]
 extern crate error_chain;
 extern crate serde;
@@ -23,18 +25,21 @@ mod participate;
 mod clerk;
 
 
-pub use sda_protocol::*;
-pub use errors::*;
+use sda_protocol::*;
 use crypto::*;
 use keystore::*;
 use trust::*;
 use service::*;
 // pub use profile::*;
-pub use participate::{Participate};
-pub use clerk::{Clerk};
+pub use errors::*;
+pub use participate::{Participating};
+pub use clerk::{Clerking};
 
 
- pub struct SdaClient<C, K, S> {
+/// Primary object for interacting with the SDA service.
+///
+/// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
+pub struct SdaClient<C, K, S> {
     agent: Agent,
     cache: C,
     key_store: K,
