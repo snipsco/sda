@@ -1,0 +1,11 @@
+[package]
+name = "sda-protocol"
+version = "0.1.0"
+authors = [
+    "Mathieu Poumeyrol <kali@zoy.org>", 
+    "Morten Dahl <mortendahlcs@gmail.com>"
+]
+
+[dependencies]
+error-chain = { version="0.8", default-features=false }
+uuid = { version="0.4", features=["v4"] }

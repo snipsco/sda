@@ -1,0 +1,11 @@
+[package]
+name = "mockserver"
+version = "0.1.0"
+authors = ["Mathieu Poumeyrol <kali@zoy.org>", "Morten Dahl <mortendahlcs@gmail.com>"]
+
+[dependencies]
+sda-protocol = { path= "../protocol" }
+
+#[[bin]]
+#name = "mockserver"
+#path = "src/main.rs"
