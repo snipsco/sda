@@ -42,12 +42,12 @@ impl SdaServer {
         self.agent_store.get_agent(&id)
     }
 
-    fn upsert_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaServerResult<Profile> {
-        unimplemented!();
+    fn upsert_profile(&self, profile: &Profile) -> SdaServerResult<()> {
+        self.agent_store.upsert_profile(profile)
     }
 
     fn get_profile(&self, agent: &AgentId) -> SdaServerResult<Option<Profile>> {
-        unimplemented!();
+        self.agent_store.get_profile(agent)
     }
 
     fn create_encryption_key(&mut self,
@@ -111,6 +111,8 @@ impl SdaDiscoveryService for SdaServer {
     }
 
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
+        // FIXME what is the ACL here ? is it ok to expose the verification_key
+        // to anybody or is it a shared secret ?
         wrap!(Self::create_agent(self, &caller))
     }
 
@@ -118,12 +120,14 @@ impl SdaDiscoveryService for SdaServer {
         wrap! { Self::get_agent(self, owner) }
     }
 
-    fn upsert_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaResult<Profile> {
-        unimplemented!();
+    fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()> {
+        // FIXME acl: caller.id == profile.owner
+        wrap! { Self::upsert_profile(self, profile) }
     }
 
     fn get_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>> {
-        unimplemented!();
+        // everything here is public, no acl
+        wrap! { Self::get_profile(self, owner) }
     }
 
     fn create_encryption_key(&mut self,

@@ -1,4 +1,4 @@
-use sda_protocol::{Agent, AgentId};
+use sda_protocol::{Agent, AgentId, Profile};
 use SdaServerResult;
 
 pub trait BaseStore {
@@ -11,4 +11,10 @@ pub trait AgentStore: BaseStore {
 
     /// Retrieve the agent description.
     fn get_agent(&self, id: &AgentId) -> SdaServerResult<Option<Agent>>;
+
+    /// Register the given public profile; updates any existing profile.
+    fn upsert_profile(&self, profile: &Profile) -> SdaServerResult<()>;
+
+    /// Retrieve the associated public profile.
+    fn get_profile(&self, owner: &AgentId) -> SdaServerResult<Option<Profile>>;
 }

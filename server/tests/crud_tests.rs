@@ -16,12 +16,35 @@ pub fn agent_crud() {
     let server = sda_server::SdaServer { agent_store: Box::new(store) };
     let service: &proto::SdaDiscoveryService = &server;
 
-    let myself = proto::Agent::default();
+    let alice = proto::Agent::default();
 
-    service.create_agent(&myself, &myself).unwrap();
-    let clone = service.get_agent(&myself, &myself.id).unwrap();
-    assert_eq!(Some(&myself), clone.as_ref());
+    service.create_agent(&alice, &alice).unwrap();
+    let clone = service.get_agent(&alice, &alice.id).unwrap();
+    assert_eq!(Some(&alice), clone.as_ref());
 
-    let nobody = service.get_agent(&myself, &proto::AgentId::default()).unwrap();
-    assert!(nobody.is_none());
+    let bob = service.get_agent(&alice, &proto::AgentId::default()).unwrap();
+    assert!(bob.is_none());
+}
+
+#[test]
+pub fn profile_crud() {
+    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
+    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let service: &proto::SdaDiscoveryService = &server;
+
+    let alice = proto::Agent::default();
+
+    service.create_agent(&alice, &alice).unwrap();
+    let no_profile = service.get_profile(&alice, &alice.id).unwrap();
+    assert!(no_profile.is_none());
+
+    let alice_profile = proto::Profile {
+        owner: alice.id,
+        name: Some("alice".into()),
+        ..proto::Profile::default()
+    };
+    service.upsert_profile(&alice, &alice_profile).unwrap();
+
+    let clone = service.get_profile(&alice, &alice.id).unwrap();
+    assert_eq!(Some(&alice_profile), clone.as_ref());
 }

@@ -16,7 +16,7 @@ pub struct Agent {
 }
 
 /// Unique agent identifier.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)] // TODO could we use Copy instead?
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AgentId(pub Uuid);
 
 impl Default for AgentId {
@@ -27,7 +27,7 @@ impl Default for AgentId {
 
 
 /// Extended profile of an agent, providing information intended for increasing trust such as name and social handles.
-#[derive(Clone, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Profile {
     pub owner: AgentId,
     pub name: Option<String>,

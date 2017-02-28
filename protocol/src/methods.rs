@@ -32,7 +32,7 @@ pub trait SdaDiscoveryService : SdaService {
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>>;
 
     /// Register the given public profile; updates any existing profile.
-    fn upsert_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaResult<Profile>;
+    fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()>;
 
     /// Retrieve the associated public profile.
     fn get_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>>;
