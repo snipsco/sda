@@ -55,6 +55,8 @@ impl Default for SignedEncryptionKeyId {
     }
 }
 
+pub struct LabelledVerificationKeypairId(pub Uuid);
+
 /// Description of an aggregation.
 pub struct Aggregation {
     pub id: AggregationId,

@@ -21,20 +21,22 @@ mod crypto;
 mod keystore;
 mod trust;
 mod service;
-// mod profile;
+mod profile;
 mod participate;
 mod clerk;
 
-
-use sda_protocol::*;
+pub use sda_protocol::*;
 use crypto::*;
 use keystore::*;
 use trust::*;
 use service::*;
-// pub use profile::*;
+use profile::*;
+
 pub use errors::*;
 pub use participate::{Participating};
 pub use clerk::{Clerking};
+pub use keystore::*;
+pub use profile::{Maintenance};
 
 
 /// Primary object for interacting with the SDA service.
@@ -43,16 +45,16 @@ pub use clerk::{Clerking};
 pub struct SdaClient<C, K, S> {
     agent: Agent,
     cache: C,
-    key_store: K,
+    keystore: K,
     sda_service: S,
 }
 
 impl<C, K, S> SdaClient<C, K, S> {
-    pub fn new(agent: Agent, cache: C, key_store: K, sda_service: S) -> SdaClient<C, K, S> {
+    pub fn new(agent: Agent, cache: C, keystore: K, sda_service: S) -> SdaClient<C, K, S> {
         SdaClient {
             agent: agent,
             cache: cache,
-            key_store: key_store,
+            keystore: keystore,
             sda_service: sda_service,
         }
     }

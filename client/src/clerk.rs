@@ -94,7 +94,7 @@ impl<C,KS,S> SdaClient<C,KS,S>
             .ok_or("Could not find own encryption key in keyset")?;
 
         // decrypt shares from participants
-        let share_decryptor = aggregation.committee_encryption_scheme.new_share_decryptor(&own_signed_encryption_key_id, &self.key_store)?;
+        let share_decryptor = aggregation.committee_encryption_scheme.new_share_decryptor(&own_signed_encryption_key_id, &self.keystore)?;
         let partially_combined_shares = job.encryptions.iter()
             .map(|encryption| Ok(share_decryptor.decrypt(encryption)?))
             .collect::<SdaClientResult<Vec<Vec<Share>>>>()?;

@@ -34,6 +34,15 @@ impl SignedEncryptionKeyId {
     }
 }
 
+impl LabelledVerificationKeypairId {
+    pub fn new() -> LabelledVerificationKeypairId {
+        LabelledVerificationKeypairId(Uuid::new_v4())
+    }
+    pub fn to_string(&self) -> String {
+        format!("{}", self.0.simple())
+    }
+}
+
 impl Default for VerificationKey {
     fn default() -> Self {
         VerificationKey::Sodium(::byte_arrays::B32([0; 32]))
