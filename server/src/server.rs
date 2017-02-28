@@ -80,6 +80,14 @@ impl SdaService for SdaServer {
     }
 }
 
+fn acl_agent_is(agent:&Agent, agent_id:AgentId) -> SdaResult<()> {
+    if agent.id != agent_id {
+        Err(SdaErrorKind::PermissionDenied.into())
+    } else {
+        Ok(())
+    }
+}
+
 #[allow(unused_variables)] // FIXME
 impl SdaDiscoveryService for SdaServer {
     fn list_aggregations_by_title(&self,
@@ -111,17 +119,17 @@ impl SdaDiscoveryService for SdaServer {
     }
 
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
-        // FIXME what is the ACL here ? is it ok to expose the verification_key
-        // to anybody or is it a shared secret ?
         wrap!(Self::create_agent(self, &caller))
     }
 
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
+        // FIXME what is the ACL here ? is it ok to expose the verification_key
+        // to anybody or is it a shared secret ?
         wrap! { Self::get_agent(self, owner) }
     }
 
     fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()> {
-        // FIXME acl: caller.id == profile.owner
+        acl_agent_is(caller, profile.owner)?;
         wrap! { Self::upsert_profile(self, profile) }
     }
 

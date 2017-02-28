@@ -47,4 +47,33 @@ pub fn profile_crud() {
 
     let clone = service.get_profile(&alice, &alice.id).unwrap();
     assert_eq!(Some(&alice_profile), clone.as_ref());
+
+    let still_alice_profile = proto::Profile {
+        owner: alice.id,
+        name: Some("still alice".into()),
+        ..proto::Profile::default()
+    };
+    service.upsert_profile(&alice, &still_alice_profile).unwrap();
+
+    let clone = service.get_profile(&alice, &alice.id).unwrap();
+    assert_eq!(Some(&still_alice_profile), clone.as_ref());
+}
+
+#[test]
+pub fn profile_crud_acl() {
+    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
+    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let service: &proto::SdaDiscoveryService = &server;
+
+    let alice = proto::Agent::default();
+
+    let bob = proto::Agent::default();
+    let alice_fake_profile = proto::Profile {
+        owner: alice.id,
+        name: Some("bob".into()),
+        ..proto::Profile::default()
+    };
+
+    let denied = service.upsert_profile(&bob, &alice_fake_profile);
+    assert!(denied.is_err());
 }

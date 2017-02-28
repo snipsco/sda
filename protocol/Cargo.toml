@@ -9,5 +9,5 @@ authors = [
 [dependencies]
 serde = "0.9"
 serde_derive = "0.9"
-error-chain = { version="0.8", default-features=false }
+error-chain = { version="0.10", default-features=false }
 uuid = { version="0.4", features=["v4", "serde"] }

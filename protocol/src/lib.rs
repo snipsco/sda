@@ -18,6 +18,12 @@ mod errors {
         types {
             SdaError, SdaErrorKind, SdaResultExt, SdaResult;
         }
+        errors {
+            PermissionDenied {
+                description("permission denied")
+                display("permission denied")
+            }
+        }
     }
 }
 
