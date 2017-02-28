@@ -80,6 +80,13 @@ macro_rules! B {
         }
 
         impl ::std::cmp::Eq for $name { }
+
+        impl ::std::ops::Deref for $name {
+            type Target = [u8; $size];
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
     }
 }
 
