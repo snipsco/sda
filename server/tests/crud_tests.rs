@@ -16,11 +16,12 @@ pub fn agent_crud() {
     let server = sda_server::SdaServer { agent_store: Box::new(store) };
     let service: &proto::SdaDiscoveryService = &server;
 
-    let myself = proto::Agent {
-        id: proto::AgentId::default(),
-        verification_key: None,
-    };
+    let myself = proto::Agent::default();
+
     service.create_agent(&myself, &myself).unwrap();
     let clone = service.get_agent(&myself, &myself.id).unwrap();
-    assert_eq!(Some(myself), clone);
+    assert_eq!(Some(&myself), clone.as_ref());
+
+    let nobody = service.get_agent(&myself, &proto::AgentId::default()).unwrap();
+    assert!(nobody.is_none());
 }
