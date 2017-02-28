@@ -75,5 +75,8 @@ pub fn profile_crud_acl() {
     };
 
     let denied = service.upsert_profile(&bob, &alice_fake_profile);
-    assert!(denied.is_err());
+    match denied {
+        Err(proto::SdaError(proto::SdaErrorKind::PermissionDenied, _)) => {},
+        e => panic!("unexpected result: {:?}", e)
+    }
 }
