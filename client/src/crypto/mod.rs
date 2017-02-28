@@ -19,6 +19,7 @@ pub use self::encryption::*;
 
 // TODO which module should the below belong to?
 
+#[derive(Serialize, Deserialize)]
 pub enum DecryptionKey {
     Sodium([u8; 0]) // TODO what is the right size?
 }

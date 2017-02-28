@@ -60,7 +60,7 @@ impl Decryptor {
     {
         match key_store.export_decryption_key(id)? {
 
-            (EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk)) => {
+            Some((EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk))) => {
 
                 let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;

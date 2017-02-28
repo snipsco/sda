@@ -1,8 +1,8 @@
 
-mod jfs;
+mod jsonfile;
 
 use super::*;
-pub use jfs::{Store};
+pub use self::jsonfile::{JsonFileStore};
 
 
 pub trait GenerateEncryptionKeypair<S, I> {
@@ -15,7 +15,7 @@ pub trait ExportEncryptionKey<I, EK> {
 
 // TODO should not be allowed; keep decryption keys in IdentityModule instead and ask it to do the decryption
 pub trait ExportDecryptionKey<I, DK> {
-    fn export_decryption_key(&self, id: &I) -> SdaClientResult<DK>;
+    fn export_decryption_key(&self, id: &I) -> SdaClientResult<Option<DK>>;
 }
 
 // impl<S, I> GenerateEncryptionKeypair for ... 

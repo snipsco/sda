@@ -14,11 +14,23 @@ impl AgentId {
     pub fn new() -> AgentId {
         AgentId(Uuid::new_v4())
     }
+    pub fn to_string(&self) -> String {
+        format!("{}", self.0.simple())
+    }
 }
 
 impl ParticipationId {
     pub fn new() -> ParticipationId {
         ParticipationId(Uuid::new_v4())
+    }
+    pub fn to_string(&self) -> String {
+        format!("{}", self.0.simple())
+    }
+}
+
+impl SignedEncryptionKeyId {
+    pub fn to_string(&self) -> String {
+        format!("{}", self.0.simple())
     }
 }
 
