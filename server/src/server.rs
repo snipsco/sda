@@ -50,15 +50,11 @@ impl SdaServer {
         self.agent_store.get_profile(agent)
     }
 
-    fn create_encryption_key(&mut self,
-                             caller: &Agent,
-                             key: &SignedEncryptionKey)
-                             -> SdaServerResult<()> {
+    fn create_encryption_key(&mut self, key: &SignedEncryptionKey) -> SdaServerResult<()> {
         unimplemented!();
     }
 
     fn get_encryption_key(&self,
-                          caller: &Agent,
                           key: &SignedEncryptionKeyId)
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
         unimplemented!();
@@ -80,7 +76,7 @@ impl SdaService for SdaServer {
     }
 }
 
-fn acl_agent_is(agent:&Agent, agent_id:AgentId) -> SdaResult<()> {
+fn acl_agent_is(agent: &Agent, agent_id: AgentId) -> SdaResult<()> {
     if agent.id != agent_id {
         Err(SdaErrorKind::PermissionDenied.into())
     } else {
@@ -119,12 +115,12 @@ impl SdaDiscoveryService for SdaServer {
     }
 
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
-        wrap!(Self::create_agent(self, &caller))
+        acl_agent_is(caller, agent.id)?;
+        wrap!(Self::create_agent(self, &agent))
     }
 
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
-        // FIXME what is the ACL here ? is it ok to expose the verification_key
-        // to anybody or is it a shared secret ?
+        // everything here is public, no acl
         wrap! { Self::get_agent(self, owner) }
     }
 
@@ -142,13 +138,15 @@ impl SdaDiscoveryService for SdaServer {
                              caller: &Agent,
                              key: &SignedEncryptionKey)
                              -> SdaResult<()> {
-        unimplemented!();
+        acl_agent_is(caller, key.owner)?;
+        wrap! { Self::create_encryption_key(self, key) }
     }
 
     fn get_encryption_key(&self,
                           caller: &Agent,
                           key: &SignedEncryptionKeyId)
                           -> SdaResult<Option<SignedEncryptionKey>> {
-        unimplemented!();
+        // everything here is public, no acl
+        wrap! { Self::get_encryption_key(self, key) }
     }
 }

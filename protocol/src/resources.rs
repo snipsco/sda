@@ -37,6 +37,7 @@ pub struct Profile {
 }
 
 /// Encryption key signed by owner.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SignedEncryptionKey {
     pub id: SignedEncryptionKeyId,
     pub owner: AgentId,
@@ -45,9 +46,14 @@ pub struct SignedEncryptionKey {
 }
 
 /// Unique signed encryption key identifier.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SignedEncryptionKeyId(pub Uuid);
 
+impl Default for SignedEncryptionKeyId {
+    fn default() -> SignedEncryptionKeyId {
+        SignedEncryptionKeyId(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+    }
+}
 
 /// Description of an aggregation.
 pub struct Aggregation {

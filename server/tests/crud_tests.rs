@@ -80,3 +80,18 @@ pub fn profile_crud_acl() {
         e => panic!("unexpected result: {:?}", e)
     }
 }
+
+#[test]
+pub fn encryption_key_crud() {
+    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
+    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let service: &proto::SdaDiscoveryService = &server;
+
+    let alice = proto::Agent::default();
+    service.create_agent(&alice, &alice).unwrap();
+
+    let alice_key_1 = SignedEncryptionKey {
+        
+    };
+}
+
