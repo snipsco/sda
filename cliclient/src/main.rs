@@ -28,7 +28,7 @@ fn run() -> sda_client::SdaClientResult<()> {
     
     let matches = clap_app!(sda =>
         (@arg server: -s --server +takes_value "Server URI")
-        (@arg keystore: -k --keystore +takes_value "Keystore folder")
+        (@arg keystore: -k --keystore +takes_value "Keystore directory")
         (@subcommand init =>)
         (@subcommand clerk =>)
         (@subcommand keystore =>
