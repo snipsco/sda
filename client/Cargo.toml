@@ -8,11 +8,12 @@ authors = [
 
 [dependencies]
 sda-protocol = { path= "../protocol" }
-error-chain = { version = "0.8", default-features=false }
-serde = "0.8"
-serde_derive = "0.8"
-serde_json = "0.8"
+error-chain = { version = "0.10", default-features=false }
+serde = "0.9"
+serde_derive = "0.9"
+serde_json = "0.9"
 threshold-secret-sharing = "0.2"
-sodiumoxide = "0.0.13"
+sodiumoxide = "0.0.14"
 integer-encoding = "1.0"
 rand = "0.3"
+jfs = "0.3"

@@ -11,7 +11,7 @@ pub trait Fetch<ID, O> {
 // TODO these should probably all return options instead of errors in case the resource wasn't found!
 
 
-impl<L, I, S> Fetch<AggregationId, Aggregation> for SdaClient<L, I, S>
+impl<C, S> Fetch<AggregationId, Aggregation> for SdaClient<C, S>
     where S: SdaDiscoveryService
 {
     fn fetch(&self, id: &AggregationId) -> SdaClientResult<Aggregation> {
@@ -20,16 +20,16 @@ impl<L, I, S> Fetch<AggregationId, Aggregation> for SdaClient<L, I, S>
     }
 }
 
-impl<L, I, S> Fetch<CommitteeId, Committee> for SdaClient<L, I, S>
+impl<C, S> Fetch<AggregationId, Committee> for SdaClient<C, S>
     where S: SdaDiscoveryService
 {
-    fn fetch(&self, id: &CommitteeId) -> SdaClientResult<Committee> {
+    fn fetch(&self, id: &AggregationId) -> SdaClientResult<Committee> {
         Ok(self.sda_service.get_committee(&self.agent, id)?
             .ok_or("Committee not found on service")?)
     }
 }
 
-impl<L, I, S> Fetch<AgentId, Agent> for SdaClient<L, I, S>
+impl<C, S> Fetch<AgentId, Agent> for SdaClient<C, S>
     where S: SdaDiscoveryService
 {
     fn fetch(&self, id: &AgentId) -> SdaClientResult<Agent> {
@@ -38,10 +38,10 @@ impl<L, I, S> Fetch<AgentId, Agent> for SdaClient<L, I, S>
     }
 }
 
-impl<L, I, S> Fetch<SignedEncryptionKeyId, SignedEncryptionKey> for SdaClient<L, I, S>
+impl<C, S> Fetch<EncryptionKeyId, SignedEncryptionKey> for SdaClient<C, S>
     where S: SdaDiscoveryService
 {
-    fn fetch(&self, id: &SignedEncryptionKeyId) -> SdaClientResult<SignedEncryptionKey> {
+    fn fetch(&self, id: &EncryptionKeyId) -> SdaClientResult<SignedEncryptionKey> {
         Ok(self.sda_service.get_encryption_key(&self.agent, id)?
             .ok_or("Encryption key not found on service")?)
     }

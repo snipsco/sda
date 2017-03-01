@@ -11,47 +11,53 @@ extern crate threshold_secret_sharing as tss;
 extern crate sodiumoxide;
 extern crate integer_encoding;
 extern crate rand;
+extern crate jfs;
 
 extern crate sda_protocol;
 
 
 mod errors;
 mod crypto;
-mod keystore;
+pub mod keystore;
 mod trust;
+mod cache;
 mod service;
-// mod profile;
+mod profile;
 mod participate;
 mod clerk;
 
-
-use sda_protocol::*;
+pub use sda_protocol::*;
 use crypto::*;
-use keystore::*;
-use trust::*;
+// use keystore::*;
+use trust::{Policy};
+use cache::{NoCache};
 use service::*;
-// pub use profile::*;
+use profile::*;
+
 pub use errors::*;
 pub use participate::{Participating};
 pub use clerk::{Clerking};
-
+pub use keystore::*;
+pub use profile::{Maintenance};
 
 /// Primary object for interacting with the SDA service.
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
-pub struct SdaClient<C, K, S> {
+pub struct SdaClient<C, S> {
     agent: Agent,
+    keystore: keystore::Filebased,
+    trust: trust::Permissistic,
     cache: C,
-    key_store: K,
     sda_service: S,
 }
 
-impl<C, K, S> SdaClient<C, K, S> {
-    pub fn new(agent: Agent, cache: C, key_store: K, sda_service: S) -> SdaClient<C, K, S> {
+impl<S> SdaClient<NoCache, S> {
+    pub fn new_from_prefix<P: AsRef<std::path::Path>>(prefix: P, sda_service: S) -> SdaClient<NoCache, S> {
         SdaClient {
-            agent: agent,
-            cache: cache,
-            key_store: key_store,
+            agent: Agent::default(),
+            keystore: keystore::Filebased::new(prefix.as_ref().join("user").join("keys")).unwrap(),
+            trust: trust::Permissistic,
+            cache:       NoCache {},
             sda_service: sda_service,
         }
     }

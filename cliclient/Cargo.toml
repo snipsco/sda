@@ -1,0 +1,14 @@
+[package]
+name = "sda"
+version = "0.1.0"
+authors = [
+    "Mathieu Poumeyrol <kali@zoy.org>", 
+    "Morten Dahl <mortendahlcs@gmail.com>"
+]
+
+[dependencies]
+sda-client = { path="../client" }
+clap = "2.10"
+slog = "1.5"
+slog-scope = "0.2"
+slog-envlogger = "0.5"

@@ -23,7 +23,7 @@ pub trait SdaDiscoveryService : SdaService {
     fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>>;
 
     /// Retrieve the associated committee.
-    fn get_committee(&self, caller: &Agent, committee: &CommitteeId) -> SdaResult<Option<Committee>>;
+    fn get_committee(&self, caller: &Agent, owner: &AggregationId) -> SdaResult<Option<Committee>>;
 
     /// Create an agent.
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()>;

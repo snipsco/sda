@@ -17,7 +17,7 @@ pub trait CachedFetch<ID, O> {
 
 
 /// Generic projection of caching to SdaClient for convenience.
-impl<ID, O, C, K, S> Cache<ID, O> for SdaClient<C, K, S>
+impl<ID, O, C, S> Cache<ID, O> for SdaClient<C, S>
     where C: Cache<ID, O>
 {
 

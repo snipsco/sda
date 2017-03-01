@@ -20,12 +20,13 @@ pub trait Clerking {
 }
 
 
-impl<C,KS,S> Clerking for SdaClient<C,KS,S>
+impl<C,S> Clerking for SdaClient<C,S>
     where
         C: Cache<AggregationId, Aggregation>,
-        C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
+        C: Cache<AggregationId, Committee>,
+        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey,DecryptionKey)>,
+        // KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
         S: SdaClerkingService,
 {
@@ -67,18 +68,20 @@ impl<C,KS,S> Clerking for SdaClient<C,KS,S>
 }
 
 
-impl<C,KS,S> SdaClient<C,KS,S>
+impl<C,S> SdaClient<C,S>
     where
         C: Cache<AggregationId, Aggregation>,
+        C: Cache<AggregationId, Committee>,
         C: Cache<AgentId, Agent>,
-        C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
-        KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
+        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
+        // KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
 {
 
     fn process_clerking_job(&mut self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
 
-        let aggregation = self.cached_fetch(&job.aggregation)?;
+        let aggregation: Aggregation = self.cached_fetch(&job.aggregation)?;
+        let committee: Committee = self.cached_fetch(&job.aggregation)?;
         
         // TODO what is the right policy for whether we want to help with this aggregation or not?
         //  - based on aggregation and recipient?
@@ -87,11 +90,11 @@ impl<C,KS,S> SdaClient<C,KS,S>
         //  - this could be improved by e.g. allowing an accumulating combiner
 
         // determine which one of our encryption keys were used (in turn giving the decryption key we need to use)
-        let own_signed_encryption_key_id = aggregation.keyset.get(&self.agent.id)
+        let own_signed_encryption_key_id = committee.clerk_keys.get(&self.agent.id)
             .ok_or("Could not find own encryption key in keyset")?;
 
         // decrypt shares from participants
-        let share_decryptor = aggregation.committee_encryption_scheme.new_share_decryptor(&own_signed_encryption_key_id, &self.key_store)?;
+        let share_decryptor = aggregation.committee_encryption_scheme.new_share_decryptor(&own_signed_encryption_key_id, &self.keystore)?;
         let partially_combined_shares = job.encryptions.iter()
             .map(|encryption| Ok(share_decryptor.decrypt(encryption)?))
             .collect::<SdaClientResult<Vec<Vec<Share>>>>()?;
@@ -102,14 +105,12 @@ impl<C,KS,S> SdaClient<C,KS,S>
 
         // fetch recipient's encryption key and verify signature
         let recipient_id = &aggregation.recipient;
-        let recipient_signed_encryption_key_id = aggregation.keyset.get(recipient_id)
-            .ok_or("Keyset missing encryption key for recipient")?;
-        let recipient_signed_encryption_key = self.cached_fetch(recipient_signed_encryption_key_id)?;
+        let recipient_signed_encryption_key = self.cached_fetch(&aggregation.recipient_key)?;
         let recipient = self.cached_fetch(recipient_id)?;
         if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }
-        let recipient_encryption_key = recipient_signed_encryption_key.key;
+        let recipient_encryption_key = recipient_signed_encryption_key.body.body;
         // .. and re-encrypt summed shares
         let share_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key)?;
         let recipient_encryption: Encryption = share_encryptor.encrypt(&fully_combined_shares)?;

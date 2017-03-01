@@ -84,6 +84,12 @@ macro_rules! B {
                 &self.0
             }
         }
+
+        impl ::std::convert::From<[u8; $size]> for $name {
+            fn from(data: [u8; $size]) -> $name {
+                $name(data)
+            }
+        }
     }
 }
 

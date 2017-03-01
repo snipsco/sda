@@ -36,7 +36,7 @@ macro_rules! uuid_id {
 #[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Agent {
     pub id: AgentId,
-    /// Key used for verifying signatures from agent, if any.
+    // /// Key used for verifying signatures from agent, if any.
     pub verification_key: Option<VerificationKey>,
 }
 
@@ -97,9 +97,13 @@ where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::D
     }
 }
 
+
+pub struct LabelledVerificationKeypairId(pub Uuid);
+
 uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
 
 pub type SignedEncryptionKey = Signed<Labeled<EncryptionKeyId, EncryptionKey>>;
+
 
 /// Description of an aggregation.
 pub struct Aggregation {
@@ -110,12 +114,8 @@ pub struct Aggregation {
     // pub modulus: i64,  // TODO move here instead of in the primitives?
     /// Recipient of output vector.
     pub recipient: AgentId,
-    /// Associated committee.
-    pub committee: CommitteeId,
-    /// Encryption keys of to be used for the recipient and committee.
-    ///
-    /// Note that while this could simply be a vector, it's easier to work with a map.
-    pub keyset: HashMap<AgentId, SignedEncryptionKey>,
+    /// Encryption key to be used for encryptions to the recipient.
+    pub recipient_key: EncryptionKeyId,
     /// Masking scheme and parameters to be used between the recipient and the committee.
     pub masking_scheme: LinearMaskingScheme,
     /// Scheme and parameters to be used for secret sharing between the clerks in the committee.
@@ -130,18 +130,16 @@ pub struct Aggregation {
 #[derive(Clone, Debug)] // TODO could we use Copy instead?
 pub struct AggregationId(pub Uuid);
 
-/// Description of committee elected for one or more aggregations.
-///
-/// Having this as a separate object allows for reuse of trusted committees.
+/// Description of committee elected for an aggregation.
 pub struct Committee {
-    pub id: CommitteeId,
-    pub name: Option<String>,
-    pub clerks: Vec<AgentId>,
+    pub aggregation: AggregationId,
+    /// Order of the clerks in the committee.
+    pub clerk_order: Vec<AgentId>,
+    /// Encryption keys to be used.
+    ///
+    /// Note that while this could simply be a vector, it's easier to work with a map.
+    pub clerk_keys: HashMap<AgentId, EncryptionKeyId>,
 }
-
-/// Unique committee identifier.
-#[derive(PartialEq, Eq)]
-pub struct CommitteeId(pub Uuid);
 
 /// Description of a participant's input to an aggregation.
 #[derive(Debug)]

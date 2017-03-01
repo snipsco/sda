@@ -20,7 +20,7 @@ impl Encryptor {
         match ek {
 
             &EncryptionKey::Sodium(raw_ek) => {
-                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&raw_ek)
+                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
                 Ok(Encryptor {
                     pk: pk,
@@ -55,17 +55,17 @@ pub struct Decryptor {
 }
 
 impl Decryptor {
-    pub fn new<KS>(id: &SignedEncryptionKeyId, key_store: &KS) -> SdaClientResult<Decryptor>
-        where KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>
+    pub fn new<KS>(id: &EncryptionKeyId, keystore: &KS) -> SdaClientResult<Decryptor>
+        where KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>
     {
-        match key_store.export_decryption_key(id)? {
+        match keystore.export_decryption_key(id)? {
 
-            (EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk)) => {
+            Some((EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk))) => {
 
-                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&raw_ek)
+                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
 
-                let sk = sodiumoxide::crypto::box_::SecretKey::from_slice(&raw_dk)
+                let sk = sodiumoxide::crypto::box_::SecretKey::from_slice(&*raw_dk)
                     .ok_or("Failed to parse Sodium secret key")?;
                 
                 Ok(Decryptor {

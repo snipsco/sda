@@ -105,4 +105,3 @@ pub fn encryption_key_crud() {
     let still_alice = service.get_encryption_key(&bob, &alice_key.body.id).unwrap();
     assert_eq!(Some(&alice_key), still_alice.as_ref());
 }
-

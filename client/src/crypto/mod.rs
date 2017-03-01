@@ -19,8 +19,9 @@ pub use self::encryption::*;
 
 // TODO which module should the below belong to?
 
+#[derive(Serialize, Deserialize)]
 pub enum DecryptionKey {
-    Sodium([u8; 0]) // TODO what is the right size?
+    Sodium(::sda_protocol::byte_arrays::B32)
 }
 
 
@@ -58,7 +59,7 @@ impl SignatureVerification<SignedEncryptionKey> for Agent {
 
         // TODO remember result to avoid running verification more than once
 
-        let raw_msg = match &signed_encryption_key.key {
+        let raw_msg = match &signed_encryption_key.body.body {
             &EncryptionKey::Sodium(raw_ek) => raw_ek
         };
 
@@ -72,9 +73,9 @@ impl SignatureVerification<SignedEncryptionKey> for Agent {
             },
 
             (&Some(VerificationKey::Sodium(raw_vk)), &Signature::Sodium(raw_sig)) => {
-                let sig = sodiumoxide::crypto::sign::Signature(raw_sig);
-                let vk = sodiumoxide::crypto::sign::PublicKey(raw_vk);
-                let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &raw_msg, &vk);
+                let sig = sodiumoxide::crypto::sign::Signature(*raw_sig);
+                let vk = sodiumoxide::crypto::sign::PublicKey(*raw_vk);
+                let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &*raw_msg, &vk);
                 Ok(is_valid)
             },
 

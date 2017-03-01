@@ -30,7 +30,7 @@ impl SdaServer {
         unimplemented!();
     }
 
-    fn get_committee(&self, committee: &CommitteeId) -> SdaServerResult<Option<Committee>> {
+    fn get_committee(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Committee>> {
         unimplemented!();
     }
 
@@ -109,7 +109,7 @@ impl SdaDiscoveryService for SdaServer {
 
     fn get_committee(&self,
                      caller: &Agent,
-                     committee: &CommitteeId)
+                     aggregation: &AggregationId)
                      -> SdaResult<Option<Committee>> {
         unimplemented!();
     }
