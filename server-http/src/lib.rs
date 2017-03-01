@@ -1,8 +1,10 @@
 #[macro_use]
+extern crate error_chain;
+#[macro_use]
 extern crate rouille;
 extern crate sda_protocol;
 extern crate sda_server;
-#[macro_use]
+extern crate serde;
 extern crate serde_json;
 
 use std::net::ToSocketAddrs;
@@ -10,6 +12,19 @@ use std::net::ToSocketAddrs;
 use rouille::{Request, Response};
 
 use sda_protocol::*;
+use errors::*;
+
+mod errors {
+    error_chain! {
+        links {
+            Sda(::sda_protocol::SdaError, ::sda_protocol::SdaErrorKind);
+        }
+        foreign_links {
+            SerdeJson(::serde_json::Error);
+        }
+    }
+}
+
 
 macro_rules! wrap {
     ($e:expr) => { match $e {
@@ -29,8 +44,11 @@ pub fn listen<A>(addr: A, server: sda_server::SdaServer) -> !
 struct SdaServiceWrapper<'a>(&'a sda_server::SdaServer);
 
 impl<'a> SdaServiceWrapper<'a> {
-    fn ping(&self, _req:&Request) -> SdaResult<Response> {
-        self.0.ping()?;
-        Ok(Response::from_data("application/json", json!({"running": true}).to_string()))
+    fn ping(&self, _req:&Request) -> Result<Response> {
+        send_json(self.0.ping()?)
     }
+}
+
+fn send_json<T: ::serde::Serialize>(t:T) -> Result<Response> {
+    Ok(Response::from_data("application/json", serde_json::to_string(&t)?))
 }

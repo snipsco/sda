@@ -3,7 +3,7 @@
 
 use super::*;
 
-#[derive(Debug, Deserialize)] 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Pong { pub running: bool }
 
 /// Basic methods for SDA services.

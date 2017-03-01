@@ -12,8 +12,9 @@ pub struct SdaServer {
 // FIXME
 #[allow(dead_code)] // FIXME
 impl SdaServer {
-    fn ping(&self) -> SdaServerResult<()> {
-        self.agent_store.ping()
+    fn ping(&self) -> SdaServerResult<Pong> {
+        self.agent_store.ping()?;
+        Ok(Pong { running: true })
     }
 
     fn list_aggregations_by_title(&self, filter: &str) -> SdaServerResult<Vec<AggregationId>> {
@@ -71,7 +72,7 @@ macro_rules! wrap {
 }
 
 impl SdaService for SdaServer {
-    fn ping(&self) -> SdaResult<()> {
+    fn ping(&self) -> SdaResult<Pong> {
         wrap!(SdaServer::ping(self))
     }
 }
