@@ -38,7 +38,7 @@ mod crypto;
 mod resources;
 mod methods;
 mod helpers;
-mod byte_arrays;
+pub mod byte_arrays;
 
 pub use crypto::*;
 pub use resources::*;
