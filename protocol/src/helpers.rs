@@ -24,25 +24,25 @@ impl ParticipationId {
 
 impl Default for VerificationKey {
     fn default() -> Self {
-        VerificationKey::Sodium(::byte_arrays::B32([0; 32]))
+        VerificationKey::Sodium([0; 32])
     }
 }
 
-//impl Clone for SigningKey {
-//    fn clone(&self) -> Self {
-//        match self {
-//            &SigningKey::Sodium(raw_sk) => SigningKey::Sodium(raw_sk)
-//        }
-//    }
-//}
-//
-//impl Clone for VerificationKey {
-//    fn clone(&self) -> Self {
-//        match self {
-//            &VerificationKey::Sodium(raw_vk) => VerificationKey::Sodium(raw_vk)
-//        }
-//    }
-//}
+impl Clone for SigningKey {
+    fn clone(&self) -> Self {
+        match self {
+            &SigningKey::Sodium(raw_sk) => SigningKey::Sodium(raw_sk)
+        }
+    }
+}
+
+impl Clone for VerificationKey {
+    fn clone(&self) -> Self {
+        match self {
+            &VerificationKey::Sodium(raw_vk) => VerificationKey::Sodium(raw_vk)
+        }
+    }
+}
 
 // impl From<&'static str> for AgentId {
 //     fn from(s: &'static str) -> AgentId {
