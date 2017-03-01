@@ -9,7 +9,6 @@
 #[macro_use]
 extern crate error_chain;
 extern crate jfs;
-extern crate serde;
 extern crate uuid;
 
 extern crate sda_protocol;

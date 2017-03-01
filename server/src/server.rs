@@ -42,22 +42,26 @@ impl SdaServer {
         self.agent_store.get_agent(&id)
     }
 
-    fn upsert_profile(&self, profile: &Profile) -> SdaServerResult<()> {
-        self.agent_store.upsert_profile(profile)
+    fn upsert_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaServerResult<Profile> {
+        unimplemented!();
     }
 
     fn get_profile(&self, agent: &AgentId) -> SdaServerResult<Option<Profile>> {
-        self.agent_store.get_profile(agent)
+        unimplemented!();
     }
 
-    fn create_encryption_key(&self, key: &SignedEncryptionKey) -> SdaServerResult<()> {
-        self.agent_store.create_encryption_key(key)
+    fn create_encryption_key(&mut self,
+                             caller: &Agent,
+                             key: &SignedEncryptionKey)
+                             -> SdaServerResult<()> {
+        unimplemented!();
     }
 
     fn get_encryption_key(&self,
-                          key: &EncryptionKeyId)
+                          caller: &Agent,
+                          key: &SignedEncryptionKeyId)
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
-        self.agent_store.get_encryption_key(key)
+        unimplemented!();
     }
 }
 
@@ -73,14 +77,6 @@ macro_rules! wrap {
 impl SdaService for SdaServer {
     fn ping(&self) -> SdaResult<()> {
         wrap!(SdaServer::ping(self))
-    }
-}
-
-fn acl_agent_is(agent: &Agent, agent_id: AgentId) -> SdaResult<()> {
-    if agent.id != agent_id {
-        Err(SdaErrorKind::PermissionDenied.into())
-    } else {
-        Ok(())
     }
 }
 
@@ -115,38 +111,32 @@ impl SdaDiscoveryService for SdaServer {
     }
 
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
-        acl_agent_is(caller, agent.id)?;
-        wrap!(Self::create_agent(self, &agent))
+        wrap!(Self::create_agent(self, &caller))
     }
 
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
-        // everything here is public, no acl
         wrap! { Self::get_agent(self, owner) }
     }
 
-    fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()> {
-        acl_agent_is(caller, profile.owner)?;
-        wrap! { Self::upsert_profile(self, profile) }
+    fn upsert_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaResult<Profile> {
+        unimplemented!();
     }
 
     fn get_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>> {
-        // everything here is public, no acl
-        wrap! { Self::get_profile(self, owner) }
+        unimplemented!();
     }
 
-    fn create_encryption_key(&self,
+    fn create_encryption_key(&mut self,
                              caller: &Agent,
                              key: &SignedEncryptionKey)
                              -> SdaResult<()> {
-        acl_agent_is(caller, key.signer)?;
-        wrap! { Self::create_encryption_key(self, key) }
+        unimplemented!();
     }
 
     fn get_encryption_key(&self,
                           caller: &Agent,
-                          key: &EncryptionKeyId)
+                          key: &SignedEncryptionKeyId)
                           -> SdaResult<Option<SignedEncryptionKey>> {
-        // everything here is public, no acl
-        wrap! { Self::get_encryption_key(self, key) }
+        unimplemented!();
     }
 }

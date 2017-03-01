@@ -1,34 +1,9 @@
+
+
+
 use super::*;
 use std::collections::HashMap;
 
-pub trait Identified {
-    type I : Id;
-    fn id(&self) -> &Self::I;
-}
-
-pub trait Id {
-    fn stringify(&self) -> String;
-}
-
-macro_rules! uuid_id {
-    ( #[$doc:meta] $name:ident ) => {
-        #[$doc]
-        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-        pub struct $name(pub Uuid);
-
-        impl Default for $name {
-            fn default() -> $name {
-                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
-            }
-        }
-
-        impl Id for $name {
-            fn stringify(&self) -> String {
-                self.0.to_string()
-            }
-        }
-    }
-}
 
 /// Basic description of an agent, e.g. participants, clerks, and admins.
 ///
@@ -40,18 +15,12 @@ pub struct Agent {
     pub verification_key: Option<VerificationKey>,
 }
 
-uuid_id!{ #[doc="Unique agent identifier."] AgentId }
-
-// FIXME should we macro_rule this ?
-impl Identified for Agent {
-    type I = AgentId;
-    fn id(&self) -> &AgentId {
-        &self.id
-    }
-}
+/// Unique agent identifier.
+#[derive(Clone, Default, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)] // TODO could we use Copy instead?
+pub struct AgentId(pub Uuid);
 
 /// Extended profile of an agent, providing information intended for increasing trust such as name and social handles.
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default)]
 pub struct Profile {
     pub owner: AgentId,
     pub name: Option<String>,
@@ -60,46 +29,18 @@ pub struct Profile {
     pub website: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Signed<M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
-{
+/// Encryption key signed by owner.
+pub struct SignedEncryptionKey {
+    pub id: SignedEncryptionKeyId,
+    pub owner: AgentId,
+    pub key: EncryptionKey,
     pub signature: Signature,
-    pub signer: AgentId,
-    pub body: M
 }
 
-impl<M> std::ops::Deref for Signed<M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
-{
-    type Target = M;
-    fn deref(&self) -> &M {
-        &self.body
-    }
-}
+/// Unique signed encryption key identifier.
+#[derive(Debug)]
+pub struct SignedEncryptionKeyId(pub Uuid);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Labeled<ID,M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
-      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
-{
-    pub id: ID,
-    pub body: M
-}
-
-impl<ID,M> Identified for Labeled<ID,M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
-      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
-{
-    type I = ID;
-    fn id(&self) -> &ID {
-        &self.id
-    }
-}
-
-uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
-
-pub type SignedEncryptionKey = Signed<Labeled<EncryptionKeyId, EncryptionKey>>;
 
 /// Description of an aggregation.
 pub struct Aggregation {
@@ -115,7 +56,7 @@ pub struct Aggregation {
     /// Encryption keys of to be used for the recipient and committee.
     ///
     /// Note that while this could simply be a vector, it's easier to work with a map.
-    pub keyset: HashMap<AgentId, SignedEncryptionKey>,
+    pub keyset: HashMap<AgentId, SignedEncryptionKeyId>,
     /// Masking scheme and parameters to be used between the recipient and the committee.
     pub masking_scheme: LinearMaskingScheme,
     /// Scheme and parameters to be used for secret sharing between the clerks in the committee.
