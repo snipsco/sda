@@ -1,13 +1,15 @@
 
 //! Methods of the SDA services.
 
-
 use super::*;
+
+#[derive(Debug, Deserialize)] 
+pub struct Pong { pub running: bool }
 
 /// Basic methods for SDA services.
 pub trait SdaService {
     /// Send a ping to the service, expecting a pong in return if everything appears to be running.
-    fn ping(&self) -> SdaResult<()>;
+    fn ping(&self) -> SdaResult<Pong>;
 }
 
 /// Methods used mainly for discovering and maintaining public resources.

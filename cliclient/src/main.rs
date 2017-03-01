@@ -1,29 +1,50 @@
+extern crate sda_protocol;
 extern crate sda_client;
+extern crate sda_client_http;
+#[macro_use]
+extern crate error_chain;
 #[macro_use]
 extern crate clap;
-#[macro_use]
 extern crate slog;
+extern crate slog_term;
 #[macro_use]
 extern crate slog_scope;
-extern crate slog_envlogger;
+
 
 use sda_client::*;
+use sda_client_http::*;
+
+use slog::*;
+
+
+error_chain!{
+    types {
+        SdaCliError, SdaCliErrorKind, SdaCliResultExt, SdaCliResult;
+    }
+    foreign_links {
+        Protocol(::sda_protocol::SdaError);
+        Http(::sda_client_http::SdaHttpClientError);
+        Client(::sda_client::SdaClientError);
+    }
+}
 
 fn main() {
-    slog_envlogger::init().unwrap();
+    let root = Logger::root(slog_term::streamer().stderr().use_utc_timestamp().build().fuse(), o!());
+    slog_scope::set_global_logger(root);
+
     if let Err(e) = run() {
-        // TODO the below doesn't show anything!
         debug!("{:?}", e);
         error!("{}", e);
         std::process::exit(1);
     }
 }
 
-fn run() -> sda_client::SdaClientResult<()> {
+fn run() -> SdaCliResult<()> {
     
     let matches = clap_app!(sda =>
-        (@arg server: -s --server +takes_value "Server URI")
+        (@arg server: -s --server +takes_value "Server root")
         (@arg keystore: -k --keystore +takes_value "Keystore directory")
+        (@subcommand ping =>)
         (@subcommand identity => 
             (@subcommand create =>
                 (@arg force: -f --force "Overwrite any existing identity")
@@ -31,15 +52,39 @@ fn run() -> sda_client::SdaClientResult<()> {
             (@subcommand show =>)
         )
         (@subcommand clerk =>)
-        (@subcommand keystore =>
-            // (@subcommand list =>)
-        )
-        ).get_matches();
+    ).get_matches();
 
-    let keystore: keystore::Filebased = keystore::Filebased::new(matches.value_of("keystore").unwrap_or(".sda"))?;
-    let identity = keystore.resolve_alias("identity")?;
+    let service = {
+        let server_root = matches.value_of("server").unwrap_or("http://localhost:8888");
+        debug!("Using server {}", server_root);
+        SdaHttpClient::new(server_root)?
+    };
+
+    let keystore = {
+        let keystore_path = matches.value_of("keystore").unwrap_or(".sda");
+        debug!("Using keystore {}", keystore_path);
+        keystore::Filebased::new(keystore_path)?
+    };
+
+    let identity = {
+        let identity = keystore.resolve_alias("identity")?;
+        debug!("Using identity {:?}", identity);
+        identity
+    };
+    
     
     match matches.subcommand() {
+
+        ("ping", Some(matches)) => {
+            let pong = service.ping()?;
+            match pong {
+                Pong{running} if running => {
+                    info!("Service appears to be running");
+                    Ok(())
+                },
+                _ => Err("Service may not be running")?
+            }
+        },
 
         ("identity", Some(matches)) => {
 
