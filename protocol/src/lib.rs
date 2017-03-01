@@ -7,16 +7,26 @@
 //! It takes a resource-oriented REST approach whenever possible, 
 //! influenced by the [Google API Design Guide](https://cloud.google.com/apis/design/).
 
+extern crate data_encoding;
 #[macro_use]
 extern crate error_chain;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+#[cfg(test)]
+extern crate serde_test;
 extern crate uuid;
 
 mod errors {
     error_chain! {
         types {
             SdaError, SdaErrorKind, SdaResultExt, SdaResult;
+        }
+        errors {
+            PermissionDenied {
+                description("permission denied")
+                display("permission denied")
+            }
         }
     }
 }
@@ -28,6 +38,7 @@ mod crypto;
 mod resources;
 mod methods;
 mod helpers;
+pub mod byte_arrays;
 
 pub use crypto::*;
 pub use resources::*;

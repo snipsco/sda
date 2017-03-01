@@ -9,24 +9,27 @@ pub enum Encryption {
 }
 
 /// Encryption key (aka public key).
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum EncryptionKey {
-    Sodium([u8; 0]) // TODO what is right size?
+    Sodium(::byte_arrays::B8)
 }
 
 /// Signature.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Signature {
-    Sodium([u8; 64])
+    Sodium(::byte_arrays::B64)
 }
 
 /// Signing key for signatures.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SigningKey {
-    Sodium([u8; 64])
+    Sodium(::byte_arrays::B64)
 }
 
 /// Verification key for signatures.
-#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum VerificationKey {
-    Sodium([u8; 32]) // FIXME serialize in b64 form
+    Sodium(::byte_arrays::B32)
 }
 
 /// Supported masking schemes and their parameters.

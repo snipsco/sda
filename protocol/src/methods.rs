@@ -32,16 +32,16 @@ pub trait SdaDiscoveryService : SdaService {
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>>;
 
     /// Register the given public profile; updates any existing profile.
-    fn upsert_profile(&mut self, caller: &Agent, profile: &Profile) -> SdaResult<Profile>;
+    fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()>;
 
     /// Retrieve the associated public profile.
     fn get_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>>;
 
     /// Register new encryption key for agent.
-    fn create_encryption_key(&mut self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()>;
+    fn create_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()>;
 
     /// Retrieve agent encryption key.
-    fn get_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKeyId) -> SdaResult<Option<SignedEncryptionKey>>;
+    fn get_encryption_key(&self, caller: &Agent, key: &EncryptionKeyId) -> SdaResult<Option<SignedEncryptionKey>>;
 
 }
 
@@ -72,7 +72,7 @@ pub trait SdaRecipientService : SdaService {
 
     /// Retrieve results of an aggregation.
     fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>>;
-        
+
 }
 
 /// Methods used only for administration, including creating and deleting aggregations.
