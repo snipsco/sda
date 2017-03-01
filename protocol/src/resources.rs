@@ -1,9 +1,34 @@
-
-
-
 use super::*;
 use std::collections::HashMap;
 
+pub trait Identified {
+    type I : Id;
+    fn id(&self) -> &Self::I;
+}
+
+pub trait Id {
+    fn stringify(&self) -> String;
+}
+
+macro_rules! uuid_id {
+    ( #[$doc:meta] $name:ident ) => {
+        #[$doc]
+        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+        pub struct $name(pub Uuid);
+
+        impl Default for $name {
+            fn default() -> $name {
+                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+            }
+        }
+
+        impl Id for $name {
+            fn stringify(&self) -> String {
+                self.0.to_string()
+            }
+        }
+    }
+}
 
 /// Basic description of an agent, e.g. participants, clerks, and admins.
 ///
@@ -15,16 +40,15 @@ pub struct Agent {
     pub verification_key: Option<VerificationKey>,
 }
 
-/// Unique agent identifier.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub struct AgentId(pub Uuid);
+uuid_id!{ #[doc="Unique agent identifier."] AgentId }
 
-impl Default for AgentId {
-    fn default() -> AgentId {
-        AgentId(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+// FIXME should we macro_rule this ?
+impl Identified for Agent {
+    type I = AgentId;
+    fn id(&self) -> &AgentId {
+        &self.id
     }
 }
-
 
 /// Extended profile of an agent, providing information intended for increasing trust such as name and social handles.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -45,24 +69,35 @@ where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::D
     pub body: M
 }
 
+impl<M> std::ops::Deref for Signed<M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    type Target = M;
+    fn deref(&self) -> &M {
+        &self.body
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Labeled<ID,M>
 where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
-      ID: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
 {
     pub id: ID,
     pub body: M
 }
 
-/// Unique encryption key identifier.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct EncryptionKeyId(pub Uuid);
-
-impl Default for EncryptionKeyId {
-    fn default() -> EncryptionKeyId {
-        EncryptionKeyId(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+impl<ID,M> Identified for Labeled<ID,M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    type I = ID;
+    fn id(&self) -> &ID {
+        &self.id
     }
 }
+
+uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
 
 pub type SignedEncryptionKey = Signed<Labeled<EncryptionKeyId, EncryptionKey>>;
 
