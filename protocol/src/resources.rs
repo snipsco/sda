@@ -36,24 +36,35 @@ pub struct Profile {
     pub website: Option<String>,
 }
 
-/// Encryption key signed by owner.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct SignedEncryptionKey {
-    pub id: SignedEncryptionKeyId,
-    pub owner: AgentId,
-    pub key: EncryptionKey,
+pub struct Signed<M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
     pub signature: Signature,
+    pub signer: AgentId,
+    pub body: M
 }
 
-/// Unique signed encryption key identifier.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct SignedEncryptionKeyId(pub Uuid);
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Labeled<ID,M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+{
+    pub id: ID,
+    pub body: M
+}
 
-impl Default for SignedEncryptionKeyId {
-    fn default() -> SignedEncryptionKeyId {
-        SignedEncryptionKeyId(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+/// Unique encryption key identifier.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct EncryptionKeyId(pub Uuid);
+
+impl Default for EncryptionKeyId {
+    fn default() -> EncryptionKeyId {
+        EncryptionKeyId(Uuid::new(::uuid::UuidVersion::Random).unwrap())
     }
 }
+
+pub type SignedEncryptionKey = Signed<Labeled<EncryptionKeyId, EncryptionKey>>;
 
 /// Description of an aggregation.
 pub struct Aggregation {
@@ -69,7 +80,7 @@ pub struct Aggregation {
     /// Encryption keys of to be used for the recipient and committee.
     ///
     /// Note that while this could simply be a vector, it's easier to work with a map.
-    pub keyset: HashMap<AgentId, SignedEncryptionKeyId>,
+    pub keyset: HashMap<AgentId, SignedEncryptionKey>,
     /// Masking scheme and parameters to be used between the recipient and the committee.
     pub masking_scheme: LinearMaskingScheme,
     /// Scheme and parameters to be used for secret sharing between the clerks in the committee.

@@ -83,17 +83,26 @@ pub fn profile_crud_acl() {
 
 #[test]
 pub fn encryption_key_crud() {
+    use proto::byte_arrays::*;
     let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
     let server = sda_server::SdaServer { agent_store: Box::new(store) };
     let service: &proto::SdaDiscoveryService = &server;
 
     let alice = proto::Agent::default();
+    let bob = proto::Agent::default();
     service.create_agent(&alice, &alice).unwrap();
 
-    /*
-    let alice_key_1 = SignedEncryptionKey {
-        
+    let alice_key = proto::SignedEncryptionKey {
+        body: proto::Labeled {
+            id: proto::EncryptionKeyId::default(),
+            body: proto::EncryptionKey::Sodium(B8::default())
+        },
+        signer: alice.id,
+        signature: proto::Signature::Sodium(B64::default())
     };
-    */
+
+    service.create_encryption_key(&alice, &alice_key).unwrap();
+    let still_alice = service.get_encryption_key(&bob, &alice_key.body.id).unwrap();
+    assert_eq!(Some(&alice_key), still_alice.as_ref());
 }
 
