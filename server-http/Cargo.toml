@@ -1,0 +1,19 @@
+[package]
+name = "sda-server-http"
+version = "0.1.0"
+authors = [
+    "Mathieu Poumeyrol <kali@zoy.org>", 
+    "Morten Dahl <mortendahlcs@gmail.com>"
+]
+
+[dependencies]
+clap="2.20"
+error-chain = { version = "0.10", default-features=false }
+rouille = "1.0"
+sda-protocol = { path= "../protocol" }
+sda-server = { path= "../server" }
+serde = "0.9"
+serde_json = "0.9"
+slog = "1.5"
+slog-scope = "0.2"
+slog-term = "1.3.5"

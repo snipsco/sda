@@ -1,7 +1,7 @@
 use sda_protocol::{Agent, AgentId, Profile, EncryptionKeyId, SignedEncryptionKey};
 use SdaServerResult;
 
-pub trait BaseStore {
+pub trait BaseStore : Sync + Send {
     fn ping(&self) -> SdaServerResult<()>;
 }
 
