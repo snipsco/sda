@@ -24,9 +24,9 @@ impl<C,S> Clerking for SdaClient<C,S>
     where
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
-        C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
+        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        // KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
+        // KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
         S: SdaClerkingService,
 {
@@ -73,8 +73,8 @@ impl<C,S> SdaClient<C,S>
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<AgentId, Agent>,
-        C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
-        // KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
+        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
+        // KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
 {
 
@@ -110,7 +110,7 @@ impl<C,S> SdaClient<C,S>
         if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }
-        let recipient_encryption_key = recipient_signed_encryption_key.key;
+        let recipient_encryption_key = recipient_signed_encryption_key.body.body;
         // .. and re-encrypt summed shares
         let share_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key)?;
         let recipient_encryption: Encryption = share_encryptor.encrypt(&fully_combined_shares)?;

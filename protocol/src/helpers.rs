@@ -28,12 +28,6 @@ impl ParticipationId {
     }
 }
 
-impl SignedEncryptionKeyId {
-    pub fn to_string(&self) -> String {
-        format!("{}", self.0.simple())
-    }
-}
-
 impl LabelledVerificationKeypairId {
     pub fn new() -> LabelledVerificationKeypairId {
         LabelledVerificationKeypairId(Uuid::new_v4())

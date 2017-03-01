@@ -86,8 +86,8 @@ impl KeypairGen<LabelledVerificationKeypairId> for Filebased {
 
 
 
-impl ExportDecryptionKey<SignedEncryptionKeyId, (sda_protocol::EncryptionKey, crypto::DecryptionKey)> for Filebased {
-    fn export_decryption_key(&self, id: &SignedEncryptionKeyId) -> SdaClientResult<Option<(sda_protocol::EncryptionKey, crypto::DecryptionKey)>> {
+impl ExportDecryptionKey<EncryptionKeyId, (sda_protocol::EncryptionKey, crypto::DecryptionKey)> for Filebased {
+    fn export_decryption_key(&self, id: &EncryptionKeyId) -> SdaClientResult<Option<(sda_protocol::EncryptionKey, crypto::DecryptionKey)>> {
         unimplemented!()
     }
 }

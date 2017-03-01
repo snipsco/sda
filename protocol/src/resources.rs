@@ -1,9 +1,34 @@
-
-
-
 use super::*;
 use std::collections::HashMap;
 
+pub trait Identified {
+    type I : Id;
+    fn id(&self) -> &Self::I;
+}
+
+pub trait Id {
+    fn stringify(&self) -> String;
+}
+
+macro_rules! uuid_id {
+    ( #[$doc:meta] $name:ident ) => {
+        #[$doc]
+        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+        pub struct $name(pub Uuid);
+
+        impl Default for $name {
+            fn default() -> $name {
+                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+            }
+        }
+
+        impl Id for $name {
+            fn stringify(&self) -> String {
+                self.0.to_string()
+            }
+        }
+    }
+}
 
 /// Basic description of an agent, e.g. participants, clerks, and admins.
 ///
@@ -15,16 +40,15 @@ pub struct Agent {
     pub verification_key: Option<VerificationKey>,
 }
 
-/// Unique agent identifier.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub struct AgentId(pub Uuid);
+uuid_id!{ #[doc="Unique agent identifier."] AgentId }
 
-impl Default for AgentId {
-    fn default() -> AgentId {
-        AgentId(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+// FIXME should we macro_rule this ?
+impl Identified for Agent {
+    type I = AgentId;
+    fn id(&self) -> &AgentId {
+        &self.id
     }
 }
-
 
 /// Extended profile of an agent, providing information intended for increasing trust such as name and social handles.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -36,26 +60,50 @@ pub struct Profile {
     pub website: Option<String>,
 }
 
-/// Encryption key signed by owner.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct SignedEncryptionKey {
-    pub id: SignedEncryptionKeyId,
-    pub owner: AgentId,
-    pub key: EncryptionKey,
+pub struct Signed<M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
     pub signature: Signature,
+    pub signer: AgentId,
+    pub body: M
 }
 
-/// Unique signed encryption key identifier.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct SignedEncryptionKeyId(pub Uuid);
-
-impl Default for SignedEncryptionKeyId {
-    fn default() -> SignedEncryptionKeyId {
-        SignedEncryptionKeyId(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+impl<M> std::ops::Deref for Signed<M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    type Target = M;
+    fn deref(&self) -> &M {
+        &self.body
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Labeled<ID,M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+{
+    pub id: ID,
+    pub body: M
+}
+
+impl<ID,M> Identified for Labeled<ID,M>
+where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    type I = ID;
+    fn id(&self) -> &ID {
+        &self.id
+    }
+}
+
+
 pub struct LabelledVerificationKeypairId(pub Uuid);
+
+uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
+
+pub type SignedEncryptionKey = Signed<Labeled<EncryptionKeyId, EncryptionKey>>;
+
 
 /// Description of an aggregation.
 pub struct Aggregation {
@@ -67,7 +115,7 @@ pub struct Aggregation {
     /// Recipient of output vector.
     pub recipient: AgentId,
     /// Encryption key to be used for encryptions to the recipient.
-    pub recipient_key: SignedEncryptionKeyId,
+    pub recipient_key: EncryptionKeyId,
     /// Masking scheme and parameters to be used between the recipient and the committee.
     pub masking_scheme: LinearMaskingScheme,
     /// Scheme and parameters to be used for secret sharing between the clerks in the committee.
@@ -90,7 +138,7 @@ pub struct Committee {
     /// Encryption keys to be used.
     ///
     /// Note that while this could simply be a vector, it's easier to work with a map.
-    pub clerk_keys: HashMap<AgentId, SignedEncryptionKeyId>,
+    pub clerk_keys: HashMap<AgentId, EncryptionKeyId>,
 }
 
 /// Description of a participant's input to an aggregation.

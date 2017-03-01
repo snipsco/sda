@@ -11,11 +11,8 @@ macro_rules! B {
             }
 
             fn from_base64(s:&str) -> ::std::result::Result<$name, String> {
-                let mut decode = s.as_bytes();
-                while decode[decode.len()-1] == b'=' {
-                    decode = &decode[0..decode.len()-1]
-                }
                 let mut data = [0; $size];
+                let decode = &s.as_bytes()[0..::data_encoding::base64::encode_nopad_len($size)];
                 match ::data_encoding::base64::decode_nopad_mut(decode, &mut data) {
                     Ok(_) => Ok($name(data)),
                     Err(e) => Err(format!("{:?}", e)),
@@ -110,12 +107,8 @@ mod tests {
         let a64 = ::data_encoding::base64::encode(&a);
         assert_eq!("AAAAAAAAAAA=", a64);
 
-        println!("foobar {}", ::data_encoding::base64::decode_len(a64.len()));
         let mut b = [0u8; 8];
-        let mut decode = a64.as_bytes();
-        while decode[decode.len()-1] == b'=' {
-            decode = &decode[0..decode.len()-1]
-        }
+        let decode = &a64.as_bytes()[0..::data_encoding::base64::encode_nopad_len(8)];
         ::data_encoding::base64::decode_nopad_mut(decode, &mut b).unwrap();
         assert_eq!(a, b);
     }

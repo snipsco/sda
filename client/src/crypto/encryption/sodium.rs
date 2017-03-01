@@ -55,8 +55,8 @@ pub struct Decryptor {
 }
 
 impl Decryptor {
-    pub fn new<KS>(id: &SignedEncryptionKeyId, keystore: &KS) -> SdaClientResult<Decryptor>
-        where KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>
+    pub fn new<KS>(id: &EncryptionKeyId, keystore: &KS) -> SdaClientResult<Decryptor>
+        where KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>
     {
         match keystore.export_decryption_key(id)? {
 

@@ -49,10 +49,10 @@ pub trait DecryptorConstruction<ID, KS> {
     fn new_share_decryptor(&self, id: &ID, keystore: &KS) -> SdaClientResult<Box<ShareDecryptor>>;
 }
 
-impl<KS> DecryptorConstruction<SignedEncryptionKeyId, KS> for AdditiveEncryptionScheme
-    where KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>
+impl<KS> DecryptorConstruction<EncryptionKeyId, KS> for AdditiveEncryptionScheme
+    where KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>
 {
-    fn new_share_decryptor(&self, id: &SignedEncryptionKeyId, keystore: &KS) -> SdaClientResult<Box<ShareDecryptor>> {
+    fn new_share_decryptor(&self, id: &EncryptionKeyId, keystore: &KS) -> SdaClientResult<Box<ShareDecryptor>> {
         match self {
 
             &AdditiveEncryptionScheme::Sodium => {

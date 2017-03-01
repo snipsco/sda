@@ -30,7 +30,7 @@ impl<C,S> Participating for SdaClient<C,S>
     where
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
-        C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
+        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
         S: SdaDiscoveryService,
         S: SdaParticipationService,
@@ -80,7 +80,7 @@ impl<C,S> Participating for SdaClient<C,S>
         if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }
-        let recipient_encryption_key = recipient_signed_encryption_key.key;
+        let recipient_encryption_key = recipient_signed_encryption_key.body.body;
         // .. encrypt the recipient's mask using it
         let mask_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key)?;
         let recipient_encryption: Encryption = mask_encryptor.encrypt(&*recipient_mask)?;
@@ -104,7 +104,7 @@ impl<C,S> Participating for SdaClient<C,S>
             if !clerk.signature_is_valid(&clerk_signed_encryption_key)? {
                 Err("Signature verification failed for clerk key")?
             }
-            let clerk_encryption_key = clerk_signed_encryption_key.key;
+            let clerk_encryption_key = clerk_signed_encryption_key.body.body;
             // .. encrypt the clerk's shares using it
             let share_encryptor = aggregation.committee_encryption_scheme.new_share_encryptor(&clerk_encryption_key)?;
             let clerk_encryption: Encryption = share_encryptor.encrypt(&*clerk_shares)?;

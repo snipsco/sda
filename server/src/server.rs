@@ -30,7 +30,7 @@ impl SdaServer {
         unimplemented!();
     }
 
-    fn get_committee(&self, committee: &CommitteeId) -> SdaServerResult<Option<Committee>> {
+    fn get_committee(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Committee>> {
         unimplemented!();
     }
 
@@ -50,14 +50,14 @@ impl SdaServer {
         self.agent_store.get_profile(agent)
     }
 
-    fn create_encryption_key(&mut self, key: &SignedEncryptionKey) -> SdaServerResult<()> {
-        unimplemented!();
+    fn create_encryption_key(&self, key: &SignedEncryptionKey) -> SdaServerResult<()> {
+        self.agent_store.create_encryption_key(key)
     }
 
     fn get_encryption_key(&self,
-                          key: &SignedEncryptionKeyId)
+                          key: &EncryptionKeyId)
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
-        unimplemented!();
+        self.agent_store.get_encryption_key(key)
     }
 }
 
@@ -109,7 +109,7 @@ impl SdaDiscoveryService for SdaServer {
 
     fn get_committee(&self,
                      caller: &Agent,
-                     committee: &CommitteeId)
+                     aggregation: &AggregationId)
                      -> SdaResult<Option<Committee>> {
         unimplemented!();
     }
@@ -134,17 +134,17 @@ impl SdaDiscoveryService for SdaServer {
         wrap! { Self::get_profile(self, owner) }
     }
 
-    fn create_encryption_key(&mut self,
+    fn create_encryption_key(&self,
                              caller: &Agent,
                              key: &SignedEncryptionKey)
                              -> SdaResult<()> {
-        acl_agent_is(caller, key.owner)?;
+        acl_agent_is(caller, key.signer)?;
         wrap! { Self::create_encryption_key(self, key) }
     }
 
     fn get_encryption_key(&self,
                           caller: &Agent,
-                          key: &SignedEncryptionKeyId)
+                          key: &EncryptionKeyId)
                           -> SdaResult<Option<SignedEncryptionKey>> {
         // everything here is public, no acl
         wrap! { Self::get_encryption_key(self, key) }

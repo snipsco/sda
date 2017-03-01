@@ -38,10 +38,10 @@ impl<C, S> Fetch<AgentId, Agent> for SdaClient<C, S>
     }
 }
 
-impl<C, S> Fetch<SignedEncryptionKeyId, SignedEncryptionKey> for SdaClient<C, S>
+impl<C, S> Fetch<EncryptionKeyId, SignedEncryptionKey> for SdaClient<C, S>
     where S: SdaDiscoveryService
 {
-    fn fetch(&self, id: &SignedEncryptionKeyId) -> SdaClientResult<SignedEncryptionKey> {
+    fn fetch(&self, id: &EncryptionKeyId) -> SdaClientResult<SignedEncryptionKey> {
         Ok(self.sda_service.get_encryption_key(&self.agent, id)?
             .ok_or("Encryption key not found on service")?)
     }

@@ -59,7 +59,7 @@ impl SignatureVerification<SignedEncryptionKey> for Agent {
 
         // TODO remember result to avoid running verification more than once
 
-        let raw_msg = match &signed_encryption_key.key {
+        let raw_msg = match &signed_encryption_key.body.body {
             &EncryptionKey::Sodium(raw_ek) => raw_ek
         };
 

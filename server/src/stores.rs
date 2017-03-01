@@ -1,4 +1,4 @@
-use sda_protocol::{Agent, AgentId, Profile};
+use sda_protocol::{Agent, AgentId, Profile, EncryptionKeyId, SignedEncryptionKey};
 use SdaServerResult;
 
 pub trait BaseStore {
@@ -17,4 +17,10 @@ pub trait AgentStore: BaseStore {
 
     /// Retrieve the associated public profile.
     fn get_profile(&self, owner: &AgentId) -> SdaServerResult<Option<Profile>>;
+
+    /// Register new encryption key for agent.
+    fn create_encryption_key(&self, key: &SignedEncryptionKey) -> SdaServerResult<()>;
+
+    /// Retrieve agent encryption key.
+    fn get_encryption_key(&self, key: &EncryptionKeyId) -> SdaServerResult<Option<SignedEncryptionKey>>;
 }

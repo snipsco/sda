@@ -13,9 +13,9 @@ POST /agents/<AgentId>
 GET  /agents/<AgentId>/profile
 POST /agents/<AgentId>/profile
 
-GET    /agents/<AgentId>/keys/<SignedEncryptionKeyId>
-POST   /agents/<AgentId>/keys/<SignedEncryptionKeyId>
-DELETE /agents/<AgentId>/keys/<SignedEncryptionKeyId>
+GET    /agents/<AgentId>/keys/<EncryptionKeyId>
+POST   /agents/<AgentId>/keys/<EncryptionKeyId>
+DELETE /agents/<AgentId>/keys/<EncryptionKeyId>
 ```
 
 ### Aggregations
