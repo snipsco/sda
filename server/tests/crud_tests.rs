@@ -90,8 +90,10 @@ pub fn encryption_key_crud() {
     let alice = proto::Agent::default();
     service.create_agent(&alice, &alice).unwrap();
 
+    /*
     let alice_key_1 = SignedEncryptionKey {
         
     };
+    */
 }
 
