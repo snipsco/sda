@@ -11,7 +11,7 @@ use std::collections::HashMap;
 #[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Agent {
     pub id: AgentId,
-    /// Key used for verifying signatures from agent, if any.
+    // /// Key used for verifying signatures from agent, if any.
     pub verification_key: Option<VerificationKey>,
 }
 

@@ -21,7 +21,7 @@ pub use self::encryption::*;
 
 #[derive(Serialize, Deserialize)]
 pub enum DecryptionKey {
-    Sodium([u8; 0]) // TODO what is the right size?
+    Sodium(::sda_protocol::byte_arrays::B32)
 }
 
 
@@ -73,9 +73,9 @@ impl SignatureVerification<SignedEncryptionKey> for Agent {
             },
 
             (&Some(VerificationKey::Sodium(raw_vk)), &Signature::Sodium(raw_sig)) => {
-                let sig = sodiumoxide::crypto::sign::Signature(raw_sig);
-                let vk = sodiumoxide::crypto::sign::PublicKey(raw_vk);
-                let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &raw_msg, &vk);
+                let sig = sodiumoxide::crypto::sign::Signature(*raw_sig);
+                let vk = sodiumoxide::crypto::sign::PublicKey(*raw_vk);
+                let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &*raw_msg, &vk);
                 Ok(is_valid)
             },
 

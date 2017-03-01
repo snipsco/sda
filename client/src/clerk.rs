@@ -20,13 +20,13 @@ pub trait Clerking {
 }
 
 
-impl<C,KS,S> Clerking for SdaClient<C,KS,S>
+impl<C,S> Clerking for SdaClient<C,S>
     where
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
+        // KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
         S: SdaClerkingService,
 {
@@ -68,13 +68,13 @@ impl<C,KS,S> Clerking for SdaClient<C,KS,S>
 }
 
 
-impl<C,KS,S> SdaClient<C,KS,S>
+impl<C,S> SdaClient<C,S>
     where
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<AgentId, Agent>,
         C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
-        KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
+        // KS: ExportDecryptionKey<SignedEncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
 {
 

@@ -2,6 +2,9 @@
 use super::*;
 
 
+pub struct FileIdentity {}
+
+
 pub trait Maintenance {
 
     // fn new_agent(&mut self) -> SdaClientResult<Agent>;
@@ -16,18 +19,18 @@ pub trait Maintenance {
 }
 
 
-impl<C, K, S> Maintenance for SdaClient<C, K, S>
-    where K: KeypairGen<VerificationKey>
-{
-    // fn new_agent(&mut self) -> SdaClientResult<Agent> {
-    //     let id = AgentId::new();
-    //     let vk: VerificationKey = self.keystore.new_keypair()?;
-    //     Ok(Agent {
-    //         id: id,
-    //         verification_key: Some(vk)
-    //     })
-    // }
-}
+// impl<C, S> Maintenance for SdaClient<C, S>
+//     where K: KeypairGen<VerificationKey>
+// {
+//     // fn new_agent(&mut self) -> SdaClientResult<Agent> {
+//     //     let id = AgentId::new();
+//     //     let vk: VerificationKey = self.keystore.new_keypair()?;
+//     //     Ok(Agent {
+//     //         id: id,
+//     //         verification_key: Some(vk)
+//     //     })
+//     // }
+// }
 
 // impl<C, K, S> Maintenance for SdaClient<C, K, S> 
 //     // where K: KeyStre

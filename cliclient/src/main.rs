@@ -1,26 +1,21 @@
 extern crate sda_client;
 #[macro_use]
 extern crate clap;
-// #[macro_use]
-// extern crate slog;
-// #[macro_use]
-// extern crate slog_scope;
-// extern crate slog_envlogger;
+#[macro_use]
+extern crate slog;
+#[macro_use]
+extern crate slog_scope;
+extern crate slog_envlogger;
 
 use sda_client::*;
-// use sda_httpproxy::{SdaHttpProxy};
 
 fn main() {
-    // slog_envlogger::init().unwrap();
-    // println!("cdscs");
-    // error!("main");
-    // if let Err(e) = run() {
-    //     debug!("{:?}", e);
-    //     error!("{}", e);
-    //     std::process::exit(1);
-    // }
+    slog_envlogger::init().unwrap();
     if let Err(e) = run() {
-        println!("{}", e);
+        // TODO the below doesn't show anything!
+        debug!("{:?}", e);
+        error!("{}", e);
+        std::process::exit(1);
     }
 }
 
@@ -29,48 +24,59 @@ fn run() -> sda_client::SdaClientResult<()> {
     let matches = clap_app!(sda =>
         (@arg server: -s --server +takes_value "Server URI")
         (@arg keystore: -k --keystore +takes_value "Keystore directory")
-        (@subcommand init =>)
+        (@subcommand identity => 
+            (@subcommand create =>
+                (@arg force: -f --force "Overwrite any existing identity")
+            )
+            (@subcommand show =>)
+        )
         (@subcommand clerk =>)
         (@subcommand keystore =>
             // (@subcommand list =>)
         )
         ).get_matches();
 
-    let keystore: Keystore = Keystore::new(
-        matches.value_of("keystore").unwrap_or(".sda")
-    )?;
-    let agent: Agent = match matches.subcommand() {
-        
-        ("init", _) => {
-            let id = AgentId::new();
-            let vk: VerificationKey = keystore.new_keypair()?;
-            Ok(Agent {
-                id: id,
-                verification_key: Some(vk)
-            })      
-        },
-
-        _ => {
-            keystore.get("agent")?
-                .ok_or("Please run 'sda init' first")
-        }
-
-    }?;
-
+    let keystore: keystore::Filebased = keystore::Filebased::new(matches.value_of("keystore").unwrap_or(".sda"))?;
+    let identity = keystore.resolve_alias("identity")?;
+    
     match matches.subcommand() {
-        ("keystore", Some(matches)) => {
+
+        ("identity", Some(matches)) => {
+
             match matches.subcommand() {
-                ("init", Some(matches)) => {
-                    keystore.init();
-                    println!("init");
+                ("create", Some(matches)) => {
+                    match identity {
+                        Some(_) if !matches.is_present("force") => {
+                            Err("Already created; use --force to create new")?
+                        },
+                        _ => {
+                            let identity: LabelledVerificationKeypairId = keystore.new_keypair()?;
+                            info!("Created identity with id {}", identity.to_string());
+                            keystore.define_alias("identity", &identity.to_string())?;
+                            Ok(())
+                        }
+                    }
                 },
-                (_, _) => panic!("Unknown subcommand for keystore"),
+                ("show", Some(matches)) => {
+                    match identity {
+                        None => { 
+                            warn!("No identity found");
+                            Ok(())
+                        },
+                        Some(identity) => {
+                            println!("Identity id is {}", identity);
+                            Ok(())
+                        }
+                    }
+                },
+                (cmd, _) => Err(format!("Unknown subcommand {}",  cmd))?
             }
+            
         },
 
-        (_, _) => panic!("Unknown command"),
+        (cmd, _) => Err(format!("Unknown command {}", cmd))?
     }
 
-    Ok(())
-
 }
+
+

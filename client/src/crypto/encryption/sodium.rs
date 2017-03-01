@@ -20,7 +20,7 @@ impl Encryptor {
         match ek {
 
             &EncryptionKey::Sodium(raw_ek) => {
-                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&raw_ek)
+                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
                 Ok(Encryptor {
                     pk: pk,
@@ -62,10 +62,10 @@ impl Decryptor {
 
             Some((EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk))) => {
 
-                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&raw_ek)
+                let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
 
-                let sk = sodiumoxide::crypto::box_::SecretKey::from_slice(&raw_dk)
+                let sk = sodiumoxide::crypto::box_::SecretKey::from_slice(&*raw_dk)
                     .ok_or("Failed to parse Sodium secret key")?;
                 
                 Ok(Decryptor {

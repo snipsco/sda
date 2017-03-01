@@ -26,12 +26,12 @@ pub trait Participating {
 
 }
 
-impl<L,I,S> Participating for SdaClient<L,I,S>
+impl<C,S> Participating for SdaClient<C,S>
     where
-        L: Cache<AggregationId, Aggregation>,
-        L: Cache<AggregationId, Committee>,
-        L: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
-        L: Cache<AgentId, Agent>,
+        C: Cache<AggregationId, Aggregation>,
+        C: Cache<AggregationId, Committee>,
+        C: Cache<SignedEncryptionKeyId, SignedEncryptionKey>,
+        C: Cache<AgentId, Agent>,
         S: SdaDiscoveryService,
         S: SdaParticipationService,
 {
