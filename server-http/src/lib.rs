@@ -31,6 +31,6 @@ struct SdaServiceWrapper<'a>(&'a sda_server::SdaServer);
 impl<'a> SdaServiceWrapper<'a> {
     fn ping(&self, _req:&Request) -> SdaResult<Response> {
         self.0.ping()?;
-        Ok(Response::from_data("application/json", json!({"pong": true}).to_string()))
+        Ok(Response::from_data("application/json", json!({"running": true}).to_string()))
     }
 }
