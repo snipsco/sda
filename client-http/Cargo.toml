@@ -1,5 +1,5 @@
 [package]
-name = "sda"
+name = "sda-client-http"
 version = "0.1.0"
 authors = [
     "Mathieu Poumeyrol <kali@zoy.org>", 
@@ -7,11 +7,9 @@ authors = [
 ]
 
 [dependencies]
-sda-protocol = { path="../protocol" }
-sda-client = { path="../client" }
-sda-client-http = { path= "../client-http" }
+sda-protocol = { path= "../protocol" }
 error-chain = { version = "0.10", default-features=false }
-clap = "2.10"
-slog = "1.5"
-slog-scope = "0.2"
-slog-term = "1.5"
+serde = "0.9"
+serde_derive = "0.9"
+serde_json = "0.9"
+reqwest = "0.4"
