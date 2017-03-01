@@ -29,6 +29,16 @@ error_chain!{
 }
 
 
+macro_rules! wrap {
+    ($e:expr) => {
+        match $e {
+            Ok(ok) => Ok(ok),
+            Err(err) => Err(format!("HTTP/REST error: {:?}", err).into()),
+        }
+    }
+}
+
+
 pub struct SdaHttpClient {
     server_root: reqwest::Url,
 }
@@ -64,15 +74,5 @@ impl SdaHttpClient {
 impl SdaService for SdaHttpClient {
     fn ping(&self) -> SdaResult<Pong> {
         wrap! { self.get("/ping") }
-    }
-}
-
-
-macro_rules! wrap {
-    ($e:expr) => {
-        match $e {
-            Ok(ok) => Ok(ok),
-            Err(err) => Err(format!("HTTP/REST error: {:?}", err).into()),
-        }
     }
 }
