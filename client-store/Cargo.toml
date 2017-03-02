@@ -1,0 +1,14 @@
+[package]
+name = "sda-client-store"
+version = "0.1.0"
+authors = [
+    "Mathieu Poumeyrol <kali@zoy.org>", 
+    "Morten Dahl <mortendahlcs@gmail.com>"
+]
+
+[dependencies]
+error-chain = { version = "0.10", default-features=false }
+serde = "0.9"
+serde_derive = "0.9"
+serde_json = "0.9"
+jfs = "0.3"
