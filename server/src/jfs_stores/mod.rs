@@ -3,10 +3,10 @@ use jfs;
 use errors::*;
 
 mod agents;
-mod authentication;
+mod auth;
 
 pub use self::agents::JfsAgentStore;
-pub use self::authentication::JfsAuthenticationStore;
+pub use self::auth::JfsAuthStore;
 
 fn get_option<T>(store: &jfs::Store, id: &str) -> SdaServerResult<Option<T>>
     where T: ::serde::Serialize + ::serde::Deserialize

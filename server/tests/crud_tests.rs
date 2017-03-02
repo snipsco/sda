@@ -3,7 +3,7 @@ extern crate sda_server;
 
 fn tmp_server() -> sda_server::SdaServer {
     let agents = sda_server::jfs_stores::JfsAgentStore::new("tmp/agents").unwrap();
-    let auth = sda_server::jfs_stores::JfsAuthenticationStore::new("tmp/auths").unwrap();
+    let auth = sda_server::jfs_stores::JfsAuthStore::new("tmp/auths").unwrap();
     sda_server::SdaServer { agent_store: Box::new(agents), auth_token_store: Box::new(auth)  }
 }
 
@@ -109,11 +109,11 @@ pub fn encryption_key_crud() {
 }
 
 #[test]
-pub fn authentication_tokens_crud() {
-    use sda_server::stores::AuthenticationToken;
+pub fn auth_tokens_crud() {
+    use sda_server::stores::AuthToken;
     let server = tmp_server();
     let alice = proto::Agent::default();
-    let alice_token = AuthenticationToken {
+    let alice_token = AuthToken {
         id: alice.id,
         body: "tok".into()
     };
@@ -121,7 +121,7 @@ pub fn authentication_tokens_crud() {
     // TODO check error kind is InvalidCredentials
     server.upsert_auth_token(&alice_token).unwrap();
     assert!(server.check_auth_token(&alice_token).is_ok());
-    let alice_token_new = AuthenticationToken {
+    let alice_token_new = AuthToken {
         id: alice.id,
         body: "token".into()
     };

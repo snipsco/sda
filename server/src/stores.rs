@@ -5,16 +5,16 @@ pub trait BaseStore : Sync + Send {
     fn ping(&self) -> SdaServerResult<()>;
 }
 
-pub type AuthenticationToken = Labeled<AgentId, String>;
+pub type AuthToken = Labeled<AgentId, String>;
 
-pub trait AuthenticationStore: BaseStore {
-    /// Save an authentication token
-    fn upsert_auth_token(&self, token:&AuthenticationToken) -> SdaServerResult<()>;
+pub trait AuthStore: BaseStore {
+    /// Save an auth token
+    fn upsert_auth_token(&self, token:&AuthToken) -> SdaServerResult<()>;
 
-    /// Retrieve an authentication token
-    fn get_auth_token(&self, id:&AgentId) -> SdaServerResult<Option<AuthenticationToken>>;
+    /// Retrieve an auth token
+    fn get_auth_token(&self, id:&AgentId) -> SdaServerResult<Option<AuthToken>>;
 
-    /// Delete an authentication token
+    /// Delete an auth token
     fn delete_auth_token(&self, id:&AgentId) -> SdaServerResult<()>;
 }
 
