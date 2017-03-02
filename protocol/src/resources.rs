@@ -6,8 +6,9 @@ pub trait Identified {
     fn id(&self) -> &Self::I;
 }
 
-pub trait Id {
+pub trait Id: Sized {
     fn stringify(&self) -> String;
+    fn destringify(&str) -> SdaResult<Self>;
 }
 
 macro_rules! uuid_id {
@@ -25,6 +26,10 @@ macro_rules! uuid_id {
         impl Id for $name {
             fn stringify(&self) -> String {
                 self.0.to_string()
+            }
+            fn destringify(s:&str) -> SdaResult<$name> {
+                let uuid = Uuid::parse_str(s).map_err(|_| format!("unparseable uuid {}", s))?;
+                Ok($name(uuid))
             }
         }
     }

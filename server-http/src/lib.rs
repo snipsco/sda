@@ -1,3 +1,4 @@
+extern crate data_encoding;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
@@ -12,6 +13,7 @@ use std::net::ToSocketAddrs;
 use rouille::{Request, Response};
 
 use sda_protocol::*;
+use sda_server::stores::AuthToken;
 use errors::*;
 
 mod errors {
@@ -62,7 +64,50 @@ impl<'a> SdaDiscoveryServiceWrapper<'a> {
     }
 }
 
+fn auth_token(req: &Request) -> Result<AuthToken> {
+    let mut header = req.header("Authorization").ok_or("Mandatory Authorization header")?.trim();
+    if !header.starts_with("Basic ") {
+        Err("Basic Authorization required")?;
+    }
+    let value = header.replace("Basic ", "");
+    let decoded = data_encoding::base64::decode(value.as_bytes())
+        .map_err(|e| format!("Invalid Auth header (base64: {:?})",e))?;
+    let string = String::from_utf8(decoded).map_err(|_| "Invalid Auth header(not utf8)")?;
+    let mut split = string.split(":");
+    let id = split.next().ok_or("Invalid Auth header")?;
+    let body = split.next().ok_or("Invalid Auth header")?;
+    let id = AgentId::destringify(&id)?;
+    Ok(AuthToken {
+        id: id,
+        body: body.into(),
+    })
+}
+
 fn send_json<T: ::serde::Serialize>(t: T) -> Result<Response> {
     Ok(Response::from_data("application/json", serde_json::to_string(&t)?))
 }
 
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_auth_token() {
+        use sda_protocol::{Id, Identified};
+        let alice = ::sda_protocol::Agent::default();
+        let secret = "s0m3_s3cr3t_t0k3n";
+        let authorization_raw = format!("{}:{}", alice.id().stringify(), secret);
+        let header = format!("Basic {}",
+                             ::data_encoding::base64::encode(authorization_raw.as_bytes()));
+        let req = ::rouille::Request::fake_http("GET",
+                                                "/",
+                                                vec![("Authorization".into(), header)],
+                                                vec![]);
+        let auth_token = super::auth_token(&req).unwrap();
+        assert_eq!(::sda_server::stores::AuthToken {
+                       id: *alice.id(),
+                       body: secret.to_string(),
+                   },
+                   auth_token);
+    }
+
+}

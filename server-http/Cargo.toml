@@ -8,6 +8,7 @@ authors = [
 
 [dependencies]
 clap="2.20"
+data-encoding = "1.2"
 error-chain = { version = "0.10", default-features=false }
 rouille = "1.0"
 sda-protocol = { path= "../protocol" }
