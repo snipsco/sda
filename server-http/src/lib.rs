@@ -40,7 +40,8 @@ pub fn listen<A>(addr: A, server: sda_server::SdaServer) -> !
     rouille::start_server(addr, move |req| {
         wrap! { router! { req,
         (GET) (/ping) => { SdaServiceWrapper(&server).ping(req) },
-        (POST) (/agents/{id: String}) => { SdaDiscoveryServiceWrapper(&server).create_agent(req) },
+        (GET) (/agents/{id: String}) => { SdaDiscoveryServiceWrapper(&server).get_agent(&*id, req) },
+        (POST) (/agents/{id: String}) => { SdaDiscoveryServiceWrapper(&server).create_agent(&*id, req) },
         _ => Ok(Response::empty_404())
     } }
     })
@@ -57,15 +58,28 @@ impl<'a> SdaServiceWrapper<'a> {
 struct SdaDiscoveryServiceWrapper<'a>(&'a sda_server::SdaServer);
 
 impl<'a> SdaDiscoveryServiceWrapper<'a> {
-    fn create_agent(&self, req: &Request) -> Result<Response> {
-        let agent = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
+    fn create_agent(&self, id:&str, req: &Request) -> Result<Response> {
+        let id = AgentId::destringify(&id)?;
+        let auth = auth_token(&req)?;
+        let agent:Agent = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
+        if agent.id != id || auth.id != id {
+            return Ok(client_error("inconsistent agent ids"))
+        }
         self.0.create_agent(&agent, &agent)?;
+        self.0.upsert_auth_token(&auth)?;
         Ok(Response::empty_404().with_status_code(201))
+    }
+
+    fn get_agent(&self, id:&str, req:&Request) -> Result<Response> {
+        let auth = auth_token(&req)?;
+        let caller = self.0.check_auth_token(&auth)?;
+        let id = AgentId::destringify(id)?;
+        send_json(self.0.get_agent(&caller, &id)?)
     }
 }
 
 fn auth_token(req: &Request) -> Result<AuthToken> {
-    let mut header = req.header("Authorization").ok_or("Mandatory Authorization header")?.trim();
+    let header = req.header("Authorization").ok_or("Mandatory Authorization header")?.trim();
     if !header.starts_with("Basic ") {
         Err("Basic Authorization required")?;
     }
@@ -81,6 +95,10 @@ fn auth_token(req: &Request) -> Result<AuthToken> {
         id: id,
         body: body.into(),
     })
+}
+
+fn client_error<S:Into<String>>(s:S) -> Response {
+    Response::text(s).with_status_code(400)
 }
 
 fn send_json<T: ::serde::Serialize>(t: T) -> Result<Response> {

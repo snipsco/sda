@@ -25,7 +25,9 @@ mod errors {
         errors {
             PermissionDenied {
                 description("permission denied")
-                display("permission denied")
+            }
+            InvalidCredentials {
+                description("invalid credentials")
             }
         }
     }

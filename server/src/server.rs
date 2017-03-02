@@ -2,11 +2,20 @@ use sda_protocol::*;
 
 use errors::*;
 
-use stores::{ AgentStore, AuthStore, AuthToken };
+use stores::{AgentStore, AuthStore, AuthToken};
 
 pub struct SdaServer {
     pub agent_store: Box<AgentStore>,
     pub auth_token_store: Box<AuthStore>,
+}
+
+macro_rules! wrap {
+    ($e:expr) => {
+        match $e {
+            Ok(ok) => Ok(ok),
+            Err(err) => Err(format!("error in server: {}", err).into()),
+        }
+    }
 }
 
 #[allow(unused_variables)]
@@ -62,32 +71,25 @@ impl SdaServer {
         self.agent_store.get_encryption_key(key)
     }
 
-    // TODO put these 3 auth_token in a separate trait ?
-
-    pub fn upsert_auth_token(&self, token:&AuthToken) -> SdaServerResult<()> {
-        self.auth_token_store.upsert_auth_token(token)
+    pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
+        wrap! { self.auth_token_store.upsert_auth_token(token) }
     }
 
-    pub fn check_auth_token(&self, token:&AuthToken) -> SdaServerResult<()> {
-        let db = self.auth_token_store.get_auth_token(token.id())?;
+    pub fn check_auth_token(&self, token: &AuthToken) -> SdaResult<Agent> {
+        let db = self.auth_token_store
+            .get_auth_token(token.id())
+            .map_err(|e| format!("error in server: {}", e))?;
         if db.as_ref() == Some(token) {
-            Ok(())
+            Ok(self.agent_store.get_agent(&token.id)
+            .map_err(|e| format!("error in server: {}", e))?
+            .ok_or("Agent not found")?)
         } else {
-            Err(SdaServerErrorKind::InvalidCredentials)?
+            Err(SdaErrorKind::InvalidCredentials)?
         }
     }
 
-    pub fn delete_auth_token(&self, agent:&AgentId) -> SdaServerResult<()> {
-        self.auth_token_store.delete_auth_token(agent)
-    }
-}
-
-macro_rules! wrap {
-    ($e:expr) => {
-        match $e {
-            Ok(ok) => Ok(ok),
-            Err(err) => Err(format!("error in server: {}", err).into()),
-        }
+    pub fn delete_auth_token(&self, agent: &AgentId) -> SdaResult<()> {
+        wrap!(self.auth_token_store.delete_auth_token(agent))
     }
 }
 
@@ -155,10 +157,7 @@ impl SdaDiscoveryService for SdaServer {
         wrap! { Self::get_profile(self, owner) }
     }
 
-    fn create_encryption_key(&self,
-                             caller: &Agent,
-                             key: &SignedEncryptionKey)
-                             -> SdaResult<()> {
+    fn create_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()> {
         acl_agent_is(caller, key.signer)?;
         wrap! { Self::create_encryption_key(self, key) }
     }
