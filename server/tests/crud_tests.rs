@@ -1,10 +1,15 @@
 extern crate sda_protocol as proto;
 extern crate sda_server;
 
+fn tmp_server() -> sda_server::SdaServer {
+    let agents = sda_server::jfs_stores::JfsAgentStore::new("tmp/agents").unwrap();
+    let auth = sda_server::jfs_stores::JfsAuthenticationStore::new("tmp/auths").unwrap();
+    sda_server::SdaServer { agent_store: Box::new(agents), auth_token_store: Box::new(auth)  }
+}
+
 #[test]
 pub fn ping() {
-    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
-    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
 
     service.ping().unwrap();
@@ -12,8 +17,8 @@ pub fn ping() {
 
 #[test]
 pub fn agent_crud() {
-    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
-    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let server = tmp_server();
+
     let service: &proto::SdaDiscoveryService = &server;
 
     let alice = proto::Agent::default();
@@ -28,8 +33,7 @@ pub fn agent_crud() {
 
 #[test]
 pub fn profile_crud() {
-    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
-    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
 
     let alice = proto::Agent::default();
@@ -61,8 +65,7 @@ pub fn profile_crud() {
 
 #[test]
 pub fn profile_crud_acl() {
-    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
-    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
 
     let alice = proto::Agent::default();
@@ -84,8 +87,7 @@ pub fn profile_crud_acl() {
 #[test]
 pub fn encryption_key_crud() {
     use proto::byte_arrays::*;
-    let store = sda_server::jfs_stores::JfsAgentStore::new("tmp").unwrap();
-    let server = sda_server::SdaServer { agent_store: Box::new(store) };
+    let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
 
     let alice = proto::Agent::default();
@@ -104,4 +106,30 @@ pub fn encryption_key_crud() {
     service.create_encryption_key(&alice, &alice_key).unwrap();
     let still_alice = service.get_encryption_key(&bob, &alice_key.body.id).unwrap();
     assert_eq!(Some(&alice_key), still_alice.as_ref());
+}
+
+#[test]
+pub fn authentication_tokens_crud() {
+    use sda_server::stores::AuthenticationToken;
+    let server = tmp_server();
+    let alice = proto::Agent::default();
+    let alice_token = AuthenticationToken {
+        id: alice.id,
+        body: "tok".into()
+    };
+    assert!(server.check_auth_token(&alice_token).is_err());
+    // TODO check error kind is InvalidCredentials
+    server.upsert_auth_token(&alice_token).unwrap();
+    assert!(server.check_auth_token(&alice_token).is_ok());
+    let alice_token_new = AuthenticationToken {
+        id: alice.id,
+        body: "token".into()
+    };
+    assert!(server.check_auth_token(&alice_token_new).is_err());
+    server.upsert_auth_token(&alice_token_new).unwrap();
+    assert!(server.check_auth_token(&alice_token_new).is_ok());
+    assert!(server.check_auth_token(&alice_token).is_err());
+    server.delete_auth_token(&alice.id).unwrap();
+    assert!(server.check_auth_token(&alice_token_new).is_err());
+    assert!(server.check_auth_token(&alice_token).is_err());
 }

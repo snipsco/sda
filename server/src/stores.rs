@@ -1,8 +1,21 @@
-use sda_protocol::{Agent, AgentId, Profile, EncryptionKeyId, SignedEncryptionKey};
+use sda_protocol::{Agent, AgentId, Labeled, Profile, EncryptionKeyId, SignedEncryptionKey};
 use SdaServerResult;
 
 pub trait BaseStore : Sync + Send {
     fn ping(&self) -> SdaServerResult<()>;
+}
+
+pub type AuthenticationToken = Labeled<AgentId, String>;
+
+pub trait AuthenticationStore: BaseStore {
+    /// Save an authentication token
+    fn upsert_auth_token(&self, token:&AuthenticationToken) -> SdaServerResult<()>;
+
+    /// Retrieve an authentication token
+    fn get_auth_token(&self, id:&AgentId) -> SdaServerResult<Option<AuthenticationToken>>;
+
+    /// Delete an authentication token
+    fn delete_auth_token(&self, id:&AgentId) -> SdaServerResult<()>;
 }
 
 pub trait AgentStore: BaseStore {

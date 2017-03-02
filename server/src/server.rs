@@ -2,10 +2,11 @@ use sda_protocol::*;
 
 use errors::*;
 
-use stores::AgentStore;
+use stores::{ AgentStore, AuthenticationStore, AuthenticationToken };
 
 pub struct SdaServer {
     pub agent_store: Box<AgentStore>,
+    pub auth_token_store: Box<AuthenticationStore>,
 }
 
 #[allow(unused_variables)]
@@ -59,6 +60,25 @@ impl SdaServer {
                           key: &EncryptionKeyId)
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
         self.agent_store.get_encryption_key(key)
+    }
+
+    // TODO put these 3 auth_token in a separate trait ?
+
+    pub fn upsert_auth_token(&self, token:&AuthenticationToken) -> SdaServerResult<()> {
+        self.auth_token_store.upsert_auth_token(token)
+    }
+
+    pub fn check_auth_token(&self, token:&AuthenticationToken) -> SdaServerResult<()> {
+        let db = self.auth_token_store.get_auth_token(token.id())?;
+        if db.as_ref() == Some(token) {
+            Ok(())
+        } else {
+            Err(SdaServerErrorKind::InvalidCredentials)?
+        }
+    }
+
+    pub fn delete_auth_token(&self, agent:&AgentId) -> SdaServerResult<()> {
+        self.auth_token_store.delete_auth_token(agent)
     }
 }
 
