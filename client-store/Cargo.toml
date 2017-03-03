@@ -7,6 +7,7 @@ authors = [
 ]
 
 [dependencies]
+sda-protocol = { path= "../protocol" }
 error-chain = { version = "0.10", default-features=false }
 serde = "0.9"
 serde_derive = "0.9"

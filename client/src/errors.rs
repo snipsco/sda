@@ -5,6 +5,7 @@ error_chain!{
     }
     foreign_links {
         Protocol(::sda_protocol::SdaError);
+        Store(::sda_client_store::SdaClientStoreError);
         Io(::std::io::Error);
         SerdeJson(::serde_json::Error);
         NumParseInt(::std::num::ParseIntError);

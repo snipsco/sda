@@ -1,44 +1,33 @@
 use std::path;
+use serde;
 use jfs;
 
 use errors::*;
+use super::Store;
 
 pub struct Filebased(jfs::Store);
 
 impl Filebased {
-
     pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaClientStoreResult<Filebased> {
-        let path = prefix.as_ref().join("keystore");
+        let path = prefix.as_ref();
         let filename = path.to_str()
-            .ok_or("Could not format filename for keystore")?;
+            .ok_or("Could not format filename for store")?;
         let filestore = jfs::Store::new(filename)?;
         Ok(Filebased(filestore))
     }
+}
 
-    pub fn resolve_alias(&self, alias: &str) -> SdaClientStoreResult<Option<String>> {
-        let alias_id = "alias_".to_string() + alias;
-        self.get(&alias_id)
-    }
+impl Store for Filebased {
 
-    pub fn define_alias(&self, alias: &str, id: &str) -> SdaClientStoreResult<()> {
-        let alias_id = "alias_".to_string() + alias;
-        match self.0.save_with_id(&id.to_string(), &alias_id) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e)?,
-        }
-    }
-
-    pub fn get_alias<T>(&self, alias: &str) -> SdaClientStoreResult<Option<T>>
-        where T: ::serde::Serialize + ::serde::Deserialize
+    fn put<T>(&self, id: &str, obj: &T) -> SdaClientStoreResult<()>
+        where T: serde::Serialize + serde::Deserialize
     {
-        match self.resolve_alias(alias)? {
-            None => Ok(None),
-            Some(id) => self.get(&id)
-        }
+        self.0.save_with_id(obj, id)?;
+        Ok(())
     }
 
-    pub fn get<T>(&self, id: &str) -> SdaClientStoreResult<Option<T>>
-        where T: ::serde::Serialize + ::serde::Deserialize
+    fn get<T>(&self, id: &str) -> SdaClientStoreResult<Option<T>>
+        where T: serde::Serialize + serde::Deserialize
     {
         match self.0.get(id) {
             Ok(it) => Ok(Some(it)),

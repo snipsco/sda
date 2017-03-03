@@ -1,4 +1,3 @@
-
 //! This crate provides the basic functionality needed by clerks and participants for interacting with an SDA service.
 
 #[macro_use]
@@ -11,14 +10,13 @@ extern crate threshold_secret_sharing as tss;
 extern crate sodiumoxide;
 extern crate integer_encoding;
 extern crate rand;
-extern crate jfs;
 
 extern crate sda_protocol;
-
+extern crate sda_client_store;
 
 mod errors;
 mod crypto;
-pub mod keystore;
+mod keystore;
 mod trust;
 mod cache;
 mod service;
@@ -28,7 +26,8 @@ mod clerk;
 
 pub use sda_protocol::*;
 use crypto::*;
-// use keystore::*;
+use keystore::*;
+pub use keystore::{KeyGeneration};
 use trust::{Policy};
 use cache::{NoCache};
 use service::*;
@@ -37,28 +36,27 @@ use profile::*;
 pub use errors::*;
 pub use participate::{Participating};
 pub use clerk::{Clerking};
-pub use keystore::*;
-pub use profile::{Maintenance};
+pub use profile::{load_agent, new_agent, Maintenance};
 
 /// Primary object for interacting with the SDA service.
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
-pub struct SdaClient<C, S> {
+pub struct SdaClient<K, C, S> {
     agent: Agent,
-    keystore: keystore::Filebased,
-    trust: trust::Permissistic,
+    keystore: K,
+    trust: trust::Pessimistic,
     cache: C,
-    sda_service: S,
+    service: S,
 }
 
-impl<S> SdaClient<NoCache, S> {
-    pub fn new_from_prefix<P: AsRef<std::path::Path>>(prefix: P, sda_service: S) -> SdaClient<NoCache, S> {
+impl<K, S> SdaClient<K, NoCache, S> {
+    pub fn new(agent: Agent, keystore: K, service: S) -> SdaClient<K, NoCache, S> {
         SdaClient {
-            agent: Agent::default(),
-            keystore: keystore::Filebased::new(prefix.as_ref().join("user").join("keys")).unwrap(),
-            trust: trust::Permissistic,
-            cache:       NoCache {},
-            sda_service: sda_service,
+            agent: agent,
+            keystore: keystore,
+            trust: trust::Pessimistic,
+            cache: NoCache {},
+            service: service,
         }
     }
 }

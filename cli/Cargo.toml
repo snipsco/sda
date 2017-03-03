@@ -9,6 +9,7 @@ authors = [
 [dependencies]
 sda-protocol = { path="../protocol" }
 sda-client = { path="../client" }
+sda-client-store = { path= "../client-store" }
 sda-client-http = { path= "../client-http" }
 error-chain = { version = "0.10", default-features=false }
 clap = "2.10"

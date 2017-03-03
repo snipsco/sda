@@ -1,11 +1,29 @@
 
 use super::*;
+use sda_client_store::Store;
 
 
 pub struct FileIdentity {}
 
 
+// NOTE outside of SdaClient due to type instantiation error
+pub fn load_agent<K: Store>(identitystore: &K) -> SdaClientResult<Option<Agent>> {
+    let agent: Option<Agent> = identitystore.get_aliased("agent")?;
+    Ok(agent)
+}
+
+pub fn new_agent<K: Store>(identitystore: &K) -> SdaClientResult<Agent> {
+    let agent = Agent {
+        id: AgentId::new(),
+        verification_key: identitystore.new_key()?,
+    };
+    identitystore.put_aliased("agent", &agent)?;
+    Ok(agent)
+}
+
 pub trait Maintenance {
+
+    fn upload_agent(&self) -> SdaClientResult<()>;
 
     // fn new_agent(&mut self) -> SdaClientResult<Agent>;
 
@@ -16,6 +34,14 @@ pub trait Maintenance {
     // /// Upload a fresh set of encryption keys to the service, available for future aggregations.
     // fn refresh_encryption_keys(&self) -> SdaClientResult<()>;
 
+}
+
+impl<K, C, S> Maintenance for SdaClient<K, C, S> 
+    where S: SdaDiscoveryService
+{
+    fn upload_agent(&self) -> SdaClientResult<()> {
+        Ok(self.service.create_agent(&self.agent, &self.agent)?)
+    }
 }
 
 

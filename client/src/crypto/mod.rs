@@ -63,16 +63,12 @@ impl SignatureVerification<SignedEncryptionKey> for Agent {
             &EncryptionKey::Sodium(raw_ek) => raw_ek
         };
 
-        let wrapped_vk = &self.verification_key;
+        let wrapped_vk = &self.verification_key.body;
         let wrapped_sig = &signed_encryption_key.signature;
 
         match (wrapped_vk, wrapped_sig) {
 
-            (&None, _) => {
-                Err("No verification key found")?
-            },
-
-            (&Some(VerificationKey::Sodium(raw_vk)), &Signature::Sodium(raw_sig)) => {
+            (&VerificationKey::Sodium(raw_vk), &Signature::Sodium(raw_sig)) => {
                 let sig = sodiumoxide::crypto::sign::Signature(*raw_sig);
                 let vk = sodiumoxide::crypto::sign::PublicKey(*raw_vk);
                 let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &*raw_msg, &vk);
