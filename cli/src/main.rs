@@ -15,7 +15,6 @@ extern crate slog_scope;
 mod errors;
 
 use sda_client::*;
-use sda_client::KeyGeneration;
 use sda_client_http::*;
 use sda_client_store::*;
 use slog::*;
@@ -63,7 +62,7 @@ fn run() -> SdaCliResult<()> {
     
     match matches.subcommand() {
 
-        ("ping", Some(matches)) => {
+        ("ping", Some(_)) => {
             let pong = service.ping()?;
             match pong {
                 Pong {running} if running => {
@@ -89,7 +88,7 @@ fn run() -> SdaCliResult<()> {
                     let client = SdaClient::new(agent, identitystore, service);
                     Ok(client.upload_agent()?)
                 },
-                ("show", Some(matches)) => {
+                ("show", Some(_)) => {
                     match agent {
                         None => { 
                             warn!("No agent found");

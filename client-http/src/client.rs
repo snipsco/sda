@@ -70,17 +70,17 @@ impl SdaService for SdaHttpClient {
     }
 }
 
+#[allow(unused_variables)]
 impl SdaDiscoveryService for SdaHttpClient {
 
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
-        let endpoint = format!("/agent/{}", agent.id.to_string());
+        let endpoint = format!("/agents/{}", agent.id.stringify());
         wrap! { self.post(&endpoint, agent) }
     }
 
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
         unimplemented!()
     }
-
 
     fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>> {
         unimplemented!()
