@@ -1,92 +1,86 @@
-
-use std::path;
-use jfs::Store;
-
 use super::*;
 
+use sda_client_store::{Store};
 
-pub trait KeypairGen<T> {
-    fn new_keypair(&self) -> SdaClientResult<T>;
+pub struct Keystore<U>(U);
+
+impl<U> Keystore<U> {
+    pub fn new(underlying_store: U) -> Keystore<U> {
+        Keystore(underlying_store)
+    }
+}
+
+pub trait KeyGeneration<T> {
+    fn new_key(&self) -> SdaClientResult<T>;
+}
+
+pub trait Export<I, K> {
+    fn export(&self, id: &I) -> SdaClientResult<Option<K>>;
 }
 
 
-pub struct Filebased(jfs::Store);
 
 
-impl Filebased {
 
-    pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaClientResult<Filebased> {
-        let path = prefix.as_ref().join("keystore");
-        let filename = path.to_str()
-            .ok_or("Could not format filename for keystore")?;
-        let filestore = Store::new(filename)?;
-        Ok(Filebased(filestore))
-    }
 
-    pub fn resolve_alias(&self, alias: &str) -> SdaClientResult<Option<String>> {
-        let alias_id = "alias_".to_string() + alias;
-        self.get(&alias_id)
-    }
-
-    pub fn define_alias(&self, alias: &str, id: &str) -> SdaClientResult<()> {
-        let alias_id = "alias_".to_string() + alias;
-        match self.0.save_with_id(&id.to_string(), &alias_id) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e)?,
-        }
-    }
-
-    pub fn get_alias<T>(&self, alias: &str) -> SdaClientResult<Option<T>>
-        where T: ::serde::Serialize + ::serde::Deserialize
-    {
-        match self.resolve_alias(alias)? {
-            None => Ok(None),
-            Some(id) => self.get(&id)
-        }
-    }
-
-    pub fn get<T>(&self, id: &str) -> SdaClientResult<Option<T>>
-        where T: ::serde::Serialize + ::serde::Deserialize
-    {
-        match self.0.get(id) {
-            Ok(it) => Ok(Some(it)),
-            Err(io) => {
-                if io.kind() == ::std::io::ErrorKind::NotFound {
-                    Ok(None)
-                } else {
-                    Err(io)?
-                }
-            }
-        }
-    }
-
-    // pub fn list(&self) -> SdaClientResult<Vec<String>> {
-    //     let entries = self.0.all()?;
-    //     Ok(entries.keys().cloned().collect())
-    // }
-
+#[derive(Debug, Serialize, Deserialize)]
+struct VerificationKeypair {
+    vk: VerificationKey,
+    sk: SigningKey,
 }
 
-
-impl KeypairGen<LabelledVerificationKeypairId> for Filebased {
-    fn new_keypair(&self) -> SdaClientResult<LabelledVerificationKeypairId> {
+impl<K> KeyGeneration<VerificationKeyId> for K 
+    where K: Store
+{
+    fn new_key(&self) -> SdaClientResult<VerificationKeyId> {
         // generate
         let (vk, sk) = sodiumoxide::crypto::sign::gen_keypair();
         let wrapped_vk = VerificationKey::Sodium(vk.0.into());
         let wrapped_sk = SigningKey::Sodium(sk.0.into());
         
         // save
-        let keypair = (wrapped_vk, wrapped_sk);
-        let id = LabelledVerificationKeypairId::new();
-        self.0.save_with_id(&keypair, &id.to_string());
+        let keypair = VerificationKeypair { vk: wrapped_vk, sk: wrapped_sk };
+        let id = VerificationKeyId::new();
+        self.put(&id.to_string(), &keypair);
 
         Ok(id)
     }
 }
 
+impl<K> KeyGeneration<Labeled<VerificationKeyId, VerificationKey>> for K
+    where K: Store
+{
+    fn new_key(&self) -> SdaClientResult<Labeled<VerificationKeyId, VerificationKey>> {
+        // generate key
+        let key_id: VerificationKeyId = self.new_key()?;
+        
+        // export public part, assuming that it is there since we just created it and haven't failed
+        let key: VerificationKey = self.export(&key_id)?.unwrap();
+
+        Ok(Labeled {
+            id: key_id,
+            body: key,
+        })
+    }
+}
+
+impl<K> Export<VerificationKeyId, VerificationKey> for K
+    where K: Store
+{
+    fn export(&self, id: &VerificationKeyId) -> SdaClientResult<Option<VerificationKey>> {
+        let keypair: Option<VerificationKeypair> = self.get(&id.to_string())?;
+        match keypair {
+            None => Ok(None),
+            Some(keypair) => Ok(Some(keypair.vk))
+        }
+    }
+}
 
 
-impl ExportDecryptionKey<EncryptionKeyId, (sda_protocol::EncryptionKey, crypto::DecryptionKey)> for Filebased {
+
+impl<K> ExportDecryptionKey<EncryptionKeyId, (sda_protocol::EncryptionKey, crypto::DecryptionKey)> for K
+    where K: Store
+{
     fn export_decryption_key(&self, id: &EncryptionKeyId) -> SdaClientResult<Option<(sda_protocol::EncryptionKey, crypto::DecryptionKey)>> {
         unimplemented!()
     }

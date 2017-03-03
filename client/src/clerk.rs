@@ -20,13 +20,13 @@ pub trait Clerking {
 }
 
 
-impl<C,S> Clerking for SdaClient<C,S>
+impl<K, C, S> Clerking for SdaClient<K, C, S>
     where
+        K: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        // KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
         S: SdaClerkingService,
 {
@@ -37,14 +37,14 @@ impl<C,S> Clerking for SdaClient<C,S>
     }
 
     fn clerk_once(&mut self) -> SdaClientResult<bool> {
-        let job = self.sda_service.get_clerking_job(&self.agent, &self.agent.id)?;
+        let job = self.service.get_clerking_job(&self.agent, &self.agent.id)?;
         match job {
             None => {
                 Ok(false)
             },
             Some(job) => {
                 let result = self.process_clerking_job(&job)?;
-                self.sda_service.create_clerking_result(&self.agent, &result)?;
+                self.service.create_clerking_result(&self.agent, &result)?;
                 Ok(true)
             }
         }
@@ -68,13 +68,13 @@ impl<C,S> Clerking for SdaClient<C,S>
 }
 
 
-impl<C,S> SdaClient<C,S>
+impl<K, C, S> SdaClient<K, C, S>
     where
+        K: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<AgentId, Agent>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
-        // KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
         S: SdaDiscoveryService,
 {
 

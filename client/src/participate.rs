@@ -26,7 +26,7 @@ pub trait Participating {
 
 }
 
-impl<C,S> Participating for SdaClient<C,S>
+impl<K, C, S> Participating for SdaClient<K, C, S>
     where
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
@@ -56,7 +56,7 @@ impl<C,S> Participating for SdaClient<C,S>
 
         // load aggregation
         let aggregation: Aggregation = self.cached_fetch(aggregation_id)?;
-        if require_trusted && !self.is_flagged_as_trusted(&aggregation.recipient)? {
+        if require_trusted && !self.trust.is_flagged_as_trusted(&aggregation.recipient)? {
             Err("Recipient is required to be trusted but is not")? 
         }
         if secrets.len() != aggregation.vector_dimension { 
@@ -124,7 +124,7 @@ impl<C,S> Participating for SdaClient<C,S>
     }
 
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()> {
-        Ok(self.sda_service.create_participation(&self.agent, input)?)
+        Ok(self.service.create_participation(&self.agent, input)?)
     }
 
 }

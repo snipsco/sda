@@ -35,14 +35,17 @@ macro_rules! uuid_id {
     }
 }
 
+uuid_id!{ #[doc="Unique verification key identifier."] VerificationKeyId }
+pub type LabeledVerificationKey = Labeled<VerificationKeyId, VerificationKey>;
+
 /// Basic description of an agent, e.g. participants, clerks, and admins.
 ///
 /// Primary use is identification, including allowing services to perform access control and logging.
-#[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Agent {
     pub id: AgentId,
     // /// Key used for verifying signatures from agent, if any.
-    pub verification_key: Option<VerificationKey>,
+    pub verification_key: LabeledVerificationKey,
 }
 
 uuid_id!{ #[doc="Unique agent identifier."] AgentId }
@@ -101,9 +104,6 @@ where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::D
         &self.id
     }
 }
-
-
-pub struct LabelledVerificationKeypairId(pub Uuid);
 
 uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
 

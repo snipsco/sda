@@ -1,35 +1,29 @@
 extern crate sda_protocol;
 extern crate sda_client;
+extern crate sda_client_store;
 extern crate sda_client_http;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
 extern crate clap;
+#[macro_use]
 extern crate slog;
 extern crate slog_term;
 #[macro_use]
 extern crate slog_scope;
 
+mod errors;
 
 use sda_client::*;
+use sda_client::KeyGeneration;
 use sda_client_http::*;
-
+use sda_client_store::*;
 use slog::*;
 
-
-error_chain!{
-    types {
-        SdaCliError, SdaCliErrorKind, SdaCliResultExt, SdaCliResult;
-    }
-    foreign_links {
-        Protocol(::sda_protocol::SdaError);
-        Http(::sda_client_http::SdaHttpClientError);
-        Client(::sda_client::SdaClientError);
-    }
-}
+use errors::*;
 
 fn main() {
-    let root = Logger::root(slog_term::streamer().stderr().use_utc_timestamp().build().fuse(), o!());
+    let root = slog::Logger::root(slog_term::streamer().stderr().use_utc_timestamp().build().fuse(), o!());
     slog_scope::set_global_logger(root);
 
     if let Err(e) = run() {
@@ -43,16 +37,21 @@ fn run() -> SdaCliResult<()> {
     
     let matches = clap_app!(sda =>
         (@arg server: -s --server +takes_value "Server root")
-        (@arg keystore: -k --keystore +takes_value "Keystore directory")
+        (@arg identity: -i --identity +takes_value "Storage directory for identity, including keys")
         (@subcommand ping =>)
-        (@subcommand identity => 
+        (@subcommand agent => 
             (@subcommand create =>
                 (@arg force: -f --force "Overwrite any existing identity")
             )
             (@subcommand show =>)
         )
-        (@subcommand clerk =>)
     ).get_matches();
+
+    let identitystore = {
+        let path = matches.value_of("identity").unwrap_or(".sda");
+        debug!("Using identity at {}", path);
+        Filebased::new(path)?
+    };
 
     let service = {
         let server_root = matches.value_of("server").unwrap_or("http://localhost:8888");
@@ -60,25 +59,14 @@ fn run() -> SdaCliResult<()> {
         SdaHttpClient::new(server_root)?
     };
 
-    let keystore = {
-        let keystore_path = matches.value_of("keystore").unwrap_or(".sda");
-        debug!("Using keystore {}", keystore_path);
-        keystore::Filebased::new(keystore_path)?
-    };
-
-    let identity = {
-        let identity = keystore.resolve_alias("identity")?;
-        debug!("Using identity {:?}", identity);
-        identity
-    };
-    
+    let agent = sda_client::load_agent(&identitystore)?;
     
     match matches.subcommand() {
 
         ("ping", Some(matches)) => {
             let pong = service.ping()?;
             match pong {
-                Pong{running} if running => {
+                Pong {running} if running => {
                     info!("Service appears to be running");
                     Ok(())
                 },
@@ -86,30 +74,29 @@ fn run() -> SdaCliResult<()> {
             }
         },
 
-        ("identity", Some(matches)) => {
+        ("agent", Some(matches)) => {
 
             match matches.subcommand() {
                 ("create", Some(matches)) => {
-                    match identity {
-                        Some(_) if !matches.is_present("force") => {
-                            Err("Already created; use --force to create new")?
-                        },
-                        _ => {
-                            let identity: LabelledVerificationKeypairId = keystore.new_keypair()?;
-                            info!("Created identity with id {}", identity.to_string());
-                            keystore.define_alias("identity", &identity.to_string())?;
-                            Ok(())
-                        }
-                    }
+                    let agent = if agent.is_some() && !matches.is_present("force") {
+                        warn!("Using existing agent; use --force to create new");
+                        agent.unwrap()
+                    } else {
+                        let agent = sda_client::new_agent(&identitystore)?;
+                        info!("Created new agent with id {:?}", &agent.id);
+                        agent
+                    };
+                    let client = SdaClient::new(agent, identitystore, service);
+                    Ok(client.upload_agent()?)
                 },
                 ("show", Some(matches)) => {
-                    match identity {
+                    match agent {
                         None => { 
-                            warn!("No identity found");
+                            warn!("No agent found");
                             Ok(())
                         },
-                        Some(identity) => {
-                            println!("Identity id is {}", identity);
+                        Some(agent) => {
+                            println!("Agent is {:?}", agent); // TODO formatting
                             Ok(())
                         }
                     }
@@ -123,5 +110,3 @@ fn run() -> SdaCliResult<()> {
     }
 
 }
-
-

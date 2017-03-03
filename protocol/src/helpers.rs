@@ -1,15 +1,6 @@
 
 use super::*;
 
-impl Agent {
-    pub fn new() -> Agent {
-        Agent {
-            id: AgentId::new(),
-            verification_key: None,
-        }
-    }
-}
-
 impl AgentId {
     pub fn new() -> AgentId {
         AgentId(Uuid::new_v4())
@@ -28,9 +19,9 @@ impl ParticipationId {
     }
 }
 
-impl LabelledVerificationKeypairId {
-    pub fn new() -> LabelledVerificationKeypairId {
-        LabelledVerificationKeypairId(Uuid::new_v4())
+impl VerificationKeyId {
+    pub fn new() -> VerificationKeyId {
+        VerificationKeyId(Uuid::new_v4())
     }
     pub fn to_string(&self) -> String {
         format!("{}", self.0.simple())

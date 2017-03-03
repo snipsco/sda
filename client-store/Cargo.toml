@@ -1,5 +1,5 @@
 [package]
-name = "sda-client"
+name = "sda-client-store"
 version = "0.1.0"
 authors = [
     "Mathieu Poumeyrol <kali@zoy.org>", 
@@ -8,13 +8,8 @@ authors = [
 
 [dependencies]
 sda-protocol = { path= "../protocol" }
-sda-client-store = { path= "../client-store" }
 error-chain = { version = "0.10", default-features=false }
 serde = "0.9"
 serde_derive = "0.9"
 serde_json = "0.9"
-threshold-secret-sharing = "0.2"
-sodiumoxide = "0.0.14"
-integer-encoding = "1.0"
-rand = "0.3"
 jfs = "0.3"
