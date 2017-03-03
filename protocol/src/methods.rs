@@ -3,11 +3,11 @@
 
 use super::*;
 
-#[derive(Debug, Deserialize)] 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Pong { pub running: bool }
 
 /// Basic methods for SDA services.
-pub trait SdaService {
+pub trait SdaService : Sync + Send {
     /// Send a ping to the service, expecting a pong in return if everything appears to be running.
     fn ping(&self) -> SdaResult<Pong>;
 }

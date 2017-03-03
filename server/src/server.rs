@@ -2,18 +2,29 @@ use sda_protocol::*;
 
 use errors::*;
 
-use stores::AgentStore;
+use stores::{AgentStore, AuthStore, AuthToken};
 
 pub struct SdaServer {
     pub agent_store: Box<AgentStore>,
+    pub auth_token_store: Box<AuthStore>,
+}
+
+macro_rules! wrap {
+    ($e:expr) => {
+        match $e {
+            Ok(ok) => Ok(ok),
+            Err(err) => Err(format!("error in server: {}", err).into()),
+        }
+    }
 }
 
 #[allow(unused_variables)]
 // FIXME
 #[allow(dead_code)] // FIXME
 impl SdaServer {
-    fn ping(&self) -> SdaServerResult<()> {
-        self.agent_store.ping()
+    fn ping(&self) -> SdaServerResult<Pong> {
+        self.agent_store.ping()?;
+        Ok(Pong { running: true })
     }
 
     fn list_aggregations_by_title(&self, filter: &str) -> SdaServerResult<Vec<AggregationId>> {
@@ -59,19 +70,31 @@ impl SdaServer {
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
         self.agent_store.get_encryption_key(key)
     }
-}
 
-macro_rules! wrap {
-    ($e:expr) => {
-        match $e {
-            Ok(ok) => Ok(ok),
-            Err(err) => Err(format!("error in server: {}", err).into()),
+    pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
+        wrap! { self.auth_token_store.upsert_auth_token(token) }
+    }
+
+    pub fn check_auth_token(&self, token: &AuthToken) -> SdaResult<Agent> {
+        let db = self.auth_token_store
+            .get_auth_token(token.id())
+            .map_err(|e| format!("error in server: {}", e))?;
+        if db.as_ref() == Some(token) {
+            Ok(self.agent_store.get_agent(&token.id)
+            .map_err(|e| format!("error in server: {}", e))?
+            .ok_or("Agent not found")?)
+        } else {
+            Err(SdaErrorKind::InvalidCredentials)?
         }
+    }
+
+    pub fn delete_auth_token(&self, agent: &AgentId) -> SdaResult<()> {
+        wrap!(self.auth_token_store.delete_auth_token(agent))
     }
 }
 
 impl SdaService for SdaServer {
-    fn ping(&self) -> SdaResult<()> {
+    fn ping(&self) -> SdaResult<Pong> {
         wrap!(SdaServer::ping(self))
     }
 }
@@ -134,10 +157,7 @@ impl SdaDiscoveryService for SdaServer {
         wrap! { Self::get_profile(self, owner) }
     }
 
-    fn create_encryption_key(&self,
-                             caller: &Agent,
-                             key: &SignedEncryptionKey)
-                             -> SdaResult<()> {
+    fn create_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()> {
         acl_agent_is(caller, key.signer)?;
         wrap! { Self::create_encryption_key(self, key) }
     }
