@@ -138,8 +138,14 @@ mod tests {
 
     #[test]
     fn test_auth_token() {
-        use sda_protocol::{Id, Identified};
-        let alice = ::sda_protocol::Agent::default();
+        use sda_protocol::{self, Id, Identified};
+        let alice = sda_protocol::Agent {
+            id:sda_protocol::AgentId::default(),
+            verification_key:sda_protocol::Labeled {
+                id:sda_protocol::VerificationKeyId::default(),
+                body:sda_protocol::VerificationKey::Sodium(sda_protocol::byte_arrays::B32::default()),
+            }
+        };
         let secret = "s0m3_s3cr3t_t0k3n";
         let authorization_raw = format!("{}:{}", alice.id().stringify(), secret);
         let header = format!("Basic {}",
