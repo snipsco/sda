@@ -84,7 +84,6 @@ fn run() -> SdaCliResult<()> {
         ("agent", Some(matches)) => {
 
             match matches.subcommand() {
-
                 ("create", Some(matches)) => {
                     let agent = if agent.is_some() && !matches.is_present("force") {
                         warn!("Using existing agent; use --force to create new");
@@ -97,22 +96,19 @@ fn run() -> SdaCliResult<()> {
                     let client = SdaClient::new(agent, identitystore, service);
                     Ok(client.upload_agent()?)
                 },
-
                 ("show", Some(_)) => {
                     match agent {
                         None => { 
-                            warn!("No local agent found");
+                            warn!("No agent found");
                             Ok(())
                         },
                         Some(agent) => {
-                            info!("Local agent is {:?}", agent);
+                            println!("Agent is {:?}", agent);
                             Ok(())
                         }
                     }
                 },
-
                 (cmd, _) => Err(format!("Unknown subcommand {}",  cmd))?
-
             }
             
         },
