@@ -112,6 +112,7 @@ pub fn encryption_key_crud() {
 pub fn auth_tokens_crud() {
     use sda_server::stores::AuthToken;
     let server = tmp_server();
+    let service: &proto::SdaDiscoveryService = &server;
     let alice = proto::Agent::default();
     let alice_token = AuthToken {
         id: alice.id,
@@ -119,6 +120,7 @@ pub fn auth_tokens_crud() {
     };
     assert!(server.check_auth_token(&alice_token).is_err());
     // TODO check error kind is InvalidCredentials
+    service.create_agent(&alice, &alice).unwrap();
     server.upsert_auth_token(&alice_token).unwrap();
     assert!(server.check_auth_token(&alice_token).is_ok());
     let alice_token_new = AuthToken {
