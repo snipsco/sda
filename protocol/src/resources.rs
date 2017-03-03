@@ -1,13 +1,15 @@
 use super::*;
 use std::collections::HashMap;
+use std::str;
 
 pub trait Identified {
     type I : Id;
     fn id(&self) -> &Self::I;
 }
 
-pub trait Id: Sized {
+pub trait Id: Sized + str::FromStr {
     fn stringify(&self) -> String;
+    #[deprecated]
     fn destringify(&str) -> SdaResult<Self>;
 }
 
@@ -23,13 +25,21 @@ macro_rules! uuid_id {
             }
         }
 
+        impl str::FromStr for $name {
+            type Err=String;
+            fn from_str(s: &str) -> std::result::Result<$name, String> {
+                let uuid = Uuid::parse_str(s).map_err(|_| format!("unparseable uuid {}", s))?;
+                Ok($name(uuid))
+            }
+        }
+
         impl Id for $name {
             fn stringify(&self) -> String {
                 self.0.to_string()
             }
             fn destringify(s:&str) -> SdaResult<$name> {
-                let uuid = Uuid::parse_str(s).map_err(|_| format!("unparseable uuid {}", s))?;
-                Ok($name(uuid))
+                use std::str::FromStr;
+                Ok($name::from_str(s)?)
             }
         }
     }
