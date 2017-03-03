@@ -27,8 +27,6 @@ impl Encryptor {
                 })
             },
 
-            _ => Err("Wrong key type for this encryptor")?,
-
         }
     }
 }
@@ -84,7 +82,6 @@ impl ShareDecryptor for Decryptor {
     fn decrypt(&self, encryption: &Encryption) -> SdaClientResult<Vec<Share>> {
         let encryption = match encryption {
             &Encryption::Sodium(ref raw) => raw,
-            _ => Err("Cannot decrypt this type of encryption")?,
         };
         // decrypt
         let result = sodiumoxide::crypto::sealedbox::open(&encryption[..], &self.pk, &self.sk);
