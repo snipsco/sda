@@ -60,7 +60,7 @@ macro_rules! B {
 
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-                write!(fmt, "{:?}", &self)
+                write!(fmt, "{:?}", &self.0 as &[u8])
             }
         }
 
