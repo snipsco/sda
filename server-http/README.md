@@ -8,14 +8,14 @@ Serving the SDA service over HTTP.
 ### Agents
 ```
 GET  /agents/<AgentId>
-POST /agents/<AgentId>
+POST /agents/me
 
 GET  /agents/<AgentId>/profile
-POST /agents/<AgentId>/profile
+POST /agents/me/profile
 
-GET    /agents/<AgentId>/keys/<EncryptionKeyId>
-POST   /agents/<AgentId>/keys/<EncryptionKeyId>
-DELETE /agents/<AgentId>/keys/<EncryptionKeyId>
+GET    /agents/any/keys/<EncryptionKeyId>
+POST   /agents/me/keys
+DELETE /agents/me/keys/<EncryptionKeyId>
 ```
 
 ### Aggregations
