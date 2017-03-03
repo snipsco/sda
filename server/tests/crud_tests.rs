@@ -7,6 +7,16 @@ fn tmp_server() -> sda_server::SdaServer {
     sda_server::SdaServer { agent_store: Box::new(agents), auth_token_store: Box::new(auth)  }
 }
 
+fn new_agent() -> proto::Agent {
+    proto::Agent {
+        id: proto::AgentId::default(),
+        verification_key: proto::Labeled {
+            id: proto::VerificationKeyId::default(),
+            body: proto::VerificationKey::Sodium(proto::byte_arrays::B32::default()),
+        }
+    }
+}
+
 #[test]
 pub fn ping() {
     let server = tmp_server();
@@ -21,7 +31,7 @@ pub fn agent_crud() {
 
     let service: &proto::SdaDiscoveryService = &server;
 
-    let alice = proto::Agent::default();
+    let alice = new_agent();
 
     service.create_agent(&alice, &alice).unwrap();
     let clone = service.get_agent(&alice, &alice.id).unwrap();
@@ -36,7 +46,7 @@ pub fn profile_crud() {
     let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
 
-    let alice = proto::Agent::default();
+    let alice = new_agent();
 
     service.create_agent(&alice, &alice).unwrap();
     let no_profile = service.get_profile(&alice, &alice.id).unwrap();
@@ -68,9 +78,9 @@ pub fn profile_crud_acl() {
     let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
 
-    let alice = proto::Agent::default();
+    let alice = new_agent();
 
-    let bob = proto::Agent::default();
+    let bob = new_agent();
     let alice_fake_profile = proto::Profile {
         owner: alice.id,
         name: Some("bob".into()),
@@ -90,8 +100,8 @@ pub fn encryption_key_crud() {
     let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
 
-    let alice = proto::Agent::default();
-    let bob = proto::Agent::default();
+    let alice = new_agent();
+    let bob = new_agent();
     service.create_agent(&alice, &alice).unwrap();
 
     let alice_key = proto::SignedEncryptionKey {
@@ -113,7 +123,7 @@ pub fn auth_tokens_crud() {
     use sda_server::stores::AuthToken;
     let server = tmp_server();
     let service: &proto::SdaDiscoveryService = &server;
-    let alice = proto::Agent::default();
+    let alice = new_agent();
     let alice_token = AuthToken {
         id: alice.id,
         body: "tok".into()
