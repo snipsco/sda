@@ -7,7 +7,12 @@ extern crate sda_protocol;
 extern crate sda_server;
 extern crate serde;
 extern crate serde_json;
+#[macro_use]
+extern crate slog;
+#[macro_use]
+extern crate slog_scope;
 
+use std::sync;
 use std::net::ToSocketAddrs;
 use std::str::FromStr;
 
@@ -35,10 +40,13 @@ macro_rules! wrap {
     }}
 }
 
-pub fn listen<A>(addr: A, server: sda_server::SdaServer) -> !
+pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServer>) -> !
     where A: ToSocketAddrs
 {
-    rouille::start_server(addr, move |req| {
+    rouille::start_server(addr, move |r| handle(&server, r))
+}
+
+pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
         wrap! { router! { req,
         (GET)  (/ping) => { SdaServiceWrapper(&server).ping(req) },
 
@@ -51,9 +59,11 @@ pub fn listen<A>(addr: A, server: sda_server::SdaServer) -> !
         (GET)    (/agents/any/keys/{id: EncryptionKeyId}) => { Disco(&server).get_encryption_key(&id, req) },
         (POST)   (/agents/me/keys) => { Disco(&server).create_encryption_key(req) },
 
-        _ => Ok(Response::empty_404())
+        _ => {
+            error!("Not found: {} {}", req.method(), req.raw_url());
+            Ok(Response::empty_404())
+        }
     } }
-    })
 }
 
 struct SdaServiceWrapper<'a>(&'a sda_server::SdaServer);
