@@ -3,11 +3,11 @@
 
 use super::*;
 
-pub struct Masker {}
+pub struct Masker;
 
 impl Masker {
     pub fn new() -> Masker {
-        Masker {}
+        Masker
     }
 }
 

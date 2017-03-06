@@ -1,9 +1,11 @@
 
-use super::*;
+use sda_protocol::*;
 use sda_client_store::Store;
 
+use SdaClient;
+use errors::SdaClientResult;
+use keystore::*;
 
-pub struct FileIdentity {}
 
 
 // NOTE outside of SdaClient due to type instantiation error

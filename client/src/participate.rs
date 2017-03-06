@@ -1,13 +1,17 @@
-
 //! Specific functionality for participating in aggregations.
+
+use sda_protocol::*;
+
+use SdaClient;
+use errors::SdaClientResult;
+use service::{Cache, CachedFetch};
+use trust::Policy;
+use crypto::*;
 
 use std::collections::HashMap;
 
-use super::*;
-
 
 pub struct ParticipantInput(pub Vec<i64>);
-
 
 /// Basic tasks needed by a participant.
 pub trait Participating {

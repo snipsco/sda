@@ -1,8 +1,9 @@
-use errors::*;
+use errors::SdaClientResult;
 use super::Policy;
 
 pub struct Pessimistic;
 
+#[allow(unused_variables)]
 impl<ID> Policy<ID> for Pessimistic {
     fn is_flagged_as_trusted(&self, id: &ID) -> SdaClientResult<bool> {
         Ok(false)

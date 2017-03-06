@@ -1,12 +1,15 @@
-use super::*;
-
 use sda_protocol::*;
-use sda_client_store::{Store};
+use sda_client_store::Store;
+
+use errors::SdaClientResult;
+use crypto::*;
+
+use sodiumoxide;
+
 
 pub trait GenerateEncryptionKeypair {
     fn new_keypair<I>(&self, scheme: &AdditiveEncryptionScheme) -> SdaClientResult<I>;
 }
-
 
 pub trait Export<I, K> {
     fn export(&self, id: &I) -> SdaClientResult<Option<K>>;
@@ -111,10 +114,7 @@ impl<K: Store> SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKe
         // message
         let encryption_keypair: Option<EncryptionKeypair> = self.get(&id.stringify())?;
         let message_to_be_signed = match encryption_keypair {
-            None => {
-                println!("missing ek");
-                return Ok(None)
-            },
+            None => { return Ok(None) },
             Some(encryption_keypair) => {
                 Labeled {
                     id: id.clone(),
@@ -125,10 +125,7 @@ impl<K: Store> SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKe
         // signature
         let signature_keypair: Option<VerificationKeypair> = self.get(&signer.verification_key.id.stringify())?;
         let signature = match signature_keypair {
-            None => {
-                println!("missing sk");
-                return Ok(None)
-            },
+            None => { return Ok(None) },
             Some(VerificationKeypair{ sk: SigningKey::Sodium(raw_sk), .. }) => {
                 let sk = sodiumoxide::crypto::sign::SecretKey::from_slice(&*raw_sk).unwrap();
                 let msg = &message_to_be_signed.canonical()?;
@@ -149,8 +146,8 @@ impl<K: Store> SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKe
 
 
 
-impl<K: Store> ExportDecryptionKey<EncryptionKeyId, (sda_protocol::EncryptionKey, crypto::DecryptionKey)> for K {
-    fn export_decryption_key(&self, id: &EncryptionKeyId) -> SdaClientResult<Option<(sda_protocol::EncryptionKey, crypto::DecryptionKey)>> {
+impl<K: Store> ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)> for K {
+    fn export_decryption_key(&self, id: &EncryptionKeyId) -> SdaClientResult<Option<(EncryptionKey, DecryptionKey)>> {
         unimplemented!()
     }
 }

@@ -1,4 +1,4 @@
-use errors::*;
+use errors::SdaClientResult;
 
 pub trait Policy<ID> {
     fn is_flagged_as_trusted(&self, id: &ID) -> SdaClientResult<bool>;

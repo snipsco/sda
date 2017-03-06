@@ -1,12 +1,12 @@
+use sda_protocol::*;
 
-use super::*;
-
+use SdaClient;
+use errors::SdaClientResult;
 
 /// Basic fetching.
 pub trait Fetch<ID, O> {
     fn fetch(&self, id: &ID) -> SdaClientResult<O>;
 }
-
 
 // TODO these should probably all return options instead of errors in case the resource wasn't found!
 

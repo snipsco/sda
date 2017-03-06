@@ -10,5 +10,4 @@ error_chain!{
         NumParseInt(::std::num::ParseIntError);
         TimeSystemTime(::std::time::SystemTimeError);
     }
-
 }

@@ -18,25 +18,18 @@ mod errors;
 mod crypto;
 mod keystore;
 mod trust;
-mod cache;
 mod service;
 mod profile;
 mod participate;
 mod clerk;
 
-pub use sda_protocol::*;
-use crypto::*;
-use keystore::*;
-pub use keystore::{KeyGeneration};
-use trust::{Policy};
-use cache::{NoCache};
-use service::*;
-use profile::*;
-
-pub use errors::*;
-pub use participate::{Participating};
-pub use clerk::{Clerking};
+pub use participate::{Participating, ParticipantInput};
+pub use clerk::Clerking;
 pub use profile::{load_agent, new_agent, Maintenance};
+pub use errors::SdaClientError;
+
+use sda_protocol::Agent;
+use service::NoCache;
 
 /// Primary object for interacting with the SDA service.
 ///
@@ -55,7 +48,7 @@ impl<K, S> SdaClient<K, NoCache, S> {
             agent: agent,
             keystore: keystore,
             trust: trust::Pessimistic,
-            cache: NoCache {},
+            cache: service::NoCache,
             service: service,
         }
     }

@@ -14,6 +14,7 @@ extern crate slog_scope;
 
 mod errors;
 
+use sda_protocol::*;
 use sda_client::*;
 use sda_client_http::*;
 use sda_client_store::*;
