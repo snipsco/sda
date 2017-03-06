@@ -4,21 +4,21 @@ use reqwest::header::*;
 use serde;
 
 use errors::*;
-use authtoken::*;
+use tokenstore::*;
 
 pub struct SdaHttpClient<S> {
     client: reqwest::Client,
     server_root: reqwest::Url,
-    auth_token: S,
+    token_store: S,
 }
 
-impl<S: AuthTokenStore> SdaHttpClient<S> {
+impl<S: TokenStore> SdaHttpClient<S> {
 
-    pub fn new(server_root: &str, auth_token_store: S) -> SdaHttpClientResult<SdaHttpClient<S>> {
+    pub fn new(server_root: &str, token_store: S) -> SdaHttpClientResult<SdaHttpClient<S>> {
         Ok(SdaHttpClient {
             client: reqwest::Client::new()?,
             server_root: reqwest::Url::parse(server_root)?,
-            auth_token: auth_token_store,
+            token_store: token_store,
         })
     }
 
@@ -29,7 +29,7 @@ impl<S: AuthTokenStore> SdaHttpClient<S> {
         
         // auth token
         if let Some(agent) = caller {
-            let auth_token = self.auth_token.get()?;
+            let auth_token = self.token_store.get()?;
             request = request
                 .header(Authorization(Basic {
                     username: agent.id.stringify(),
@@ -125,43 +125,149 @@ macro_rules! wrap_payload {
 }
 
 impl<S> SdaService for SdaHttpClient<S>
-    where S: Send + Sync + AuthTokenStore
+    where S: Send + Sync + TokenStore
 {
     fn ping(&self) -> SdaResult<Pong> {
-        wrap_payload! { self.get(None, "/ping") }
+        wrap_payload! { self.get(
+            None, 
+            "/ping"
+        ) }
     }
 }
 
-#[allow(unused_variables)]
 impl<S> SdaAgentService for SdaHttpClient<S> 
-    where S: Send + Sync + AuthTokenStore
+    where S: Send + Sync + TokenStore
 {
 
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
-        let endpoint = format!("/agents/{}", agent.id.stringify());
-        wrap_empty! { self.post::<Agent, ()>(Some(caller), &endpoint, agent) }
+        wrap_empty! { self.post::<Agent, ()>(
+            Some(caller),
+            &format!("/agents/me"), 
+            agent
+        ) }
     }
 
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
-        unimplemented!()
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/agents/{}", owner.stringify())
+        ) }
     }
 
+    #[allow(unused_variables)]
     fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()> {
-        unimplemented!()
+        wrap_payload! { self.post(
+            Some(caller), 
+            &format!("/agents/me/profile"),
+            profile
+        ) }
     }
 
     fn get_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>> {
-        unimplemented!()
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/agents/{}/profile", owner.stringify())
+        ) }
     }
 
     fn create_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()> {
-        // let endpoint = format!("/agents/{}", agent.id.stringify());
-        // wrap_empty! { self.post::<Agent, ()>(Some(caller), &endpoint, agent) }
-        unimplemented!()
+        wrap_empty! { self.post::<SignedEncryptionKey, ()>(
+            Some(caller), 
+            &format!("/agents/me/keys"), 
+            key
+        ) }
     }
 
     fn get_encryption_key(&self, caller: &Agent, key: &EncryptionKeyId) -> SdaResult<Option<SignedEncryptionKey>> {
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/agents/any/keys/{}", key.stringify())
+        ) }
+    }
+
+}
+
+impl<S> SdaAggregationService for SdaHttpClient<S> 
+    where S: Send + Sync + TokenStore
+{
+
+    #[allow(unused_variables)]
+    fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>> {
         unimplemented!()
+    }
+
+    #[allow(unused_variables)]
+    fn list_aggregations_by_recipient(&self, caller: &Agent, recipient: &AgentId) -> SdaResult<Vec<AggregationId>> {
+        unimplemented!()
+    }
+
+    fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>> {
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/aggregations/{}", aggregation.stringify())
+        ) }
+    }
+
+    fn get_committee(&self, caller: &Agent, owner: &AggregationId) -> SdaResult<Option<Committee>> {
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/aggregations/{}/committee", owner.stringify())
+        ) }
+    }
+
+}
+
+impl<S> SdaParticipationService for SdaHttpClient<S> 
+    where S: Send + Sync + TokenStore
+{
+
+    fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()> {
+        wrap_empty! { self.post::<Participation, ()>(
+            Some(caller), 
+            &format!("/aggregations/{}/participations", participation.aggregation.stringify()),
+            participation
+        ) }
+    }
+
+}
+
+impl<S> SdaClerkingService for SdaHttpClient<S> 
+    where S: Send + Sync + TokenStore
+{
+
+    fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/aggregations/any/jobs/{}", clerk.stringify())
+        ) }
+    }
+
+    fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {
+        wrap_empty! { self.post::<ClerkingResult, ()>(
+            Some(caller), 
+            &format!("/aggregations/{}/jobs/{}/result", result.aggregation.stringify(), result.job.stringify()),
+            result
+        ) }
+    }
+
+}
+
+impl<S> SdaRecipientService for SdaHttpClient<S> 
+    where S: Send + Sync + TokenStore
+{
+
+    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>> {
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/aggregations/{}/status", aggregation.stringify())
+        ) }
+    }
+
+    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
+        wrap_payload! { self.get(
+            Some(caller), 
+            &format!("/aggregations/{}/results", aggregation.stringify())
+        ) }
     }
 
 }

@@ -5,15 +5,13 @@ extern crate rand;
 extern crate error_chain;
 extern crate serde;
 extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
 extern crate reqwest;
 
 extern crate sda_protocol;
 extern crate sda_client_store;
 
 mod errors;
-mod authtoken;
+mod tokenstore;
 mod client;
 
 pub use client::{SdaHttpClient};

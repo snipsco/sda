@@ -27,7 +27,8 @@ impl<K, C, S> Clerking for SdaClient<K, C, S>
         C: Cache<AggregationId, Committee>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        S: SdaDiscoveryService,
+        S: SdaAgentService,
+        S: SdaAggregationService,
         S: SdaClerkingService,
 {
 
@@ -75,7 +76,8 @@ impl<K, C, S> SdaClient<K, C, S>
         C: Cache<AggregationId, Committee>,
         C: Cache<AgentId, Agent>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
-        S: SdaDiscoveryService,
+        S: SdaAgentService,
+        S: SdaAggregationService,
 {
 
     fn process_clerking_job(&mut self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {

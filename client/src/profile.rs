@@ -25,7 +25,7 @@ pub trait Maintenance {
 
     fn upload_agent(&self) -> SdaClientResult<()>;
 
-    fn create_encryption_key(&self) -> SdaClientResult<EncryptionKeyId>;
+    fn new_encryption_key(&self) -> SdaClientResult<EncryptionKeyId>;
 
     fn upload_encryption_key(&self, key: &EncryptionKeyId) -> SdaClientResult<()>;
 
@@ -39,8 +39,8 @@ pub trait Maintenance {
 }
 
 impl<K, C, S> Maintenance for SdaClient<K, C, S> 
-    where 
-        S: SdaDiscoveryService,
+    where
+        S: SdaAgentService,
         K: KeyGeneration<EncryptionKeyId>,
         K: SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKey>>,
 {
@@ -48,43 +48,20 @@ impl<K, C, S> Maintenance for SdaClient<K, C, S>
         Ok(self.service.create_agent(&self.agent, &self.agent)?)
     }
 
-    fn create_encryption_key(&self) -> SdaClientResult<EncryptionKeyId> {
+    fn new_encryption_key(&self) -> SdaClientResult<EncryptionKeyId> {
         let key_id = self.keystore.new_key()?;
         Ok(key_id)
     }
 
     fn upload_encryption_key(&self, key: &EncryptionKeyId) -> SdaClientResult<()> {
         let signed_key = self.keystore.sign_export(&self.agent, key)?
-            .ok_or("Missing encryption key")?;
+            .ok_or("Could not sign encryption key")?;
         Ok(self.service.create_encryption_key(&self.agent, &signed_key)?)
     }
 }
 
 
 
-
-// impl<C, S> Maintenance for SdaClient<C, S>
-//     where K: KeypairGen<VerificationKey>
-// {
-//     // fn new_agent(&mut self) -> SdaClientResult<Agent> {
-//     //     let id = AgentId::new();
-//     //     let vk: VerificationKey = self.keystore.new_keypair()?;
-//     //     Ok(Agent {
-//     //         id: id,
-//     //         verification_key: Some(vk)
-//     //     })
-//     // }
-// }
-
-// impl<C, K, S> Maintenance for SdaClient<C, K, S> 
-//     // where K: KeyStre
-// {
-
-//     fn new_agent(&mut self) -> SdaClientResult<Agent> {
-//         self.key_store.
-//     }
-
-// }
 
 // impl<L, I, S> IdentityManagement for SdaClient<L, I, S>
 //     where 

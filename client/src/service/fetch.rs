@@ -12,7 +12,7 @@ pub trait Fetch<ID, O> {
 
 
 impl<K, C, S> Fetch<AggregationId, Aggregation> for SdaClient<K, C, S>
-    where S: SdaDiscoveryService
+    where S: SdaAggregationService
 {
     fn fetch(&self, id: &AggregationId) -> SdaClientResult<Aggregation> {
         Ok(self.service.get_aggregation(&self.agent, id)?
@@ -21,7 +21,7 @@ impl<K, C, S> Fetch<AggregationId, Aggregation> for SdaClient<K, C, S>
 }
 
 impl<K, C, S> Fetch<AggregationId, Committee> for SdaClient<K, C, S>
-    where S: SdaDiscoveryService
+    where S: SdaAggregationService
 {
     fn fetch(&self, id: &AggregationId) -> SdaClientResult<Committee> {
         Ok(self.service.get_committee(&self.agent, id)?
@@ -30,7 +30,7 @@ impl<K, C, S> Fetch<AggregationId, Committee> for SdaClient<K, C, S>
 }
 
 impl<K, C, S> Fetch<AgentId, Agent> for SdaClient<K, C, S>
-    where S: SdaDiscoveryService
+    where S: SdaAgentService
 {
     fn fetch(&self, id: &AgentId) -> SdaClientResult<Agent> {
         Ok(self.service.get_agent(&self.agent, id)?
@@ -39,7 +39,7 @@ impl<K, C, S> Fetch<AgentId, Agent> for SdaClient<K, C, S>
 }
 
 impl<K, C, S> Fetch<EncryptionKeyId, SignedEncryptionKey> for SdaClient<K, C, S>
-    where S: SdaDiscoveryService
+    where S: SdaAgentService
 {
     fn fetch(&self, id: &EncryptionKeyId) -> SdaClientResult<SignedEncryptionKey> {
         Ok(self.service.get_encryption_key(&self.agent, id)?

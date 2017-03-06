@@ -1,11 +1,11 @@
 use rand::{Rng, OsRng};
 use sda_client_store::{Store, SdaClientStoreResult};
 
-pub trait AuthTokenStore {
+pub trait TokenStore {
     fn get(&self) -> SdaClientStoreResult<String>;
 }
 
-impl<S: Store> AuthTokenStore for S {
+impl<S: Store> TokenStore for S {
     fn get(&self) -> SdaClientStoreResult<String> {
         match self.get("auth_token")? {
             Some(existing) => Ok(existing),

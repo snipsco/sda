@@ -159,6 +159,7 @@ uuid_id!{ #[doc="Unique aggregation identifier."] AggregationId }
 identify!(Aggregation, AggregationId);
 
 /// Description of committee elected for an aggregation.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Committee {
     pub aggregation: AggregationId,
     /// Order of the clerks in the committee.
@@ -170,7 +171,7 @@ pub struct Committee {
 }
 
 /// Description of a participant's input to an aggregation.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Participation {
     /// Unique identifier of participation.
     ///
@@ -182,12 +183,13 @@ pub struct Participation {
 }
 
 /// Unique participatin identifer.
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ParticipationId(pub Uuid);
 
 /// Partial aggregation job to be performed by a clerk.
 ///
 /// Includes all inputs needed.
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ClerkingJob {
     pub id: ClerkingJobId,
     pub clerk: AgentId,
@@ -196,16 +198,17 @@ pub struct ClerkingJob {
 }
 
 /// Result of a partial aggregation job performed by a clerk.
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ClerkingResult {
     pub job: ClerkingJobId,
     pub aggregation: AggregationId,
     pub encryption: Encryption,
 }
 
-#[derive(Clone)]
-pub struct ClerkingJobId(pub Uuid);
+uuid_id!{ #[doc="Unique job identifier."] ClerkingJobId }
 
 /// Current status of an aggregation.
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AggregationStatus {
     pub aggregation: AggregationId,
     /// Current number of participations received from the users.
@@ -217,6 +220,7 @@ pub struct AggregationStatus {
 }
 
 /// Result of an aggregation, including output.
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AggregationResult {
     pub aggregation: AggregationId,
     /// Number of participation used in this result.

@@ -117,10 +117,12 @@ fn run() -> SdaCliResult<()> {
 
                 ("keys", Some(matches)) => {
                     let agent = agent.ok_or("Agent missing")?;
+                    let client = SdaClient::new(agent, identitystore, service);
+
                     match matches.subcommand() {
                         ("create", Some(_)) => {
-                            
-
+                            let key = client.new_encryption_key()?;
+                            client.upload_encryption_key(&key)?;
                             Ok(())
                         },
 

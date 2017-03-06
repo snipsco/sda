@@ -1,30 +1,36 @@
 use super::*;
 
 use sda_protocol::*;
-
 use sda_client_store::{Store};
 
-pub struct Keystore<U>(U);
-
-impl<U> Keystore<U> {
-    pub fn new(underlying_store: U) -> Keystore<U> {
-        Keystore(underlying_store)
-    }
+pub trait GenerateEncryptionKeypair {
+    fn new_keypair<I>(&self, scheme: &AdditiveEncryptionScheme) -> SdaClientResult<I>;
 }
 
-pub trait KeyGeneration<T> {
-    fn new_key(&self) -> SdaClientResult<T>;
-}
 
 pub trait Export<I, K> {
     fn export(&self, id: &I) -> SdaClientResult<Option<K>>;
 }
 
-pub trait SignExport<ID, OBJ>
-    where OBJ: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+pub trait SignExport<I, O>
+    where O: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
 {
-    fn sign_export(&self, signer: &Agent, id: &ID) -> SdaClientResult<Option<Signed<OBJ>>>;
+    fn sign_export(&self, signer: &Agent, id: &I) -> SdaClientResult<Option<Signed<O>>>;
 }
+
+// TODO should not be allowed; keep decryption keys in IdentityModule instead and ask it to do the decryption
+pub trait ExportDecryptionKey<I, DK> {
+    fn export_decryption_key(&self, id: &I) -> SdaClientResult<Option<DK>>;
+}
+
+
+pub trait KeyGeneration<T> {
+    fn new_key(&self) -> SdaClientResult<T>;
+}
+
+
+
+
 
 
 
@@ -53,7 +59,7 @@ impl<K: Store> KeyGeneration<VerificationKeyId> for K {
         // save
         let keypair = VerificationKeypair { vk: wrapped_vk, sk: wrapped_sk };
         let id = VerificationKeyId::new();
-        self.put(&id.to_string(), &keypair);
+        self.put(&id.stringify(), &keypair);
 
         Ok(id)
     }
@@ -76,7 +82,7 @@ impl<K: Store> KeyGeneration<Labeled<VerificationKeyId, VerificationKey>> for K 
 
 impl<K: Store> Export<VerificationKeyId, VerificationKey> for K {
     fn export(&self, id: &VerificationKeyId) -> SdaClientResult<Option<VerificationKey>> {
-        let keypair: Option<VerificationKeypair> = self.get(&id.to_string())?;
+        let keypair: Option<VerificationKeypair> = self.get(&id.stringify())?;
         match keypair {
             None => Ok(None),
             Some(keypair) => Ok(Some(keypair.vk))
@@ -105,7 +111,10 @@ impl<K: Store> SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKe
         // message
         let encryption_keypair: Option<EncryptionKeypair> = self.get(&id.stringify())?;
         let message_to_be_signed = match encryption_keypair {
-            None => return Ok(None),
+            None => {
+                println!("missing ek");
+                return Ok(None)
+            },
             Some(encryption_keypair) => {
                 Labeled {
                     id: id.clone(),
@@ -116,7 +125,10 @@ impl<K: Store> SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKe
         // signature
         let signature_keypair: Option<VerificationKeypair> = self.get(&signer.verification_key.id.stringify())?;
         let signature = match signature_keypair {
-            None => return Ok(None),
+            None => {
+                println!("missing sk");
+                return Ok(None)
+            },
             Some(VerificationKeypair{ sk: SigningKey::Sodium(raw_sk), .. }) => {
                 let sk = sodiumoxide::crypto::sign::SecretKey::from_slice(&*raw_sk).unwrap();
                 let msg = &message_to_be_signed.canonical()?;
@@ -143,59 +155,4 @@ impl<K: Store> ExportDecryptionKey<EncryptionKeyId, (sda_protocol::EncryptionKey
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-// impl KeypairGen for Foo {
-//     fn new_keypair<EncryptionKey>(&self) -> SdaClientResult<EncryptionKey> {
-//         unimplemented!()
-//     }
-// }
-
-// impl KeypairGen for Foo {
-//     fn new_keypair<VerificationKey>(&self) -> SdaClientResult<VerificationKey> {
-//         unimplemented!()
-//     }
-// }
-
-pub trait GenerateEncryptionKeypair {
-    fn new_keypair<I>(&self, scheme: &AdditiveEncryptionScheme) -> SdaClientResult<I>;
-}
-
-// TODO should not be allowed; keep decryption keys in IdentityModule instead and ask it to do the decryption
-pub trait ExportDecryptionKey<I, DK> {
-    fn export_decryption_key(&self, id: &I) -> SdaClientResult<Option<DK>>;
-}
-
-// impl<S, I> GenerateEncryptionKeypair for ... 
-//     where 
-//         S: GenerateKeypair,
-//         I: New,
-// {
-//     fn new_keypair(&self, scheme: &S) -> SdaClientResult<I> {
-//         let (ek, dk) = scheme.new_keypair()?;
-//         let id = I::new();
-//         // TODO store keypair under I; fail if exists already
-//         Ok(id)
-//     }
-// }
-
-
-
-
-pub trait IdentityModule {
-    fn replace_identity_keypair(&mut self) -> SdaClientResult<()>;
-    fn export_verification_key(&self) -> SdaClientResult<VerificationKey>;
-    fn sign(&self, message: Vec<u8>) -> SdaClientResult<Signature>;
-}
 

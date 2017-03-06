@@ -24,32 +24,6 @@ pub enum DecryptionKey {
     Sodium(::sda_protocol::byte_arrays::B32)
 }
 
-
-// pub trait Signee {
-//     fn signer(&self) -> AgentId;
-//     fn signed(&self) -> Vec<u8>;
-//     fn signature(&self) -> Signature;
-// }
-
-// impl Signee for SignedEncryptionKey {
-//     fn signer(&self) -> AgentId {
-//         self.owner
-//     }
-//     fn signed(&self) -> {
-//         self.
-//     }
-//     fn signature(&self) -> Signature {
-//         self.signature
-//     }
-// }
-
-// impl<T: Signer, U: Signee> SignatureVerification<U> for T {
-//     fn signature_is_valid(&self, object: U) -> SdaClientResult<bool> {
-
-//     }
-// }
-
-
 pub trait SignatureVerification<O> {
     fn signature_is_valid(&self, object: &O) -> SdaClientResult<bool>;
 }

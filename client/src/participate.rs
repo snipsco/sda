@@ -32,10 +32,12 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         C: Cache<AggregationId, Committee>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        S: SdaDiscoveryService,
+        S: SdaAgentService,
+        S: SdaAggregationService,
         S: SdaParticipationService,
 {
 
+    #[allow(unused_variables)]
     fn preload_for_participation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
         let aggregation: Aggregation = self.cached_fetch(aggregation_id)?;
         // recipient data

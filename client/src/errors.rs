@@ -1,4 +1,3 @@
-
 error_chain!{
     types {
         SdaClientError, SdaClientErrorKind, SdaClientResultExt, SdaClientResult;
