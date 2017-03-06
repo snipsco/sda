@@ -19,9 +19,15 @@ macro_rules! uuid_id {
         #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
         pub struct $name(pub Uuid);
 
+        impl $name {
+            pub fn random() -> $name {
+                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+            }
+        }
+
         impl Default for $name {
             fn default() -> $name {
-                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+                $name::random()
             }
         }
 
@@ -94,6 +100,10 @@ where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::D
     fn deref(&self) -> &M {
         &self.body
     }
+}
+
+pub trait Sign {
+    fn canonical(&self) -> SdaResult<Vec<u8>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

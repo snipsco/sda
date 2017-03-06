@@ -19,7 +19,7 @@ pub use self::encryption::*;
 
 // TODO which module should the below belong to?
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum DecryptionKey {
     Sodium(::sda_protocol::byte_arrays::B32)
 }

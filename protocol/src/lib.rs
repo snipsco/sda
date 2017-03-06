@@ -11,6 +11,7 @@ extern crate data_encoding;
 #[macro_use]
 extern crate error_chain;
 extern crate serde;
+extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 #[cfg(test)]
@@ -29,6 +30,9 @@ mod errors {
             InvalidCredentials {
                 description("invalid credentials")
             }
+        }
+        foreign_links {
+            SerdeJson(::serde_json::Error);
         }
     }
 }

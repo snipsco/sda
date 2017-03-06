@@ -1,6 +1,12 @@
 
 use super::*;
 
+impl<T: ::serde::Serialize> Sign for T {
+    fn canonical(&self) -> SdaResult<Vec<u8>> {
+        Ok(::serde_json::to_vec(self)?)
+    }
+}
+
 impl AgentId {
     pub fn new() -> AgentId {
         AgentId(Uuid::new_v4())

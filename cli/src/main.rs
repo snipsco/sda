@@ -39,10 +39,14 @@ fn run() -> SdaCliResult<()> {
         (@arg identity: -i --identity +takes_value "Storage directory for identity, including keys")
         (@subcommand ping =>)
         (@subcommand agent => 
+            (@subcommand show =>)
             (@subcommand create =>
                 (@arg force: -f --force "Overwrite any existing identity")
             )
-            (@subcommand show =>)
+            (@subcommand keys =>
+                (@subcommand show =>)
+                (@subcommand create =>)
+            )
         )
     ).get_matches();
 
@@ -108,6 +112,19 @@ fn run() -> SdaCliResult<()> {
                             info!("Local agent is {:?}", agent);
                             Ok(())
                         }
+                    }
+                },
+
+                ("keys", Some(matches)) => {
+                    let agent = agent.ok_or("Agent missing")?;
+                    match matches.subcommand() {
+                        ("create", Some(_)) => {
+                            
+
+                            Ok(())
+                        },
+
+                        (cmd, _) => Err(format!("Unknown subcommand {}", cmd))?
                     }
                 },
 

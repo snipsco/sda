@@ -11,7 +11,7 @@ pub enum Encryption {
 /// Encryption key (aka public key).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum EncryptionKey {
-    Sodium(::byte_arrays::B8)
+    Sodium(::byte_arrays::B32)
 }
 
 /// Signature.
