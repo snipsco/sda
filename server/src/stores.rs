@@ -1,4 +1,5 @@
 use sda_protocol::{Agent, AgentId, Labeled, Profile, EncryptionKeyId, SignedEncryptionKey};
+use sda_protocol::{Aggregation, AggregationId, Committee};
 use SdaServerResult;
 
 pub trait BaseStore : Sync + Send {
@@ -36,4 +37,27 @@ pub trait AgentStore: BaseStore {
 
     /// Retrieve agent encryption key.
     fn get_encryption_key(&self, key: &EncryptionKeyId) -> SdaServerResult<Option<SignedEncryptionKey>>;
+}
+
+pub trait AggregationsStore: BaseStore {
+    /// Search for aggregations with titles matching the filter.
+    fn list_aggregations_by_title(&self, filter: &str) -> SdaServerResult<Vec<AggregationId>>;
+
+    /// Search for aggregations with specific recipient.
+    fn list_aggregations_by_recipient(&self, recipient: &AgentId) -> SdaServerResult<Vec<AggregationId>>;
+
+    /// Create a new aggregation on the service (without any associated result).
+    /// If successful, the original id has been replaced by the returned id.
+    fn create_aggregation(&self, aggregation: &Aggregation) -> SdaServerResult<()>;
+
+    /// Retrieve an aggregation and its description.
+    fn get_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Aggregation>>;
+
+    /// Delete all information (including results) regarding an aggregation.
+    fn delete_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<()>;
+
+    /// Retrieve the associated committee.
+    fn get_committee(&self, owner: &AggregationId) -> SdaServerResult<Option<Committee>>;
+
+    fn create_committee(&self, committee: &Committee) -> SdaServerResult<()>;
 }

@@ -60,19 +60,23 @@ pub type LabeledVerificationKey = Labeled<VerificationKeyId, VerificationKey>;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Agent {
     pub id: AgentId,
-    // /// Key used for verifying signatures from agent, if any.
+    /// Key used for verifying signatures from agent.
     pub verification_key: LabeledVerificationKey,
 }
 
 uuid_id!{ #[doc="Unique agent identifier."] AgentId }
 
-// FIXME should we macro_rule this ?
-impl Identified for Agent {
-    type I = AgentId;
-    fn id(&self) -> &AgentId {
-        &self.id
+macro_rules! identify {
+    ($object:ident, $id:ident) => {
+        impl Identified for $object {
+            type I = $id;
+            fn id(&self) -> &$id {
+                &self.id
+            }
+        }
     }
 }
+identify!(Agent,AgentId);
 
 /// Extended profile of an agent, providing information intended for increasing trust such as name and social handles.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -129,8 +133,8 @@ uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
 
 pub type SignedEncryptionKey = Signed<Labeled<EncryptionKeyId, EncryptionKey>>;
 
-
 /// Description of an aggregation.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Aggregation {
     pub id: AggregationId,
     pub title: String,
@@ -151,9 +155,8 @@ pub struct Aggregation {
     pub committee_encryption_scheme: AdditiveEncryptionScheme,
 }
 
-/// Unique aggregation identifier.
-#[derive(Clone, Debug)] // TODO could we use Copy instead?
-pub struct AggregationId(pub Uuid);
+uuid_id!{ #[doc="Unique aggregation identifier."] AggregationId }
+identify!(Aggregation, AggregationId);
 
 /// Description of committee elected for an aggregation.
 pub struct Committee {

@@ -12,20 +12,9 @@ pub trait SdaService : Sync + Send {
     fn ping(&self) -> SdaResult<Pong>;
 }
 
-/// Methods used mainly for discovering and maintaining public resources.
-pub trait SdaDiscoveryService : SdaService {
-
-    /// Search for aggregations with titles matching the filter.
-    fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>>;
-
-    /// Search for aggregations with specific recipient.
-    fn list_aggregations_by_recipient(&self, caller: &Agent, recipient: &AgentId) -> SdaResult<Vec<AggregationId>>;
-
-    /// Retrieve an aggregation and its description.
-    fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>>;
-
-    /// Retrieve the associated committee.
-    fn get_committee(&self, caller: &Agent, owner: &AggregationId) -> SdaResult<Option<Committee>>;
+/// Methods used mainly for discovering and maintaining agents and their
+/// identities.
+pub trait SdaAgentService : SdaService {
 
     /// Create an agent.
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()>;
@@ -44,8 +33,24 @@ pub trait SdaDiscoveryService : SdaService {
 
     /// Retrieve agent encryption key.
     fn get_encryption_key(&self, caller: &Agent, key: &EncryptionKeyId) -> SdaResult<Option<SignedEncryptionKey>>;
-
 }
+
+/// Methods used mainly for discovering aggregation objects.
+pub trait SdaAggregationService : SdaService {
+
+    /// Search for aggregations with titles matching the filter.
+    fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>>;
+
+    /// Search for aggregations with specific recipient.
+    fn list_aggregations_by_recipient(&self, caller: &Agent, recipient: &AgentId) -> SdaResult<Vec<AggregationId>>;
+
+    /// Retrieve an aggregation and its description.
+    fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>>;
+
+    /// Retrieve the associated committee.
+    fn get_committee(&self, caller: &Agent, owner: &AggregationId) -> SdaResult<Option<Committee>>;
+}
+
 
 /// Methods used for participation in particular.
 pub trait SdaParticipationService : SdaService {
@@ -85,7 +90,7 @@ pub trait SdaAdministrationService : SdaService {
     fn create_aggregation(&self, caller: &Agent, aggregation: &Aggregation) -> SdaResult<()>;
 
     /// Delete all information (including results) regarding an aggregation.
-    fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<bool>;
+    fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<()>;
 
     fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()>;
 
