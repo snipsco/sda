@@ -81,7 +81,7 @@ impl SdaServer {
         self.aggregation_store.create_committee(committee)
     }
 
-    pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaServerResult<()> {
+    pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
         wrap! { self.auth_token_store.upsert_auth_token(token) }
     }
 

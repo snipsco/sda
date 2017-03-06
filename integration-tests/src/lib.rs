@@ -83,7 +83,7 @@ mod test {
 
     #[cfg(feature="http")]
     fn with_service<F: Fn(Arc<SdaServer>, &SdaAgentService, &SdaAggregationService, &SdaAdministrationService) -> ()>(f: F) {
-        use std::sync::Ordering;
+        use std::sync::atomic::Ordering;
         ensure_logs();
         with_server(|server, _, _, _| {
             let running = Arc::new(sync::atomic::AtomicBool::new(true));
