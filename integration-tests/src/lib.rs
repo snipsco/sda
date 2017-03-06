@@ -64,7 +64,7 @@ mod test {
         sda_protocol::SignedEncryptionKey {
             body: sda_protocol::Labeled {
                 id: sda_protocol::EncryptionKeyId::default(),
-                body: sda_protocol::EncryptionKey::Sodium(B8::default()),
+                body: sda_protocol::EncryptionKey::Sodium(B32::default()),
             },
             signer: alice.id,
             signature: sda_protocol::Signature::Sodium(B64::default()),
@@ -201,7 +201,7 @@ mod test {
             let alice_key = sda_protocol::SignedEncryptionKey {
                 body: sda_protocol::Labeled {
                     id: sda_protocol::EncryptionKeyId::default(),
-                    body: sda_protocol::EncryptionKey::Sodium(B8::default()),
+                    body: sda_protocol::EncryptionKey::Sodium(B32::default()),
 
                 },
                 signer: alice.id,

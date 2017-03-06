@@ -133,7 +133,7 @@ impl<S> SdaService for SdaHttpClient<S>
 }
 
 #[allow(unused_variables)]
-impl<S> SdaDiscoveryService for SdaHttpClient<S> 
+impl<S> SdaAgentService for SdaHttpClient<S> 
     where S: Send + Sync + AuthTokenStore
 {
 
@@ -143,22 +143,6 @@ impl<S> SdaDiscoveryService for SdaHttpClient<S>
     }
 
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
-        unimplemented!()
-    }
-
-    fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>> {
-        unimplemented!()
-    }
-
-    fn list_aggregations_by_recipient(&self, caller: &Agent, recipient: &AgentId) -> SdaResult<Vec<AggregationId>> {
-        unimplemented!()
-    }
-
-    fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>> {
-        unimplemented!()
-    }
-
-    fn get_committee(&self, caller: &Agent, owner: &AggregationId) -> SdaResult<Option<Committee>> {
         unimplemented!()
     }
 
