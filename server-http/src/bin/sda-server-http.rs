@@ -6,6 +6,7 @@ extern crate slog_term;
 #[macro_use]
 extern crate slog_scope;
 
+use std::sync;
 use slog::*;
 
 fn tmp_server() -> sda_server::SdaServer {
@@ -19,5 +20,5 @@ fn main() {
                             o!());
     slog_scope::set_global_logger(root);
     let server = tmp_server();
-    sda_server_http::listen("0.0.0.0:8888", server)
+    sda_server_http::listen("0.0.0.0:8888", sync::Arc::new(server))
 }
