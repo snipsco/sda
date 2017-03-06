@@ -15,7 +15,6 @@ extern crate slog_scope;
 mod errors;
 
 use sda_client::*;
-use sda_client::KeyGeneration;
 use sda_client_http::*;
 use sda_client_store::*;
 use slog::*;
@@ -40,12 +39,30 @@ fn run() -> SdaCliResult<()> {
         (@arg identity: -i --identity +takes_value "Storage directory for identity, including keys")
         (@subcommand ping =>)
         (@subcommand agent => 
+            (@subcommand show =>)
             (@subcommand create =>
                 (@arg force: -f --force "Overwrite any existing identity")
             )
-            (@subcommand show =>)
+            (@subcommand keys =>
+                (@subcommand show =>)
+                (@subcommand create =>)
+            )
         )
     ).get_matches();
+
+    let service = {
+        let server_root = {
+            let root = matches.value_of("server").unwrap_or("http://localhost:8888");
+            debug!("Using service at {}", root);
+            root
+        };
+        let authstore = {
+            let path = matches.value_of("identity").unwrap_or(".sda");
+            debug!("Using authorisation at {}", path);
+            Filebased::new(path)?
+        };
+        SdaHttpClient::new(server_root, authstore)?
+    };
 
     let identitystore = {
         let path = matches.value_of("identity").unwrap_or(".sda");
@@ -53,17 +70,11 @@ fn run() -> SdaCliResult<()> {
         Filebased::new(path)?
     };
 
-    let service = {
-        let server_root = matches.value_of("server").unwrap_or("http://localhost:8888");
-        debug!("Using server {}", server_root);
-        SdaHttpClient::new(server_root)?
-    };
-
     let agent = sda_client::load_agent(&identitystore)?;
     
     match matches.subcommand() {
 
-        ("ping", Some(matches)) => {
+        ("ping", Some(_)) => {
             let pong = service.ping()?;
             match pong {
                 Pong {running} if running => {
@@ -77,6 +88,7 @@ fn run() -> SdaCliResult<()> {
         ("agent", Some(matches)) => {
 
             match matches.subcommand() {
+
                 ("create", Some(matches)) => {
                     let agent = if agent.is_some() && !matches.is_present("force") {
                         warn!("Using existing agent; use --force to create new");
@@ -89,19 +101,35 @@ fn run() -> SdaCliResult<()> {
                     let client = SdaClient::new(agent, identitystore, service);
                     Ok(client.upload_agent()?)
                 },
-                ("show", Some(matches)) => {
+
+                ("show", Some(_)) => {
                     match agent {
                         None => { 
-                            warn!("No agent found");
+                            warn!("No local agent found");
                             Ok(())
                         },
                         Some(agent) => {
-                            println!("Agent is {:?}", agent); // TODO formatting
+                            info!("Local agent is {:?}", agent);
                             Ok(())
                         }
                     }
                 },
+
+                ("keys", Some(matches)) => {
+                    let agent = agent.ok_or("Agent missing")?;
+                    match matches.subcommand() {
+                        ("create", Some(_)) => {
+                            
+
+                            Ok(())
+                        },
+
+                        (cmd, _) => Err(format!("Unknown subcommand {}", cmd))?
+                    }
+                },
+
                 (cmd, _) => Err(format!("Unknown subcommand {}",  cmd))?
+
             }
             
         },
