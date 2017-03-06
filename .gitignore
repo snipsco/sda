@@ -4,3 +4,5 @@ tmp
 *.bk
 *.orig
 *.rej
+.idea/
+.vscode/
