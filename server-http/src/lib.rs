@@ -85,7 +85,7 @@ impl<'a> Disco<'a> {
     fn create_agent(&self, req: &Request) -> Result<Response> {
         let auth = auth_token(&req)?;
         let agent: Agent = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
-        if agent.id == auth.id {
+        if agent.id != auth.id {
             return Ok(client_error("inconsistent agent ids"));
         }
         self.0.create_agent(&agent, &agent)?;
