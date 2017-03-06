@@ -171,8 +171,9 @@ impl<S> SdaDiscoveryService for SdaHttpClient<S>
     }
 
     fn create_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()> {
-        let endpoint = format!("/agents/{}", agent.id.stringify());
-        wrap_empty! { self.post::<Agent, ()>(Some(caller), &endpoint, agent) }
+        // let endpoint = format!("/agents/{}", agent.id.stringify());
+        // wrap_empty! { self.post::<Agent, ()>(Some(caller), &endpoint, agent) }
+        unimplemented!()
     }
 
     fn get_encryption_key(&self, caller: &Agent, key: &EncryptionKeyId) -> SdaResult<Option<SignedEncryptionKey>> {
