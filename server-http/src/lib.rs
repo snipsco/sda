@@ -90,7 +90,7 @@ impl<'a> Disco<'a> {
         }
         self.0.create_agent(&agent, &agent)?;
         self.0.upsert_auth_token(&auth)?;
-        Ok(Response::empty_404().with_status_code(201))
+        send_empty_201()
     }
 
     fn get_agent(&self, id: &AgentId, req: &Request) -> Result<Response> {
@@ -103,7 +103,8 @@ impl<'a> Disco<'a> {
 
     fn upsert_profile(&self, req: &Request) -> Result<Response> {
         let profile = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
-        send_json(self.0.upsert_profile(&self.caller(req)?, &profile)?)
+        self.0.upsert_profile(&self.caller(req)?, &profile)?;
+        send_empty_201()
     }
 
     fn get_encryption_key(&self, id: &EncryptionKeyId, req: &Request) -> Result<Response> {
@@ -112,7 +113,8 @@ impl<'a> Disco<'a> {
 
     fn create_encryption_key(&self, req: &Request) -> Result<Response> {
         let profile = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
-        send_json(self.0.create_encryption_key(&self.caller(req)?, &profile)?)
+        self.0.create_encryption_key(&self.caller(req)?, &profile)?;
+        send_empty_201()
     }
 }
 
@@ -137,6 +139,14 @@ fn auth_token(req: &Request) -> Result<AuthToken> {
 
 fn client_error<S: Into<String>>(s: S) -> Response {
     Response::text(s).with_status_code(400)
+}
+
+fn send_empty_200() -> Result<Response> {
+    Ok(Response::empty_404().with_status_code(200))
+}
+
+fn send_empty_201() -> Result<Response> {
+    Ok(Response::empty_404().with_status_code(201))
 }
 
 fn send_json<T: ::serde::Serialize>(t: T) -> Result<Response> {
