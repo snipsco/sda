@@ -33,6 +33,7 @@ pub enum VerificationKey {
 }
 
 /// Supported masking schemes and their parameters.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LinearMaskingScheme {
     
     None,
@@ -44,6 +45,7 @@ pub enum LinearMaskingScheme {
 }
 
 /// Supported secret sharing schemes and their parameters.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LinearSecretSharingScheme {
 
     Additive {
@@ -117,6 +119,7 @@ impl LinearSecretSharingScheme {
 }
 
 /// Supported additive encryption schemes and their parameters.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum AdditiveEncryptionScheme {
 
     Sodium,
