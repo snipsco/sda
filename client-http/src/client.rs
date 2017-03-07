@@ -192,13 +192,10 @@ impl<S> SdaAggregationService for SdaHttpClient<S>
 {
 
     #[allow(unused_variables)]
-    fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>> {
-        unimplemented!()
-    }
-
-    #[allow(unused_variables)]
-    fn list_aggregations_by_recipient(&self, caller: &Agent, recipient: &AgentId) -> SdaResult<Vec<AggregationId>> {
-        unimplemented!()
+    fn list_aggregations(&self, caller: &Agent, filter: Option<&str>, recipient:Option<&AgentId>) -> SdaResult<Vec<AggregationId>> {
+        wrap_payload! { self.get(
+            Some(caller),
+        }
     }
 
     fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>> {

@@ -2,9 +2,11 @@ extern crate rouille;
 extern crate sda_protocol;
 extern crate sda_server;
 #[cfg(feature="http")]
-extern crate sda_server_http;
-#[cfg(feature="http")]
 extern crate sda_client_http;
+#[cfg(feature="http")]
+extern crate sda_client_store;
+#[cfg(feature="http")]
+extern crate sda_server_http;
 #[macro_use]
 extern crate slog;
 extern crate slog_scope;
@@ -86,7 +88,7 @@ mod test {
     fn with_server<F>(f: F)
         where F: Fn(&TextContext) -> ()
     {
-        let tempdir = ::tempdir::TempDir::new("sda-tests").unwrap();
+        let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
         let server = jfs_server(tempdir.path());
         let services = server.clone();
         let tc = TextContext {
@@ -123,7 +125,9 @@ mod test {
                     ::std::thread::sleep(::std::time::Duration::new(0, 1000000));
                 }
             });
-            let services = ::sda_client_http::SdaHttpClient::new(&*http_address).unwrap();
+            let tempdir = ::tempdir::TempDir::new("sda-tests-clients").unwrap();
+            let store = ::sda_client_store::Filebased::new(tempdir).unwrap();
+            let services = ::sda_client_http::SdaHttpClient::new(&*http_address,store).unwrap();
             let tc = TextContext {
                 server: ctx.server,
                 agents: &services,
