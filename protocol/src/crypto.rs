@@ -92,6 +92,7 @@ impl LinearSecretSharingScheme {
         }
     }
 
+    /// Number of members in the commitee, number of shares.
     pub fn output_size(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive { share_count, .. } => share_count,

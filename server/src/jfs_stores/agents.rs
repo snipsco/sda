@@ -3,10 +3,12 @@ use jfs;
 use std::path;
 
 use sda_protocol::{Id, Identified};
-use sda_protocol::{Agent, AgentId, Profile, SignedEncryptionKey, EncryptionKeyId};
+use sda_protocol::{Agent, AgentId, ClerkCandidate, Profile, SignedEncryptionKey, EncryptionKeyId};
 
 use SdaServerResult;
 use stores::{BaseStore, AgentStore};
+
+use itertools::Itertools;
 
 pub struct JfsAgentStore {
     agents: jfs::Store,
@@ -61,5 +63,23 @@ impl AgentStore for JfsAgentStore {
                           key: &EncryptionKeyId)
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
         super::get_option(&self.encryption_keys, &key.stringify())
+    }
+
+    fn suggest_committee(&self) -> SdaServerResult<Vec<ClerkCandidate>> {
+        let keys = self.encryption_keys.all::<SignedEncryptionKey>()?;
+        let candidates = keys.into_iter()
+            .map(|(_, v)| v)
+            .sorted_by(|a, b| a.signer.0.cmp(&b.signer.0))
+            .into_iter()
+            .group_by(|v| v.signer)
+            .into_iter()
+            .map(|(k, v)| {
+                ClerkCandidate {
+                    id: k,
+                    keys: v.map(|sek| sek.body.id().clone()).collect()
+                }
+            })
+            .collect();
+        Ok(candidates)
     }
 }

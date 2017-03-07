@@ -90,6 +90,11 @@ pub trait SdaAdministrationService : SdaService {
     /// Delete all information (including results) regarding an aggregation.
     fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<()>;
 
-    fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()>;
+    /// Propose suitable members for a committee, taking into account the
+    /// aggregation constraints.
+    /// TODO allow additional criteria, as max number, liveliness, etc.
+    fn suggest_committee(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<ClerkCandidate>>;
 
+    /// Set the committee for an aggregation.
+    fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()>;
 }
