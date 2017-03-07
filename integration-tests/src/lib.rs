@@ -126,10 +126,10 @@ mod test {
                 }
             });
             let tempdir = ::tempdir::TempDir::new("sda-tests-clients").unwrap();
-            let store = ::sda_client_store::Filebased::new(tempdir).unwrap();
+            let store = ::sda_client_store::Filebased::new(&tempdir).unwrap();
             let services = ::sda_client_http::SdaHttpClient::new(&*http_address,store).unwrap();
             let tc = TextContext {
-                server: ctx.server,
+                server: ctx.server.clone(),
                 agents: &services,
                 aggregation: &services,
                 admin: &services,

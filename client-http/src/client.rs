@@ -1,5 +1,6 @@
 use sda_protocol::*;
 use reqwest;
+use reqwest::{Url, StatusCode};
 use reqwest::header::*;
 use serde;
 
@@ -51,8 +52,8 @@ impl<S: TokenStore> SdaHttpClient<S> {
         let status = *response.status();
         match status {
 
-              reqwest::StatusCode::Ok
-            | reqwest::StatusCode::Created
+              StatusCode::Ok
+            | StatusCode::Created
             => {
                 if content_length > 0 {
                     let obj = response.json()?;
@@ -60,6 +61,11 @@ impl<S: TokenStore> SdaHttpClient<S> {
                 } else {
                     Ok(None)
                 }
+            },
+
+            StatusCode::NotFound
+            => {
+                Ok(None)
             },
 
             _ => {
@@ -77,10 +83,9 @@ impl<S: TokenStore> SdaHttpClient<S> {
         }
     }
 
-    pub fn get<U, URL: reqwest::IntoUrl>(&self, caller: Option<&Agent>, path: URL) -> SdaHttpClientResult<Option<U>>
+    pub fn get<U>(&self, caller: Option<&Agent>, url: Url) -> SdaHttpClientResult<Option<U>>
         where U: serde::Deserialize
     {
-        let url = self.server_root.join(path.into_url()?.as_str())?;
         let request = self.client
             .get(url);
 
@@ -88,12 +93,11 @@ impl<S: TokenStore> SdaHttpClient<S> {
         self.process(response)
     }
 
-    pub fn post<T, U, URL: reqwest::IntoUrl>(&self, caller: Option<&Agent>, path: URL, body: &T) -> SdaHttpClientResult<Option<U>>
+    pub fn post<T, U>(&self, caller: Option<&Agent>, url: Url, body: &T) -> SdaHttpClientResult<Option<U>>
         where 
             T: serde::Serialize,
             U: serde::Deserialize,
     {
-        let url = self.server_root.join(path.into_url()?.as_str())?;
         let request = self.client
             .post(url)
             .json(body);
@@ -102,15 +106,21 @@ impl<S: TokenStore> SdaHttpClient<S> {
         self.process(response)
     }
 
-    pub fn delete<URL: reqwest::IntoUrl>(&self, caller: Option<&Agent>, path: URL) -> SdaHttpClientResult<Option<()>>
+    pub fn delete(&self, caller: Option<&Agent>, url: Url) -> SdaHttpClientResult<Option<()>>
     {
-        let url = self.server_root.join(path.into_url()?.as_str())?;
         let request = self.client
             .request(reqwest::Method::Delete, url);
 
         let response = self.decorate(request, caller)?.send()?;
         self.process::<Option<()>>(response)?;
         Ok(Some(())) // TODO
+    }
+
+    pub fn url<P: AsRef<str>>(&self, path: P) -> SdaResult<Url> {
+        Ok(
+            self.server_root.join(path.as_ref())
+            .map_err(|e| format!("Url formatting error {:?}", e))?
+        )
     }
 
 }
@@ -135,13 +145,23 @@ macro_rules! wrap_payload {
     }
 }
 
+macro_rules! wrap_option_payload {
+    ($e:expr) => {
+        match $e {
+            Ok(Some(obj)) => Ok(obj),
+            Ok(None) => Ok(None),
+            Err(err) => Err(format!("HTTP/REST error: {}", err).into()),
+        }
+    }
+}
+
 impl<S> SdaService for SdaHttpClient<S>
     where S: Send + Sync + TokenStore
 {
     fn ping(&self) -> SdaResult<Pong> {
         wrap_payload! { self.get(
             None, 
-            "/ping"
+            self.url("/ping")?
         ) }
     }
 }
@@ -151,17 +171,17 @@ impl<S> SdaAgentService for SdaHttpClient<S>
 {
 
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
-        wrap_empty! { self.post::<Agent, (), &str>(
+        wrap_empty! { self.post::<Agent, ()>(
             Some(caller),
-            &format!("/agents/me"),
+            self.url("/agents/me")?,
             agent
         ) }
     }
 
     fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
-        wrap_payload! { self.get(
+        wrap_option_payload! { self.get(
             Some(caller), 
-            &format!("/agents/{}", owner.stringify())
+            self.url(format!("/agents/{}", owner.stringify()))?
         ) }
     }
 
@@ -169,30 +189,30 @@ impl<S> SdaAgentService for SdaHttpClient<S>
     fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()> {
         wrap_payload! { self.post(
             Some(caller),
-            &format!("/agents/me/profile"),
+            self.url("/agents/me/profile")?,
             profile
         ) }
     }
 
     fn get_profile(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Profile>> {
-        wrap_payload! { self.get(
+        wrap_option_payload! { self.get(
             Some(caller), 
-            &format!("/agents/{}/profile", owner.stringify())
+            self.url(format!("/agents/{}/profile", owner.stringify()))?
         ) }
     }
 
     fn create_encryption_key(&self, caller: &Agent, key: &SignedEncryptionKey) -> SdaResult<()> {
-        wrap_empty! { self.post::<SignedEncryptionKey, (), &str>(
+        wrap_empty! { self.post::<SignedEncryptionKey, ()>(
             Some(caller), 
-            &format!("/agents/me/keys"), 
+            self.url("/agents/me/keys")?, 
             key
         ) }
     }
 
     fn get_encryption_key(&self, caller: &Agent, key: &EncryptionKeyId) -> SdaResult<Option<SignedEncryptionKey>> {
-        wrap_payload! { self.get(
+        wrap_option_payload! { self.get(
             Some(caller), 
-            &format!("/agents/any/keys/{}", key.stringify())
+            self.url(format!("/agents/any/keys/{}", key.stringify()))?
         ) }
     }
 
@@ -220,16 +240,16 @@ impl<S> SdaAggregationService for SdaHttpClient<S>
     }
 
     fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>> {
-        wrap_payload! { self.get(
+        wrap_option_payload! { self.get(
             Some(caller), 
-            &format!("/aggregations/{}", aggregation.stringify())
+            self.url(format!("/aggregations/{}", aggregation.stringify()))?
         ) }
     }
 
     fn get_committee(&self, caller: &Agent, owner: &AggregationId) -> SdaResult<Option<Committee>> {
-        wrap_payload! { self.get(
+        wrap_option_payload! { self.get(
             Some(caller), 
-            &format!("/aggregations/{}/committee", owner.stringify())
+            self.url(format!("/aggregations/{}/committee", owner.stringify()))?
         ) }
     }
 
@@ -240,9 +260,9 @@ impl<S> SdaParticipationService for SdaHttpClient<S>
 {
 
     fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()> {
-        wrap_empty! { self.post::<Participation, (), &str>(
+        wrap_empty! { self.post::<Participation, ()>(
             Some(caller), 
-            &format!("/aggregations/{}/participations", participation.aggregation.stringify()),
+            self.url(format!("/aggregations/{}/participations", participation.aggregation.stringify()))?,
             participation
         ) }
     }
@@ -254,16 +274,16 @@ impl<S> SdaClerkingService for SdaHttpClient<S>
 {
 
     fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
-        wrap_payload! { self.get(
+        wrap_option_payload! { self.get(
             Some(caller), 
-            &format!("/aggregations/any/jobs/{}", clerk.stringify())
+            self.url(format!("/aggregations/any/jobs/{}", clerk.stringify()))?
         ) }
     }
 
     fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {
-        wrap_empty! { self.post::<ClerkingResult, (), &str>(
+        wrap_empty! { self.post::<ClerkingResult, ()>(
             Some(caller), 
-            &format!("/aggregations/{}/jobs/{}/result", result.aggregation.stringify(), result.job.stringify()),
+            self.url(format!("/aggregations/{}/jobs/{}/result", result.aggregation.stringify(), result.job.stringify()))?,
             result
         ) }
     }
@@ -275,16 +295,16 @@ impl<S> SdaRecipientService for SdaHttpClient<S>
 {
 
     fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>> {
-        wrap_payload! { self.get(
+        wrap_option_payload! { self.get(
             Some(caller), 
-            &format!("/aggregations/{}/status", aggregation.stringify())
+            self.url(format!("/aggregations/{}/status", aggregation.stringify()))?
         ) }
     }
 
     fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
         wrap_payload! { self.get(
             Some(caller), 
-            &format!("/aggregations/{}/results", aggregation.stringify())
+            self.url(format!("/aggregations/{}/results", aggregation.stringify()))?
         ) }
     }
 
@@ -295,17 +315,17 @@ impl<S> SdaAdministrationService for SdaHttpClient<S>
 {
 
     fn create_aggregation(&self, caller: &Agent, aggregation: &Aggregation) -> SdaResult<()> {
-        wrap_empty! { self.post::<Aggregation, (), &str>(
+        wrap_empty! { self.post::<Aggregation, ()>(
             Some(caller), 
-            &format!("/aggregations"),
+            self.url("/aggregations")?,
             aggregation
         ) }
     }
 
     fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()> {
-        wrap_empty! { self.post::<Committee, (), &str>(
+        wrap_empty! { self.post::<Committee, ()>(
             Some(caller),
-            &format!("/aggregations/implied/committee"),
+            self.url("/aggregations/implied/committee")?,
             committee
         ) }
     }
@@ -313,7 +333,7 @@ impl<S> SdaAdministrationService for SdaHttpClient<S>
     fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<()> {
         wrap_empty! { self.delete(
             Some(caller),
-            &format!("/aggregations/{}", aggregation.stringify())
+            self.url(format!("/aggregations/{}", aggregation.stringify()))?
         ) }
     }
 
