@@ -97,8 +97,8 @@ impl<K, C, S> SdaClient<K, C, S>
         //  - this could be improved by e.g. allowing an accumulating combiner
 
         // determine which one of our encryption keys were used (in turn giving the decryption key we need to use)
-        let own_signed_encryption_key_id = committee.clerk_keys.get(&self.agent.id)
-            .ok_or("Could not find own encryption key in keyset")?;
+        let own_signed_encryption_key_id = committee.clerks_and_keys.iter().find(|&&(id,key)| id == self.agent.id)
+            .ok_or("Could not find own encryption key in keyset")?.1;
 
         // decrypt shares from participants
         let share_decryptor = aggregation.committee_encryption_scheme.new_share_decryptor(&own_signed_encryption_key_id, &self.keystore)?;

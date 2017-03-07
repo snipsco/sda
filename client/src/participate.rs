@@ -49,7 +49,7 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         let recipient_key = self.cached_fetch(&aggregation.recipient_key)?;
         // committee data
         let committee: Committee = self.cached_fetch(&aggregation.id)?;
-        for (clerk_id, key_id) in committee.clerk_keys.iter() {
+        for &(ref clerk_id, ref key_id) in committee.clerks_and_keys.iter() {
             let _: Agent = self.cached_fetch(clerk_id)?;
             let _: SignedEncryptionKey = self.cached_fetch(key_id)?;
         }
@@ -100,12 +100,11 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         // encrypt the committee's shares
         for clerk_index in 0..committee_shares_per_clerk.len() {
             let clerk_shares = &committee_shares_per_clerk[clerk_index];
-            let clerk_id = &committee.clerk_order[clerk_index];
+            let clerk_id = &committee.clerks_and_keys[clerk_index].0;
 
             // fetch and verify clerk's encryption key
-            let clerk_signed_encryption_key_id = committee.clerk_keys.get(&clerk_id)
-                .ok_or("Keyset missing encryption key for clerk")?;
-            let clerk_signed_encryption_key = self.cached_fetch(clerk_signed_encryption_key_id)?;
+            let clerk_signed_encryption_key_id = committee.clerks_and_keys[clerk_index].1;
+            let clerk_signed_encryption_key = self.cached_fetch(&clerk_signed_encryption_key_id)?;
             let clerk = self.cached_fetch(clerk_id)?;
             if !clerk.signature_is_valid(&clerk_signed_encryption_key)? {
                 Err("Signature verification failed for clerk key")?
