@@ -168,7 +168,7 @@ pub struct ClerkCandidate {
 }
 
 /// Description of committee elected for an aggregation.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Committee {
     pub aggregation: AggregationId,
     /// Clerks in the committee, with the EncryptionKeyId to use.

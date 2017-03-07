@@ -39,6 +39,6 @@ pub fn committee() {
         };
         ctx.admin.create_committee(&alice, &committee).unwrap();
         let committee_again = ctx.aggregation.get_committee(&alice, &agg.id).unwrap();
-        assert_eq!(committee, committee_again);
+        assert_eq!(Some(&committee), committee_again.as_ref());
     });
 }

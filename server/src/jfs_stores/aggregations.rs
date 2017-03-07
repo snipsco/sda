@@ -58,7 +58,6 @@ impl AggregationsStore for JfsAggregationsStore {
     }
 
     fn get_committee(&self, owner: &AggregationId) -> SdaServerResult<Option<Committee>> {
-        println!("get_committee: {:?}", owner.stringify());
         super::get_option(&self.committees, &*owner.stringify())
     }
 

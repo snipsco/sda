@@ -61,7 +61,6 @@ impl SdaServer {
     }
 
     fn get_committee(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Committee>> {
-        println!("XXXX {:?} XXXX", self.aggregation_store.get_committee(aggregation));
         self.aggregation_store.get_committee(aggregation)
     }
 
@@ -74,7 +73,7 @@ impl SdaServer {
     }
 
     fn suggest_committee(&self, aggregation:&AggregationId) -> SdaServerResult<Vec<ClerkCandidate>> {
-        let aggregation = self.aggregation_store.get_aggregation(aggregation)?.ok_or("deleted aggregation")?;
+        let _aggregation = self.aggregation_store.get_aggregation(aggregation)?.ok_or("deleted aggregation")?;
         self.agent_store.suggest_committee()
     }
 
