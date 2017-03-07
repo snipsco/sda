@@ -64,7 +64,11 @@ impl<S: TokenStore> SdaHttpClient<S> {
 
             StatusCode::NotFound
             => {
-                Ok(None)
+                if response.headers().get_raw("Resource-not-found").is_some() {
+                    Ok(None)
+                } else {
+                    Err("HTTP/REST route not found")?
+                }
             },
 
             StatusCode::Unauthorized => { Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::InvalidCredentials).into()) }
@@ -325,6 +329,13 @@ impl<S> SdaAdministrationService for SdaHttpClient<S>
             Some(caller), 
             self.url("/aggregations")?,
             aggregation
+        ) }
+    }
+
+    fn suggest_committee(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<ClerkCandidate>> {
+        wrap_payload! { self.get(
+            Some(caller),
+            self.url(format!("/aggregations/{}/committee/suggestions", aggregation.stringify()))?
         ) }
     }
 

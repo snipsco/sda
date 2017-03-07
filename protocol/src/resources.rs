@@ -160,14 +160,19 @@ identify!(Aggregation, AggregationId);
 
 /// Description of committee elected for an aggregation.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ClerkCandidate {
+    /// Candidate clerk agent identifier
+    pub id: AgentId,
+    /// Candidate clerk possible encryption keys
+    pub keys: Vec<EncryptionKeyId>,
+}
+
+/// Description of committee elected for an aggregation.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Committee {
     pub aggregation: AggregationId,
-    /// Order of the clerks in the committee.
-    pub clerk_order: Vec<AgentId>,
-    /// Encryption keys to be used.
-    ///
-    /// Note that while this could simply be a vector, it's easier to work with a map.
-    pub clerk_keys: HashMap<AgentId, EncryptionKeyId>,
+    /// Clerks in the committee, with the EncryptionKeyId to use.
+    pub clerks_and_keys: Vec<(AgentId, EncryptionKeyId)>,
 }
 
 /// Description of a participant's input to an aggregation.

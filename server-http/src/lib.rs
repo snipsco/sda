@@ -62,13 +62,21 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
         (GET)  (/agents/{id: AgentId}/profile) => { H(&server).get_profile(&id, req) },
         (POST) (/agents/me/profile) => { H(&server).upsert_profile(req) },
 
-        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) => { H(&server).get_encryption_key(&id, req) },
+        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) => 
+            { H(&server).get_encryption_key(&id, req) },
         (POST)   (/agents/me/keys) => { H(&server).create_encryption_key(req) },
 
         (POST)  (/aggregations) => { H(&server).create_aggregation(req) },
         (GET)   (/aggregations) => { H(&server).list_aggregations(req) },
         (GET)   (/aggregations/{id: AggregationId}) => { H(&server).get_aggregation(&id, req) },
         (DELETE)(/aggregations/{id: AggregationId}) => { H(&server).delete_aggregation(&id, req) },
+
+        (GET)   (/aggregations/{id: AggregationId}/committee/suggestions) =>
+            { H(&server).suggest_committee(&id, req) },
+        (POST)  (/aggregations/implied/committee) => { H(&server).create_committee(req) },
+        (GET)   (/aggregations/{id: AggregationId}/committee) =>
+            { H(&server).get_committee(&id, req) },
+
 
         _ => {
             error!("Not found: {} {}", req.method(), req.raw_url());
@@ -145,6 +153,19 @@ impl<'a> H<'a> {
         self.0.delete_aggregation(&self.caller(req)?, id)?;
         send_empty_200()
     }
+
+    fn suggest_committee(&self, id: &AggregationId, req: &Request) -> Result<Response> {
+        send_json(self.0.suggest_committee(&self.caller(req)?, &id)?)
+    }
+
+    fn create_committee(&self, req: &Request) -> Result<Response> {
+        self.0.create_committee(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
+    }
+
+    fn get_committee(&self, id: &AggregationId, req: &Request) -> Result<Response> {
+        send_json_option(self.0.get_committee(&self.caller(req)?, id)?)
+    }
 }
 
 fn auth_token(req: &Request) -> Result<AuthToken> {
@@ -181,6 +202,10 @@ fn send_empty_201() -> Result<Response> {
 
 fn read_json<T: ::serde::Deserialize>(req: &Request) -> Result<T> {
     Ok(serde_json::from_reader(req.data().ok_or("Expected a body")?)?)
+}
+
+fn send_json<T: ::serde::Serialize>(t: T) -> Result<Response> {
+    send_json_option(Some(t))
 }
 
 fn send_json_option<T: ::serde::Serialize>(t: Option<T>) -> Result<Response> {
