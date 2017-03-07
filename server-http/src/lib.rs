@@ -36,7 +36,13 @@ mod errors {
 macro_rules! wrap {
     ($e:expr) => { match $e {
         Ok(resp) => resp,
-        Err(e) => Response::text(format!("{:?}", e)).with_status_code(500),
+        Err(e) => match e {
+            Error(ErrorKind::Sda(SdaErrorKind::InvalidCredentials), _)
+                => Response::text(format!("{:?}", e)).with_status_code(401),
+            Error(ErrorKind::Sda(SdaErrorKind::PermissionDenied), _)
+                => Response::text(format!("{:?}", e)).with_status_code(403),
+            _ => Response::text(format!("{:?}", e)).with_status_code(500),
+        }
     }}
 }
 
