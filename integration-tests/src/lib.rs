@@ -205,8 +205,9 @@ mod test {
     pub fn profile_crud_acl() {
         with_service(|ctx| {
             let alice = new_agent();
-
             let bob = new_agent();
+            ctx.agents.create_agent(&bob, &bob).unwrap();
+
             let alice_fake_profile = sda_protocol::Profile {
                 owner: alice.id,
                 name: Some("bob".into()),
@@ -228,6 +229,7 @@ mod test {
             let alice = new_agent();
             let bob = new_agent();
             ctx.agents.create_agent(&alice, &alice).unwrap();
+            ctx.agents.create_agent(&bob, &bob).unwrap();
 
             let alice_key = sda_protocol::SignedEncryptionKey {
                 body: sda_protocol::Labeled {
@@ -237,7 +239,6 @@ mod test {
                 signer: alice.id,
                 signature: sda_protocol::Signature::Sodium(B64::default()),
             };
-
             ctx.agents.create_encryption_key(&alice, &alice_key).unwrap();
             let still_alice = ctx.agents.get_encryption_key(&bob, &alice_key.body.id).unwrap();
             assert_eq!(Some(&alice_key), still_alice.as_ref());
@@ -277,6 +278,7 @@ mod test {
         with_service(|ctx| {
             use sda_protocol as p;
             let alice = new_agent();
+            ctx.agents.create_agent(&alice, &alice).unwrap();
             let alice_key = new_key_for_agent(&alice);
             assert_eq!(0,
                        ctx.aggregation.list_aggregations(&alice, None, None).unwrap().len());
