@@ -116,7 +116,7 @@ mod test {
             let address_for_thread = address.clone();
             let running_for_thread = running.clone();
             let thread = ::std::thread::spawn(move || {
-                let rouille_server = ::rouille::Server::new(address_for_thread, move |req| {
+                let rouille_server = ::rouille::Server::new(&*address_for_thread, move |req| {
                         ::sda_server_http::handle(&*server_for_thread, req)
                     })
                     .unwrap();
@@ -136,6 +136,7 @@ mod test {
             };
             f(&tc);
             running.store(false, Ordering::SeqCst);
+            thread.join().unwrap();
         });
     }
 
