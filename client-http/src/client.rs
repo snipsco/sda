@@ -67,6 +67,9 @@ impl<S: TokenStore> SdaHttpClient<S> {
                 Ok(None)
             },
 
+            StatusCode::Unauthorized => { Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::InvalidCredentials).into()) }
+            StatusCode::Forbidden => { Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::PermissionDenied).into()) }
+
             _ => {
                 use std::io::Read;
                 let mut payload = String::new();
@@ -129,6 +132,7 @@ macro_rules! wrap_empty {
         match $e {
             Ok(Some(_)) => Err("Extra response payload".into()),
             Ok(None) => Ok(()),
+            Err(SdaHttpClientError(SdaHttpClientErrorKind::Sda(e), _)) => Err(e.into()),
             Err(err) => Err(format!("HTTP/REST error: {}", err).into()),
         }
     }
@@ -139,6 +143,7 @@ macro_rules! wrap_payload {
         match $e {
             Ok(Some(obj)) => Ok(obj),
             Ok(None) => Err("Missing response payload".into()),
+            Err(SdaHttpClientError(SdaHttpClientErrorKind::Sda(e), _)) => Err(e.into()),
             Err(err) => Err(format!("HTTP/REST error: {}", err).into()),
         }
     }
@@ -149,6 +154,7 @@ macro_rules! wrap_option_payload {
         match $e {
             Ok(Some(obj)) => Ok(obj),
             Ok(None) => Ok(None),
+            Err(SdaHttpClientError(SdaHttpClientErrorKind::Sda(e), _)) => Err(e.into()),
             Err(err) => Err(format!("HTTP/REST error: {}", err).into()),
         }
     }
@@ -186,7 +192,7 @@ impl<S> SdaAgentService for SdaHttpClient<S>
 
     #[allow(unused_variables)]
     fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()> {
-        wrap_payload! { self.post(
+        wrap_empty! { self.post::<Profile, ()>(
             Some(caller),
             self.url("/agents/me/profile")?,
             profile
@@ -223,7 +229,7 @@ impl<S> SdaAggregationService for SdaHttpClient<S>
 
     #[allow(unused_variables)]
     fn list_aggregations(&self, caller: &Agent, filter: Option<&str>, recipient: Option<&AgentId>) -> SdaResult<Vec<AggregationId>> {
-        
+
         let mut url = self.server_root.clone();
         url.path_segments_mut().map_err(|e| format!("Url formatting error {:?}", e))?
             .push("aggregations");
@@ -234,7 +240,7 @@ impl<S> SdaAggregationService for SdaHttpClient<S>
         if let Some(recipient) = recipient {
             url.query_pairs_mut().append_pair("recipient", &recipient.stringify());
         }
-        
+
         wrap_payload! { self.get(
             Some(caller),
             url

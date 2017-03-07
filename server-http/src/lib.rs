@@ -105,7 +105,7 @@ impl<'a> H<'a> {
     }
 
     fn get_profile(&self, id: &AgentId, req: &Request) -> Result<Response> {
-        send_json_option(self.0.get_agent(&self.caller(req)?, &id)?)
+        send_json_option(self.0.get_profile(&self.caller(req)?, &id)?)
     }
 
     fn upsert_profile(&self, req: &Request) -> Result<Response> {

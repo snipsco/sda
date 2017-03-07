@@ -202,7 +202,7 @@ mod test {
     }
 
     #[test]
-    pub fn profile_crud_acl() {
+    pub fn profile_acl() {
         with_service(|ctx| {
             let alice = new_agent();
             let bob = new_agent();
