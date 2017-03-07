@@ -126,7 +126,7 @@ impl<'a> H<'a> {
     }
 
     fn list_aggregations(&self, req: &Request) -> Result<Response> {
-        let filter = req.get_param("name");
+        let filter = req.get_param("title");
         let recipient = if let Some(p) = req.get_param("recipient") {
             Some(p.parse()?)
         } else {

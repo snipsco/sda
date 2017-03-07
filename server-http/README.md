@@ -22,7 +22,7 @@ DELETE /agents/me/keys/<EncryptionKeyId>
 
 Search
 ```
-GET /aggregations?name=filter&recipient=agentid
+GET /aggregations?title=filter&recipient=agentid 
 ```
 
 Basic aggregation object
