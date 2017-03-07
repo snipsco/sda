@@ -179,7 +179,7 @@ fn read_json<T: ::serde::Deserialize>(req: &Request) -> Result<T> {
 
 fn send_json_option<T: ::serde::Serialize>(t: Option<T>) -> Result<Response> {
     match t {
-        None => Ok(Response::empty_404()),
+        None => Ok(Response::empty_404().with_additional_header("Resource-not-found", "true")),
         Some(t) => Ok(Response::from_data("application/json", serde_json::to_string(&t)?))
     }
 }
