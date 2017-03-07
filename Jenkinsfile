@@ -11,6 +11,11 @@ node('jenkins-slave-rust') {
         sh "git config --global user.name 'Jenkins'"
     }
 
+    stage('Hello') {
+        sh "rustc --version"
+        sh "cargo --version"
+    }
+
     stage('Build and test Rust SDA') {
         parallel(
             'server': { sh "cd server; cargo build && cargo test" },
