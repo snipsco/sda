@@ -17,7 +17,7 @@ mod errors;
 use sda_protocol::*;
 use sda_client::*;
 use sda_client_http::*;
-use sda_client_store::*;
+use sda_client_store::Filebased;
 use slog::*;
 
 use errors::*;
