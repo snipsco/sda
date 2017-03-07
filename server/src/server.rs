@@ -51,14 +51,9 @@ impl SdaServer {
         self.agent_store.get_encryption_key(key)
     }
 
-    fn list_aggregations_by_title(&self, filter: &str) -> SdaServerResult<Vec<AggregationId>> {
-        self.aggregation_store.list_aggregations_by_title(filter)
-    }
-
-    fn list_aggregations_by_recipient(&self,
-                                      recipient: &AgentId)
-                                      -> SdaServerResult<Vec<AggregationId>> {
-        self.aggregation_store.list_aggregations_by_recipient(recipient)
+    fn list_aggregations(&self, filter: Option<&str>, recipient: Option<&AgentId>) 
+        -> SdaServerResult<Vec<AggregationId>> {
+        self.aggregation_store.list_aggregations(filter, recipient)
     }
 
     fn get_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Aggregation>> {
@@ -154,18 +149,8 @@ impl SdaAgentService for SdaServer {
 }
 
 impl SdaAggregationService for SdaServer {
-    fn list_aggregations_by_title(&self,
-                                  _caller: &Agent,
-                                  filter: &str)
-                                  -> SdaResult<Vec<AggregationId>> {
-        wrap! { SdaServer::list_aggregations_by_title(self, filter) }
-    }
-
-    fn list_aggregations_by_recipient(&self,
-                                      _caller: &Agent,
-                                      recipient: &AgentId)
-                                      -> SdaResult<Vec<AggregationId>> {
-        wrap!(Self::list_aggregations_by_recipient(self, recipient))
+    fn list_aggregations(&self, _caller: &Agent, filter: Option<&str>, recipient: Option<&AgentId>) -> SdaResult<Vec<AggregationId>> {
+        wrap! { SdaServer::list_aggregations(self, filter, recipient) }
     }
 
     fn get_aggregation(&self,

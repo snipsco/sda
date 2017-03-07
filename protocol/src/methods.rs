@@ -38,11 +38,9 @@ pub trait SdaAgentService : SdaService {
 /// Methods used mainly for discovering aggregation objects.
 pub trait SdaAggregationService : SdaService {
 
-    /// Search for aggregations with titles matching the filter.
-    fn list_aggregations_by_title(&self, caller: &Agent, filter: &str) -> SdaResult<Vec<AggregationId>>;
-
-    /// Search for aggregations with specific recipient.
-    fn list_aggregations_by_recipient(&self, caller: &Agent, recipient: &AgentId) -> SdaResult<Vec<AggregationId>>;
+    /// Search for aggregations optionally filtering by title substring and/or
+    /// recipient.
+    fn list_aggregations(&self, caller: &Agent, filter: Option<&str>, recipient: Option<&AgentId>) -> SdaResult<Vec<AggregationId>>;
 
     /// Retrieve an aggregation and its description.
     fn get_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<Aggregation>>;

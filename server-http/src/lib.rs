@@ -47,17 +47,22 @@ pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServer>) -> !
 }
 
 pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
-        wrap! { router! { req,
-        (GET)  (/ping) => { SdaServiceWrapper(&server).ping(req) },
+    wrap! { router! { req,
+        (GET)  (/ping) => { H(&server).ping(req) },
 
-        (GET)  (/agents/{id: AgentId}) => { Disco(&server).get_agent(&id, req) },
-        (POST) (/agents/me) => { Disco(&server).create_agent(req) },
+        (GET)  (/agents/{id: AgentId}) => { H(&server).get_agent(&id, req) },
+        (POST) (/agents/me) => { H(&server).create_agent(req) },
 
-        (GET)  (/agents/{id: AgentId}/profile) => { Disco(&server).get_profile(&id, req) },
-        (POST) (/agents/me/profile) => { Disco(&server).upsert_profile(req) },
+        (GET)  (/agents/{id: AgentId}/profile) => { H(&server).get_profile(&id, req) },
+        (POST) (/agents/me/profile) => { H(&server).upsert_profile(req) },
 
-        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) => { Disco(&server).get_encryption_key(&id, req) },
-        (POST)   (/agents/me/keys) => { Disco(&server).create_encryption_key(req) },
+        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) => { H(&server).get_encryption_key(&id, req) },
+        (POST)   (/agents/me/keys) => { H(&server).create_encryption_key(req) },
+
+        (POST)  (/aggregations) => { H(&server).create_aggregation(req) },
+        (GET)   (/aggregations) => { H(&server).list_aggregations(req) },
+        (GET)   (/aggregations/{id: AggregationId}) => { H(&server).get_aggregation(&id, req) },
+        (DELETE)(/aggregations/{id: AggregationId}) => { H(&server).delete_aggregation(&id, req) },
 
         _ => {
             error!("Not found: {} {}", req.method(), req.raw_url());
@@ -66,25 +71,21 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
     } }
 }
 
-struct SdaServiceWrapper<'a>(&'a sda_server::SdaServer);
+struct H<'a>(&'a sda_server::SdaServer);
 
-impl<'a> SdaServiceWrapper<'a> {
-    fn ping(&self, _req: &Request) -> Result<Response> {
-        send_json(self.0.ping()?)
-    }
-}
-
-struct Disco<'a>(&'a sda_server::SdaServer);
-
-impl<'a> Disco<'a> {
+impl<'a> H<'a> {
     fn caller(&self, req: &Request) -> Result<Agent> {
         let auth = auth_token(&req)?;
         Ok(self.0.check_auth_token(&auth)?)
     }
 
+    fn ping(&self, _req: &Request) -> Result<Response> {
+        send_json_option(Some(self.0.ping()?))
+    }
+
     fn create_agent(&self, req: &Request) -> Result<Response> {
         let auth = auth_token(&req)?;
-        let agent: Agent = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
+        let agent:Agent = read_json(&req)?;
         if agent.id != auth.id {
             return Ok(client_error("inconsistent agent ids"));
         }
@@ -94,27 +95,49 @@ impl<'a> Disco<'a> {
     }
 
     fn get_agent(&self, id: &AgentId, req: &Request) -> Result<Response> {
-        send_json(self.0.get_agent(&self.caller(req)?, id)?)
+        send_json_option(self.0.get_agent(&self.caller(req)?, id)?)
     }
 
     fn get_profile(&self, id: &AgentId, req: &Request) -> Result<Response> {
-        send_json(self.0.get_agent(&self.caller(req)?, &id)?)
+        send_json_option(self.0.get_agent(&self.caller(req)?, &id)?)
     }
 
     fn upsert_profile(&self, req: &Request) -> Result<Response> {
-        let profile = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
-        self.0.upsert_profile(&self.caller(req)?, &profile)?;
+        self.0.upsert_profile(&self.caller(req)?, &read_json(req)?)?;
         send_empty_201()
     }
 
     fn get_encryption_key(&self, id: &EncryptionKeyId, req: &Request) -> Result<Response> {
-        send_json(self.0.get_encryption_key(&self.caller(req)?, id)?)
+        send_json_option(self.0.get_encryption_key(&self.caller(req)?, id)?)
     }
 
     fn create_encryption_key(&self, req: &Request) -> Result<Response> {
-        let profile = serde_json::from_reader(req.data().ok_or("Expected a body")?)?;
-        self.0.create_encryption_key(&self.caller(req)?, &profile)?;
+        self.0.create_encryption_key(&self.caller(req)?, &read_json(req)?)?;
         send_empty_201()
+    }
+
+    fn get_aggregation(&self, id: &AggregationId, req: &Request) -> Result<Response> {
+        send_json_option(self.0.get_aggregation(&self.caller(req)?, id)?)
+    }
+
+    fn create_aggregation(&self, req: &Request) -> Result<Response> {
+        self.0.create_aggregation(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
+    }
+
+    fn list_aggregations(&self, req: &Request) -> Result<Response> {
+        let filter = req.get_param("name");
+        let recipient = if let Some(p) = req.get_param("recipient") {
+            Some(p.parse()?)
+        } else {
+            None
+        };
+        send_json_option(Some(self.0.list_aggregations(&self.caller(req)?, filter.as_ref().map(|s| &**s), recipient.as_ref())?))
+    }
+
+    fn delete_aggregation(&self, id: &AggregationId, req: &Request) -> Result<Response> {
+        self.0.delete_aggregation(&self.caller(req)?, id)?;
+        send_empty_200()
     }
 }
 
@@ -141,6 +164,7 @@ fn client_error<S: Into<String>>(s: S) -> Response {
     Response::text(s).with_status_code(400)
 }
 
+#[allow(dead_code)]
 fn send_empty_200() -> Result<Response> {
     Ok(Response::empty_404().with_status_code(200))
 }
@@ -149,8 +173,15 @@ fn send_empty_201() -> Result<Response> {
     Ok(Response::empty_404().with_status_code(201))
 }
 
-fn send_json<T: ::serde::Serialize>(t: T) -> Result<Response> {
-    Ok(Response::from_data("application/json", serde_json::to_string(&t)?))
+fn read_json<T: ::serde::Deserialize>(req: &Request) -> Result<T> {
+    Ok(serde_json::from_reader(req.data().ok_or("Expected a body")?)?)
+}
+
+fn send_json_option<T: ::serde::Serialize>(t: Option<T>) -> Result<Response> {
+    match t {
+        None => Ok(Response::empty_404()),
+        Some(t) => Ok(Response::from_data("application/json", serde_json::to_string(&t)?))
+    }
 }
 
 #[cfg(test)]
