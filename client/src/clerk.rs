@@ -1,14 +1,12 @@
 //! Specific functionality for clerking.
 
-use sda_protocol::*;
-
 use SdaClient;
-use errors::SdaClientResult;
-use service::{Cache, CachedFetch};
+use service::*;
 use crypto::*;
-use crypto::encryption::DecryptionKey;
-use crypto::sharing::ShareCombinerConstruction;
+use errors::SdaClientResult;
 
+use sda_protocol::*;
+use sda_client_store::Store;
 
 /// Basic tasks needed by a clerk.
 pub trait Clerking {
@@ -28,7 +26,7 @@ pub trait Clerking {
 
 impl<K, C, S> Clerking for SdaClient<K, C, S>
     where
-        K: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
+        K: Store,
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
@@ -74,10 +72,9 @@ impl<K, C, S> Clerking for SdaClient<K, C, S>
 
 }
 
-
 impl<K, C, S> SdaClient<K, C, S>
     where
-        K: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>,
+        K: Store,
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<AgentId, Agent>,

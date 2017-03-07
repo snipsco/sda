@@ -1,26 +1,15 @@
+use SdaClient;
+use crypto::*;
+use errors::SdaClientResult;
 
 use sda_protocol::*;
 use sda_client_store::Store;
 
-use SdaClient;
-use errors::SdaClientResult;
-use crypto::{KeyGeneration, SignExport};
-
-
-
-// NOTE outside of SdaClient due to type instantiation error
-pub fn load_agent<K: Store>(identitystore: &K) -> SdaClientResult<Option<Agent>> {
-    let agent: Option<Agent> = identitystore.get_aliased("agent")?;
-    Ok(agent)
-}
-
-pub fn new_agent<K: Store>(identitystore: &K) -> SdaClientResult<Agent> {
-    let agent = Agent {
+pub fn new_agent<K: Store>(crypto: &CryptoModule<K>) -> SdaClientResult<Agent> {
+    Ok(Agent {
         id: AgentId::new(),
-        verification_key: identitystore.new_key()?,
-    };
-    identitystore.put_aliased("agent", &agent)?;
-    Ok(agent)
+        verification_key: crypto.new_key()?,
+    })
 }
 
 pub trait Maintenance {
@@ -42,9 +31,8 @@ pub trait Maintenance {
 
 impl<K, C, S> Maintenance for SdaClient<K, C, S> 
     where
+        K: Store,
         S: SdaAgentService,
-        K: KeyGeneration<EncryptionKeyId>,
-        K: SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKey>>,
 {
     fn upload_agent(&self) -> SdaClientResult<()> {
         Ok(self.service.create_agent(&self.agent, &self.agent)?)

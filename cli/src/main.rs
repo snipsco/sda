@@ -18,6 +18,7 @@ use sda_protocol::*;
 use sda_client::*;
 use sda_client_http::*;
 use sda_client_store::Filebased;
+
 use slog::*;
 
 use errors::*;
@@ -71,7 +72,15 @@ fn run() -> SdaCliResult<()> {
         Filebased::new(path)?
     };
 
-    let agent = sda_client::load_agent(&identitystore)?;
+    let crypto = {
+        let path = matches.value_of("identity").unwrap_or(".sda").to_string() + "/keys"; // TODO
+        debug!("Using keystore at {}", path);
+        let keystore = Filebased::new(path)?;
+        CryptoModule::new(keystore)
+    };
+
+    use sda_client_store::Store;
+    let agent = identitystore.get_aliased("agent")?;
     
     match matches.subcommand() {
 
@@ -95,11 +104,12 @@ fn run() -> SdaCliResult<()> {
                         warn!("Using existing agent; use --force to create new");
                         agent.unwrap()
                     } else {
-                        let agent = sda_client::new_agent(&identitystore)?;
+                        let agent = sda_client::new_agent(&crypto)?;
+                        identitystore.put_aliased("agent", &agent)?;
                         info!("Created new agent with id {:?}", &agent.id);
                         agent
                     };
-                    let client = SdaClient::new(agent, identitystore, service);
+                    let client = SdaClient::new(agent, crypto, service);
                     Ok(client.upload_agent()?)
                 },
 
@@ -118,7 +128,7 @@ fn run() -> SdaCliResult<()> {
 
                 ("keys", Some(matches)) => {
                     let agent = agent.ok_or("Agent missing")?;
-                    let client = SdaClient::new(agent, identitystore, service);
+                    let client = SdaClient::new(agent, crypto, service);
 
                     match matches.subcommand() {
                         ("create", Some(_)) => {

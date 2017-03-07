@@ -1,13 +1,13 @@
 //! Specific functionality for participating in aggregations.
 
+use SdaClient;
+use service::*;
+use crypto::*;
+use trust::Policy;
+use errors::SdaClientResult;
+
 use sda_protocol::*;
 use sda_client_store::Store;
-
-use SdaClient;
-use errors::SdaClientResult;
-use service::{Cache, CachedFetch};
-use trust::Policy;
-use crypto::*;
 
 use std::collections::HashMap;
 
@@ -33,11 +33,11 @@ pub trait Participating {
 
 impl<K, C, S> Participating for SdaClient<K, C, S>
     where
+        K: Store,
         C: Cache<AggregationId, Aggregation>,
         C: Cache<AggregationId, Committee>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
-        K: Store,
         S: SdaAgentService,
         S: SdaAggregationService,
         S: SdaParticipationService,

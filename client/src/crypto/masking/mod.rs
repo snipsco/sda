@@ -1,7 +1,6 @@
 //! Code for masking.
 
-use errors::*;
-use crypto::*;
+use super::*;
 
 pub trait SecretMaskerConstruction<S> {
     fn new_secret_masker(&self, scheme: &S) -> SdaClientResult<Box<SecretMasker>>;

@@ -18,18 +18,18 @@ mod errors;
 mod crypto;
 mod trust;
 mod service;
-// mod profile;
+mod profile;
 mod participate;
 mod clerk;
 
 pub use participate::{Participating, ParticipantInput};
 pub use clerk::Clerking;
-// pub use profile::{load_agent, new_agent, Maintenance};
+pub use profile::{new_agent, Maintenance};
 pub use errors::SdaClientError;
+pub use crypto::CryptoModule;
 
 use sda_protocol::Agent;
 use service::NoCache;
-use crypto::CryptoModule;
 
 /// Primary object for interacting with the SDA service.
 ///
@@ -43,10 +43,10 @@ pub struct SdaClient<K, C, S> {
 }
 
 impl<K, S> SdaClient<K, NoCache, S> {
-    pub fn new(agent: Agent, keystore: K, service: S) -> SdaClient<K, NoCache, S> {
+    pub fn new(agent: Agent, crypto: CryptoModule<K>, service: S) -> SdaClient<K, NoCache, S> {
         SdaClient {
             agent: agent,
-            crypto: CryptoModule::new(keystore),
+            crypto: crypto,
             trust: trust::Pessimistic,
             cache: service::NoCache,
             service: service,

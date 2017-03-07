@@ -1,4 +1,3 @@
-use crypto::*;
 use super::*;
 
 use ::std::iter::repeat;

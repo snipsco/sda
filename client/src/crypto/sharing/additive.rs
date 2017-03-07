@@ -1,5 +1,4 @@
-use crypto::*;
-use super::ShareCombiner;
+use super::*;
 use super::helpers::BatchShareGenerator;
 
 use rand::{Rng, OsRng};

@@ -1,6 +1,3 @@
-
-use errors::*;
-use crypto::CryptoModule;
 use super::*;
 
 use sodiumoxide;
@@ -57,10 +54,8 @@ pub struct Decryptor {
 }
 
 impl Decryptor {
-    pub fn new<KS>(id: &EncryptionKeyId, keystore: &KS) -> SdaClientResult<Decryptor>
-        where KS: ExportDecryptionKey<EncryptionKeyId, (EncryptionKey, DecryptionKey)>
-    {
-        match keystore.export_decryption_key(id)? {
+    pub fn new<K: Store>(id: &EncryptionKeyId, keystore: &K) -> SdaClientResult<Decryptor> {
+        match keystore.get(&id.stringify())? {
 
             Some((EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk))) => {
 
@@ -118,7 +113,7 @@ impl<K: Store> KeyGeneration<EncryptionKeyId> for CryptoModule<K> {
         // save
         let keypair = EncryptionKeypair { ek: wrapped_ek, dk: wrapped_dk };
         let id = EncryptionKeyId::random();
-        self.keystore.put(&id.stringify(), &keypair);
+        self.keystore.put(&id.stringify(), &keypair)?;
 
         Ok(id)
     }

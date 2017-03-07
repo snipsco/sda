@@ -1,11 +1,23 @@
-use sda_protocol::*;
-use sda_client_store::Store;
-
-use errors::SdaClientResult;
-use crypto::{KeyGeneration, Export, SignExport, CryptoModule, SignatureVerification};
+use super::*;
 use crypto::encryption::EncryptionKeypair;
 
+use sda_client_store::Store;
+
 use sodiumoxide;
+
+trait Export<I, O> {
+    fn export(&self, id: &I) -> SdaClientResult<Option<O>>;
+}
+
+pub trait SignExport<I, O>
+    where O: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    fn sign_export(&self, signer: &Agent, id: &I) -> SdaClientResult<Option<Signed<O>>>;
+}
+
+pub trait SignatureVerification<O> {
+    fn signature_is_valid(&self, object: &O) -> SdaClientResult<bool>;
+}
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,7 +37,7 @@ impl<K: Store> KeyGeneration<VerificationKeyId> for CryptoModule<K> {
         // save
         let keypair = SignatureKeypair { vk: wrapped_vk, sk: wrapped_sk };
         let id = VerificationKeyId::new();
-        self.keystore.put(&id.stringify(), &keypair);
+        self.keystore.put(&id.stringify(), &keypair)?;
 
         Ok(id)
     }
