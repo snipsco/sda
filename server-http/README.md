@@ -28,7 +28,7 @@ GET /aggregations?name=filter&recipient=agentid
 Basic aggregation object
 ```
 GET    /aggregations/<AggregationId>
-POST   /aggregations/<AggregationId>
+POST   /aggregations
 DELETE /aggregations/<AggregationId>
 ```
 

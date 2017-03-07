@@ -275,7 +275,7 @@ mod test {
             let alice = new_agent();
             let alice_key = new_key_for_agent(&alice);
             assert_eq!(0,
-                       ctx.aggregation.list_aggregations_by_title(&alice, "foo").unwrap().len());
+                       ctx.aggregation.list_aggregations(&alice, None, None).unwrap().len());
             let agg = sda_protocol::Aggregation {
                 id: sda_protocol::AggregationId::default(),
                 title: "foo".into(),
@@ -292,20 +292,20 @@ mod test {
             };
             ctx.admin.create_aggregation(&alice, &agg).unwrap();
             assert_eq!(0,
-                       ctx.aggregation.list_aggregations_by_title(&alice, "bar").unwrap().len());
+                       ctx.aggregation.list_aggregations(&alice, Some("bar"), None).unwrap().len());
             assert_eq!(1,
-                       ctx.aggregation.list_aggregations_by_title(&alice, "foo").unwrap().len());
+                       ctx.aggregation.list_aggregations(&alice, Some("foo"), None).unwrap().len());
             assert_eq!(1,
-                       ctx.aggregation.list_aggregations_by_title(&alice, "oo").unwrap().len());
+                       ctx.aggregation.list_aggregations(&alice, Some("oo"), None).unwrap().len());
 
             assert_eq!(0,
                        ctx.aggregation
-                           .list_aggregations_by_recipient(&alice, &new_agent().id)
+                           .list_aggregations(&alice, None, Some(&new_agent().id))
                            .unwrap()
                            .len());
             assert_eq!(1,
                        ctx.aggregation
-                           .list_aggregations_by_recipient(&alice, &alice.id)
+                           .list_aggregations(&alice, None, Some(&alice.id))
                            .unwrap()
                            .len());
 

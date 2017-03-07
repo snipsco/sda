@@ -40,11 +40,8 @@ pub trait AgentStore: BaseStore {
 }
 
 pub trait AggregationsStore: BaseStore {
-    /// Search for aggregations with titles matching the filter.
-    fn list_aggregations_by_title(&self, filter: &str) -> SdaServerResult<Vec<AggregationId>>;
-
-    /// Search for aggregations with specific recipient.
-    fn list_aggregations_by_recipient(&self, recipient: &AgentId) -> SdaServerResult<Vec<AggregationId>>;
+    /// Search for aggregations by title and/or by recipient.
+    fn list_aggregations(&self, filter: Option<&str>, recipient:Option<&AgentId>) -> SdaServerResult<Vec<AggregationId>>;
 
     /// Create a new aggregation on the service (without any associated result).
     /// If successful, the original id has been replaced by the returned id.

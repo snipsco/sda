@@ -29,29 +29,14 @@ impl BaseStore for JfsAggregationsStore {
 }
 
 impl AggregationsStore for JfsAggregationsStore {
-    fn list_aggregations_by_title(&self, filter: &str) -> SdaServerResult<Vec<AggregationId>> {
+    fn list_aggregations(&self, filter: Option<&str>, recipient:Option<&AgentId>) -> SdaServerResult<Vec<AggregationId>> {
         Ok(self.aggregations
             .all::<Aggregation>()?
             .iter()
-            .filter_map(|(_, agg)| if agg.title.contains(filter) {
-                Some(agg.id)
-            } else {
-                None
-            })
-            .collect())
-    }
-
-    fn list_aggregations_by_recipient(&self,
-                                      recipient: &AgentId)
-                                      -> SdaServerResult<Vec<AggregationId>> {
-        Ok(self.aggregations
-            .all::<Aggregation>()?
-            .iter()
-            .filter_map(|(_, agg)| if &agg.recipient == recipient {
-                Some(agg.id)
-            } else {
-                None
-            })
+            .filter(|&(_, ref agg)|
+                filter.map(|f| agg.title.contains(f)).unwrap_or(true)
+                && recipient.map(|r| &agg.recipient == r).unwrap_or(true))
+            .map(|(_,v)| v.id)
             .collect())
     }
 
