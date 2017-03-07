@@ -108,14 +108,14 @@ impl<S: TokenStore> SdaHttpClient<S> {
         self.process(response)
     }
 
-    pub fn delete(&self, caller: Option<&Agent>, url: Url) -> SdaHttpClientResult<Option<()>>
+    pub fn delete<U>(&self, caller: Option<&Agent>, url: Url) -> SdaHttpClientResult<Option<U>>
+        where U: serde::Deserialize
     {
         let request = self.client
             .request(Method::Delete, url);
 
         let response = self.decorate(request, caller)?.send()?;
-        self.process::<Option<()>>(response)?;
-        Ok(Some(())) // TODO
+        self.process(response)
     }
 
     pub fn url<P: AsRef<str>>(&self, path: P) -> SdaResult<Url> {
@@ -190,7 +190,6 @@ impl<S> SdaAgentService for SdaHttpClient<S>
         ) }
     }
 
-    #[allow(unused_variables)]
     fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()> {
         wrap_empty! { self.post::<Profile, ()>(
             Some(caller),
@@ -227,7 +226,6 @@ impl<S> SdaAggregationService for SdaHttpClient<S>
     where S: Send + Sync + TokenStore
 {
 
-    #[allow(unused_variables)]
     fn list_aggregations(&self, caller: &Agent, filter: Option<&str>, recipient: Option<&AgentId>) -> SdaResult<Vec<AggregationId>> {
 
         let mut url = self.server_root.clone();
@@ -339,7 +337,7 @@ impl<S> SdaAdministrationService for SdaHttpClient<S>
     }
 
     fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<()> {
-        wrap_empty! { self.delete(
+        wrap_empty! { self.delete::<()>(
             Some(caller),
             self.url(format!("/aggregations/{}", aggregation.stringify()))?
         ) }
