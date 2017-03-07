@@ -4,7 +4,7 @@ use sda_client_store::Store;
 
 use SdaClient;
 use errors::SdaClientResult;
-use keystore::*;
+use crypto::{KeyGeneration, SignExport};
 
 
 
@@ -51,12 +51,12 @@ impl<K, C, S> Maintenance for SdaClient<K, C, S>
     }
 
     fn new_encryption_key(&self) -> SdaClientResult<EncryptionKeyId> {
-        let key_id = self.keystore.new_key()?;
+        let key_id = self.crypto.new_key()?;
         Ok(key_id)
     }
 
     fn upload_encryption_key(&self, key: &EncryptionKeyId) -> SdaClientResult<()> {
-        let signed_key = self.keystore.sign_export(&self.agent, key)?
+        let signed_key = self.crypto.sign_export(&self.agent, key)?
             .ok_or("Could not sign encryption key")?;
         Ok(self.service.create_encryption_key(&self.agent, &signed_key)?)
     }

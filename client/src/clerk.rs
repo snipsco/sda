@@ -5,8 +5,9 @@ use sda_protocol::*;
 use SdaClient;
 use errors::SdaClientResult;
 use service::{Cache, CachedFetch};
-use keystore::*;
 use crypto::*;
+use crypto::encryption::DecryptionKey;
+use crypto::sharing::ShareCombinerConstruction;
 
 
 /// Basic tasks needed by a clerk.
@@ -101,13 +102,13 @@ impl<K, C, S> SdaClient<K, C, S>
             .ok_or("Could not find own encryption key in keyset")?;
 
         // decrypt shares from participants
-        let share_decryptor = aggregation.committee_encryption_scheme.new_share_decryptor(&own_signed_encryption_key_id, &self.keystore)?;
+        let share_decryptor = self.crypto.new_share_decryptor(&own_signed_encryption_key_id, &aggregation.committee_encryption_scheme)?;
         let partially_combined_shares = job.encryptions.iter()
             .map(|encryption| Ok(share_decryptor.decrypt(encryption)?))
             .collect::<SdaClientResult<Vec<Vec<Share>>>>()?;
 
         // sum up shares
-        let share_combiner = aggregation.committee_sharing_scheme.new_share_combiner()?;
+        let share_combiner = self.crypto.new_share_combiner(&aggregation.committee_sharing_scheme)?;
         let fully_combined_shares: Vec<Share> = share_combiner.combine(&partially_combined_shares);
 
         // fetch recipient's encryption key and verify signature
@@ -119,7 +120,7 @@ impl<K, C, S> SdaClient<K, C, S>
         }
         let recipient_encryption_key = recipient_signed_encryption_key.body.body;
         // .. and re-encrypt summed shares
-        let share_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key)?;
+        let share_encryptor = self.crypto.new_share_encryptor(&recipient_encryption_key, &aggregation.recipient_encryption_scheme)?;
         let recipient_encryption: Encryption = share_encryptor.encrypt(&fully_combined_shares)?;
         
         Ok(ClerkingResult {

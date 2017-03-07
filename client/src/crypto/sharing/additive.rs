@@ -1,11 +1,24 @@
+use crypto::*;
+use super::ShareCombiner;
+use super::helpers::BatchShareGenerator;
 
-use super::*;
-
+use rand::{Rng, OsRng};
+use ::std::iter::repeat;
 
 pub struct AdditiveSecretSharing {
     pub share_count: usize,
     pub modulus: i64,
     pub rng: OsRng,
+}
+
+impl AdditiveSecretSharing {
+    pub fn new(share_count: usize, modulus: i64) -> AdditiveSecretSharing {
+        AdditiveSecretSharing {
+            share_count: share_count,
+            modulus: modulus,
+            rng: OsRng::new().unwrap(), // TODO not nice
+        }
+    }
 }
 
 impl BatchShareGenerator for AdditiveSecretSharing {

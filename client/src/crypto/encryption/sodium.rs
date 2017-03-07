@@ -1,5 +1,9 @@
 
+use errors::*;
+use crypto::CryptoModule;
 use super::*;
+
+use sodiumoxide;
 use std::sync::{Once, ONCE_INIT};
 use integer_encoding::VarInt;
 
@@ -100,5 +104,22 @@ impl ShareDecryptor for Decryptor {
             reader = &reader[size..];
         }
         Ok(decoded_shares)
+    }
+}
+
+
+impl<K: Store> KeyGeneration<EncryptionKeyId> for CryptoModule<K> {
+    fn new_key(&self) -> SdaClientResult<EncryptionKeyId> {
+        // generate
+        let (pk, sk) = sodiumoxide::crypto::box_::gen_keypair();
+        let wrapped_ek = EncryptionKey::Sodium(pk.0.into());
+        let wrapped_dk = DecryptionKey::Sodium(sk.0.into());
+        
+        // save
+        let keypair = EncryptionKeypair { ek: wrapped_ek, dk: wrapped_dk };
+        let id = EncryptionKeyId::random();
+        self.keystore.put(&id.stringify(), &keypair);
+
+        Ok(id)
     }
 }

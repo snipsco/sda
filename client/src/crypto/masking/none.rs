@@ -1,4 +1,3 @@
-
 //! None masker, effectively masking using the zero vector.
 
 use super::*;

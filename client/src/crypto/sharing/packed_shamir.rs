@@ -1,6 +1,10 @@
 
 use super::*;
+use crypto::*;
+use super::ShareCombiner;
+use super::helpers::BatchShareGenerator;
 
+use tss;
 
 pub struct Wrapper {
     pub batch_input_size: usize,

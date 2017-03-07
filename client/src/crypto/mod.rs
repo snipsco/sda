@@ -1,58 +1,66 @@
 //! All crypto-related code.
 
+use errors::SdaClientResult;
 use sda_protocol::*;
-use keystore::*;
-use sodiumoxide;
-use tss;
+use self::encryption::DecryptionKey; // TODO
+use sda_client_store::Store;
 
 pub type Secret = i64;
 pub type Mask = i64;
 pub type MaskedSecret = i64;
 pub type Share = i64;
 
-use errors::*;
+pub struct CryptoModule<K> {
+    keystore: K
+}
 
-mod masking;
-mod sharing;
-mod encryption;
+impl<K> CryptoModule<K> {
+    pub fn new(keystore: K) -> CryptoModule<K> {
+        CryptoModule { keystore: keystore }
+    }
+}
 
-pub use self::masking::*;
-pub use self::sharing::*;
-pub use self::encryption::*;
+pub trait KeyGeneration<T> {
+    fn new_key(&self) -> SdaClientResult<T>;
+}
 
+pub trait GenerateEncryptionKeypair<S> {
+    fn new_keypair<I>(&self, scheme: &S) -> SdaClientResult<I>;
+}
 
-// TODO which module should the below belong to?
+pub trait GenerateKeypair {
+    fn new_keypair(&self) -> SdaClientResult<(EncryptionKey, DecryptionKey)>;
+}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub enum DecryptionKey {
-    Sodium(::sda_protocol::byte_arrays::B32)
+pub trait Export<I, K> {
+    fn export(&self, id: &I) -> SdaClientResult<Option<K>>;
+}
+
+pub trait SignExport<I, O>
+    where O: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    fn sign_export(&self, signer: &Agent, id: &I) -> SdaClientResult<Option<Signed<O>>>;
+}
+
+// TODO should not be allowed; keep decryption keys in IdentityModule instead and ask it to do the decryption
+pub trait ExportDecryptionKey<I, DK> {
+    fn export_decryption_key(&self, id: &I) -> SdaClientResult<Option<DK>>;
 }
 
 pub trait SignatureVerification<O> {
     fn signature_is_valid(&self, object: &O) -> SdaClientResult<bool>;
 }
 
-impl SignatureVerification<SignedEncryptionKey> for Agent {
-    fn signature_is_valid(&self, signed_encryption_key: &SignedEncryptionKey) -> SdaClientResult<bool> {
+pub mod signing;
+pub mod masking;
+pub mod sharing;
+pub mod encryption;
 
-        // TODO remember result to avoid running verification more than once
+pub use self::signing::*;
+pub use self::masking::*;
+pub use self::sharing::*;
+pub use self::encryption::*;
 
-        let raw_msg = match &signed_encryption_key.body.body {
-            &EncryptionKey::Sodium(raw_ek) => raw_ek
-        };
-
-        let wrapped_vk = &self.verification_key.body;
-        let wrapped_sig = &signed_encryption_key.signature;
-
-        match (wrapped_vk, wrapped_sig) {
-
-            (&VerificationKey::Sodium(raw_vk), &Signature::Sodium(raw_sig)) => {
-                let sig = sodiumoxide::crypto::sign::Signature(*raw_sig);
-                let vk = sodiumoxide::crypto::sign::PublicKey(*raw_vk);
-                let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &*raw_msg, &vk);
-                Ok(is_valid)
-            },
-
-        }
-    }
-}
+// pub use self::masking::*;
+// pub use self::sharing::*;
+// pub use self::encryption::*;

@@ -1,6 +1,7 @@
 //! Specific functionality for participating in aggregations.
 
 use sda_protocol::*;
+use sda_client_store::Store;
 
 use SdaClient;
 use errors::SdaClientResult;
@@ -36,6 +37,7 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         C: Cache<AggregationId, Committee>,
         C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         C: Cache<AgentId, Agent>,
+        K: Store,
         S: SdaAgentService,
         S: SdaAggregationService,
         S: SdaParticipationService,
@@ -76,7 +78,7 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         let mut encryptions: HashMap<AgentId, Encryption> = HashMap::new();
 
         // mask the secrets
-        let mut secret_masker = aggregation.masking_scheme.new_secret_masker()?;
+        let mut secret_masker = self.crypto.new_secret_masker(&aggregation.masking_scheme)?;
         let (recipient_mask, committee_masked_secrets) = secret_masker.mask_secrets(secrets);
 
         // fetch and verify recipient's encryption key
@@ -88,13 +90,13 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         }
         let recipient_encryption_key = recipient_signed_encryption_key.body.body;
         // .. encrypt the recipient's mask using it
-        let mask_encryptor = aggregation.recipient_encryption_scheme.new_share_encryptor(&recipient_encryption_key)?;
+        let mask_encryptor = self.crypto.new_share_encryptor(&recipient_encryption_key, &aggregation.recipient_encryption_scheme)?;
         let recipient_encryption: Encryption = mask_encryptor.encrypt(&*recipient_mask)?;
         // .. and add result to collection
         encryptions.insert(aggregation.recipient.clone(), recipient_encryption);
 
         // share the committee's masked secrets: each inner vector corresponds to the shares of a single clerk
-        let mut share_generator = aggregation.committee_sharing_scheme.new_share_generator()?;
+        let mut share_generator = self.crypto.new_share_generator(&aggregation.committee_sharing_scheme)?;
         let committee_shares_per_clerk: Vec<Vec<Share>> = share_generator.generate_shares(&committee_masked_secrets);
 
         // encrypt the committee's shares
@@ -112,7 +114,7 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
             }
             let clerk_encryption_key = clerk_signed_encryption_key.body.body;
             // .. encrypt the clerk's shares using it
-            let share_encryptor = aggregation.committee_encryption_scheme.new_share_encryptor(&clerk_encryption_key)?;
+            let share_encryptor = self.crypto.new_share_encryptor(&clerk_encryption_key, &aggregation.committee_encryption_scheme)?;
             let clerk_encryption: Encryption = share_encryptor.encrypt(&*clerk_shares)?;
             // .. and add result to collection
             encryptions.insert(clerk_id.clone(), clerk_encryption);
