@@ -1,6 +1,5 @@
 use sda_protocol::*;
-use reqwest;
-use reqwest::{Url, StatusCode};
+use reqwest::{self, Url, StatusCode, Method, RequestBuilder, Response};
 use reqwest::header::*;
 use serde;
 
@@ -9,7 +8,7 @@ use tokenstore::*;
 
 pub struct SdaHttpClient<S> {
     client: reqwest::Client,
-    server_root: reqwest::Url,
+    server_root: Url,
     token_store: S,
 }
 
@@ -18,12 +17,12 @@ impl<S: TokenStore> SdaHttpClient<S> {
     pub fn new(server_root: &str, token_store: S) -> SdaHttpClientResult<SdaHttpClient<S>> {
         Ok(SdaHttpClient {
             client: reqwest::Client::new()?,
-            server_root: reqwest::Url::parse(server_root)?,
+            server_root: Url::parse(server_root)?,
             token_store: token_store,
         })
     }
 
-    fn decorate(&self, mut request: reqwest::RequestBuilder, caller: Option<&Agent>) -> SdaHttpClientResult<reqwest::RequestBuilder> {
+    fn decorate(&self, mut request: RequestBuilder, caller: Option<&Agent>) -> SdaHttpClientResult<RequestBuilder> {
         // user agent
         request = request
             .header(UserAgent("SDA CLI client".to_string()));
@@ -41,10 +40,10 @@ impl<S: TokenStore> SdaHttpClient<S> {
         Ok(request)
     }
 
-    fn process<U>(&self, mut response: reqwest::Response) -> SdaHttpClientResult<Option<U>>
+    fn process<U>(&self, mut response: Response) -> SdaHttpClientResult<Option<U>>
         where U: serde::Deserialize
     {
-        let content_length = match response.headers().get::<reqwest::header::ContentLength>() {
+        let content_length = match response.headers().get::<ContentLength>() {
             None => 0,
             Some(length) => length.0,
         };
@@ -109,7 +108,7 @@ impl<S: TokenStore> SdaHttpClient<S> {
     pub fn delete(&self, caller: Option<&Agent>, url: Url) -> SdaHttpClientResult<Option<()>>
     {
         let request = self.client
-            .request(reqwest::Method::Delete, url);
+            .request(Method::Delete, url);
 
         let response = self.decorate(request, caller)?.send()?;
         self.process::<Option<()>>(response)?;
@@ -225,7 +224,10 @@ impl<S> SdaAggregationService for SdaHttpClient<S>
     #[allow(unused_variables)]
     fn list_aggregations(&self, caller: &Agent, filter: Option<&str>, recipient: Option<&AgentId>) -> SdaResult<Vec<AggregationId>> {
         
-        let mut url = reqwest::Url::parse("/aggregations").map_err(|e| format!("Invalid URL {:?}", e))?;
+        let mut url = self.server_root.clone();
+        url.path_segments_mut().map_err(|e| format!("Url formatting error {:?}", e))?
+            .push("aggregations");
+
         if let Some(filter) = filter {
             url.query_pairs_mut().append_pair("title", filter);
         }
