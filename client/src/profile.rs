@@ -29,7 +29,7 @@ pub trait Maintenance {
 
 }
 
-impl<K, C, S> Maintenance for SdaClient<K, C, S> 
+impl<K, S> Maintenance for SdaClient<K, S> 
     where
         K: Store,
         S: SdaAgentService,

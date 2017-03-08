@@ -17,7 +17,7 @@ extern crate sda_client_store;
 mod errors;
 mod crypto;
 mod trust;
-mod service;
+// mod service;
 mod profile;
 mod participate;
 mod clerk;
@@ -28,28 +28,26 @@ pub use profile::{new_agent, Maintenance};
 pub use errors::SdaClientError;
 pub use crypto::CryptoModule;
 
-use sda_protocol::Agent;
-use service::NoCache;
+// use sda_protocol::Agent;
+use sda_protocol::*;
 
 /// Primary object for interacting with the SDA service.
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
-pub struct SdaClient<K, C, S> {
+pub struct SdaClient<K, S> {
     agent: Agent,
     crypto: CryptoModule<K>,
     trust: trust::Pessimistic,
-    cache: C,
-    service: S,
+    service: Box<SdaService>,
 }
 
-impl<K, S> SdaClient<K, NoCache, S> {
-    pub fn new(agent: Agent, crypto: CryptoModule<K>, service: S) -> SdaClient<K, NoCache, S> {
+impl<K, S> SdaClient<K, S> {
+    pub fn new(agent: Agent, crypto: CryptoModule<K>, service: S) -> SdaClient<K, S> {
         SdaClient {
             agent: agent,
             crypto: crypto,
             trust: trust::Pessimistic,
-            cache: service::NoCache,
-            service: service,
+            service: Box::new(service),
         }
     }
 }

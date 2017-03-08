@@ -1,7 +1,6 @@
 //! Specific functionality for clerking.
 
 use SdaClient;
-use service::*;
 use crypto::*;
 use errors::SdaClientResult;
 
@@ -24,13 +23,9 @@ pub trait Clerking {
 }
 
 
-impl<K, C, S> Clerking for SdaClient<K, C, S>
+impl<K, S> Clerking for SdaClient<K, S>
     where
         K: Store,
-        C: Cache<AggregationId, Aggregation>,
-        C: Cache<AggregationId, Committee>,
-        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
-        C: Cache<AgentId, Agent>,
         S: SdaAgentService,
         S: SdaAggregationService,
         S: SdaClerkingService,
@@ -72,21 +67,17 @@ impl<K, C, S> Clerking for SdaClient<K, C, S>
 
 }
 
-impl<K, C, S> SdaClient<K, C, S>
+impl<K, S> SdaClient<K, S>
     where
         K: Store,
-        C: Cache<AggregationId, Aggregation>,
-        C: Cache<AggregationId, Committee>,
-        C: Cache<AgentId, Agent>,
-        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
         S: SdaAgentService,
         S: SdaAggregationService,
 {
 
     fn process_clerking_job(&mut self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
 
-        let aggregation: Aggregation = self.cached_fetch(&job.aggregation)?;
-        let committee: Committee = self.cached_fetch(&job.aggregation)?;
+        let aggregation = self.service.get_aggregation(&self.agent, &job.aggregation)?.ok_or("Unknown aggregation")?;
+        let committee = self.service.get_committee(&self.agent, &job.aggregation)?.ok_or("Unknown committee")?;
         
         // TODO what is the right policy for whether we want to help with this aggregation or not?
         //  - based on aggregation and recipient?
@@ -110,8 +101,8 @@ impl<K, C, S> SdaClient<K, C, S>
 
         // fetch recipient's encryption key and verify signature
         let recipient_id = &aggregation.recipient;
-        let recipient_signed_encryption_key = self.cached_fetch(&aggregation.recipient_key)?;
-        let recipient = self.cached_fetch(recipient_id)?;
+        let recipient_signed_encryption_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?.ok_or("Unknown encryption key")?;
+        let recipient = self.service.get_agent(&self.agent, recipient_id)?.ok_or("Unknown recipient")?;
         if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }

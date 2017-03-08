@@ -1,7 +1,6 @@
 //! Specific functionality for participating in aggregations.
 
 use SdaClient;
-use service::*;
 use crypto::*;
 use trust::Policy;
 use errors::SdaClientResult;
@@ -31,13 +30,9 @@ pub trait Participating {
 
 }
 
-impl<K, C, S> Participating for SdaClient<K, C, S>
+impl<K, S> Participating for SdaClient<K, S>
     where
         K: Store,
-        C: Cache<AggregationId, Aggregation>,
-        C: Cache<AggregationId, Committee>,
-        C: Cache<EncryptionKeyId, SignedEncryptionKey>,
-        C: Cache<AgentId, Agent>,
         S: SdaAgentService,
         S: SdaAggregationService,
         S: SdaParticipationService,
@@ -45,15 +40,15 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
 
     #[allow(unused_variables)]
     fn preload_for_participation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
-        let aggregation: Aggregation = self.cached_fetch(aggregation_id)?;
+        let aggregation = self.service.get_aggregation(&self.agent, aggregation_id)?.ok_or("Unknown aggregation")?;
         // recipient data
-        let recipient = self.cached_fetch(&aggregation.recipient)?;
-        let recipient_key = self.cached_fetch(&aggregation.recipient_key)?;
+        let recipient = self.service.get_agent(&self.agent, &aggregation.recipient)?.ok_or("Unknown recipient")?;
+        let recipient_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?.ok_or("Unknown encryption key")?;
         // committee data
-        let committee: Committee = self.cached_fetch(&aggregation.id)?;
+        let committee = self.service.get_committee(&self.agent, &aggregation.id)?.ok_or("Unknown committee")?;
         for (clerk_id, key_id) in committee.clerk_keys.iter() {
-            let _: Agent = self.cached_fetch(clerk_id)?;
-            let _: SignedEncryptionKey = self.cached_fetch(key_id)?;
+            let _: Agent = self.service.get_agent(&self.agent, &clerk_id)?.ok_or("Unknown clerk")?;
+            let _: SignedEncryptionKey = self.service.get_encryption_key(&self.agent, &key_id)?.ok_or("Unknown encryption key")?;
         }
         Ok(())
     }
@@ -63,7 +58,7 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         let secrets = &input.0;
 
         // load aggregation
-        let aggregation: Aggregation = self.cached_fetch(aggregation_id)?;
+        let aggregation = self.service.get_aggregation(&self.agent, aggregation_id)?.ok_or("Could not find aggregation")?;
         if require_trusted && !self.trust.is_flagged_as_trusted(&aggregation.recipient)? {
             Err("Recipient is required to be trusted but is not")? 
         }
@@ -72,7 +67,7 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
         }
 
         // load committee
-        let committee: Committee = self.cached_fetch(aggregation_id)?;
+        let committee: Committee = self.service.get_committee(&self.agent, aggregation_id)?.ok_or("Could not find committee")?;
 
         // encryptions for the participation; we'll fill this one up as we go along
         let mut encryptions: HashMap<AgentId, Encryption> = HashMap::new();
@@ -83,8 +78,8 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
 
         // fetch and verify recipient's encryption key
         let recipient_id = &aggregation.recipient;
-        let recipient_signed_encryption_key = self.cached_fetch(&aggregation.recipient_key)?;
-        let recipient = self.cached_fetch(recipient_id)?;
+        let recipient_signed_encryption_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?.ok_or("Unknown encryption key")?;
+        let recipient = self.service.get_agent(&self.agent, recipient_id)?.ok_or("Unknown agent")?;
         if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }
@@ -107,8 +102,8 @@ impl<K, C, S> Participating for SdaClient<K, C, S>
             // fetch and verify clerk's encryption key
             let clerk_signed_encryption_key_id = committee.clerk_keys.get(&clerk_id)
                 .ok_or("Keyset missing encryption key for clerk")?;
-            let clerk_signed_encryption_key = self.cached_fetch(clerk_signed_encryption_key_id)?;
-            let clerk = self.cached_fetch(clerk_id)?;
+            let clerk_signed_encryption_key = self.service.get_encryption_key(&self.agent, clerk_signed_encryption_key_id)?.ok_or("Unknown encryption key")?;
+            let clerk = self.service.get_agent(&self.agent, clerk_id)?.ok_or("Unknown clerk")?;
             if !clerk.signature_is_valid(&clerk_signed_encryption_key)? {
                 Err("Signature verification failed for clerk key")?
             }
