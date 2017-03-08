@@ -14,9 +14,6 @@ extern crate slog_scope;
 extern crate slog_term;
 extern crate tempdir;
 
-mod crud;
-mod aggregation;
-
 use std::{path, sync};
 use std::sync::Arc;
 
@@ -53,7 +50,7 @@ fn jfs_server(dir: &path::Path) -> Arc<SdaServer> {
     })
 }
 
-fn new_agent() -> Agent {
+pub fn new_agent() -> Agent {
     Agent {
         id: AgentId::default(),
         verification_key: Labeled {
@@ -64,7 +61,7 @@ fn new_agent() -> Agent {
     }
 }
 
-fn new_key_for_agent(alice: &Agent) -> SignedEncryptionKey {
+pub fn new_key_for_agent(alice: &Agent) -> SignedEncryptionKey {
     use byte_arrays::*;
     SignedEncryptionKey {
         body: Labeled {
@@ -76,7 +73,7 @@ fn new_key_for_agent(alice: &Agent) -> SignedEncryptionKey {
     }
 }
 
-fn new_full_agent(agents: &SdaAgentService) -> (Agent, SignedEncryptionKey) {
+pub fn new_full_agent(agents: &SdaAgentService) -> (Agent, SignedEncryptionKey) {
     let ag = new_agent();
     agents.create_agent(&ag, &ag).unwrap();
     let key = new_key_for_agent(&ag);
@@ -85,21 +82,21 @@ fn new_full_agent(agents: &SdaAgentService) -> (Agent, SignedEncryptionKey) {
 }
 
 
-struct TextContext<'a> {
-    server: Arc<SdaServer>,
-    agents: &'a SdaAgentService,
-    aggregation: &'a SdaAggregationService,
-    admin: &'a SdaAdministrationService,
+pub struct TestContext<'a> {
+    pub server: Arc<SdaServer>,
+    pub agents: &'a SdaAgentService,
+    pub aggregation: &'a SdaAggregationService,
+    pub admin: &'a SdaAdministrationService,
 }
 
-fn with_server<F>(f: F)
-    where F: Fn(&TextContext) -> ()
+pub fn with_server<F>(f: F)
+    where F: Fn(&TestContext) -> ()
 {
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
     let server = jfs_server(tempdir.path());
 //    println!("tempdir: {:?}", tempdir.into_path());
     let services = server.clone();
-    let tc = TextContext {
+    let tc = TestContext {
         server: server,
         agents: &*services,
         aggregation: &*services,
@@ -109,8 +106,8 @@ fn with_server<F>(f: F)
 }
 
 #[cfg(feature="http")]
-fn with_service<F>(f: F)
-    where F: Fn(&TextContext) -> ()
+pub fn with_service<F>(f: F)
+    where F: Fn(&TestContext) -> ()
 {
     use std::sync::atomic::Ordering;
     ensure_logs();
@@ -136,7 +133,7 @@ fn with_service<F>(f: F)
         let tempdir = ::tempdir::TempDir::new("sda-tests-clients").unwrap();
         let store = ::sda_client_store::Filebased::new(&tempdir).unwrap();
         let services = ::sda_client_http::SdaHttpClient::new(&*http_address,store).unwrap();
-        let tc = TextContext {
+        let tc = TestContext {
             server: ctx.server.clone(),
             agents: &services,
             aggregation: &services,
@@ -149,8 +146,8 @@ fn with_service<F>(f: F)
 }
 
 #[cfg(not(feature="http"))]
-fn with_service<F>(f: F)
-    where F: Fn(&TextContext) -> ()
+pub fn with_service<F>(f: F)
+    where F: Fn(&TestContext) -> ()
 {
     ensure_logs();
     with_server(f)

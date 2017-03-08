@@ -1,8 +1,8 @@
-#![allow(dead_code)]
-#[cfg(test)]
-use super::*;
-#[allow(unused_imports)]
+extern crate sda_protocol;
+extern crate sda_server;
+extern crate sda_tests;
 use sda_protocol::*;
+use sda_tests::*;
 
 fn small_aggregation(recipient: &AgentId, recipient_key: &EncryptionKeyId) -> Aggregation {
     Aggregation {

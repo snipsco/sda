@@ -1,5 +1,9 @@
-#[cfg(test)]
-use super::*;
+extern crate sda_protocol;
+extern crate sda_server;
+extern crate sda_tests;
+use sda_protocol::*;
+use sda_tests::*;
+
 
 #[test]
 pub fn ping() {
