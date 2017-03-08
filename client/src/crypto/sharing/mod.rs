@@ -24,7 +24,7 @@ mod helpers;
 mod additive;
 mod packed_shamir;
 
-impl<K> ShareGeneratorConstruction<LinearSecretSharingScheme> for CryptoModule<K> {
+impl ShareGeneratorConstruction<LinearSecretSharingScheme> for CryptoModule {
     fn new_share_generator(&self, scheme: &LinearSecretSharingScheme) -> SdaClientResult<Box<ShareGenerator>> {
         match *scheme {
 
@@ -46,7 +46,7 @@ impl<K> ShareGeneratorConstruction<LinearSecretSharingScheme> for CryptoModule<K
     }
 }
 
-impl<K> ShareCombinerConstruction<LinearSecretSharingScheme> for CryptoModule<K> {
+impl ShareCombinerConstruction<LinearSecretSharingScheme> for CryptoModule {
     fn new_share_combiner(&self, scheme: &LinearSecretSharingScheme) -> SdaClientResult<Box<ShareCombiner>> {
         match *scheme {
 

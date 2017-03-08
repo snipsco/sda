@@ -2,8 +2,6 @@
 
 use super::*;
 
-use sda_client_store::Store;
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum DecryptionKey {
@@ -36,7 +34,7 @@ pub trait ShareDecryptor {
 
 mod sodium;
 
-impl<K> EncryptorConstruction<AdditiveEncryptionScheme> for CryptoModule<K> {
+impl EncryptorConstruction<AdditiveEncryptionScheme> for CryptoModule {
     fn new_share_encryptor(&self, ek: &EncryptionKey, scheme: &AdditiveEncryptionScheme) -> SdaClientResult<Box<ShareEncryptor>> {
         match *scheme {
             AdditiveEncryptionScheme::Sodium => {
@@ -47,9 +45,7 @@ impl<K> EncryptorConstruction<AdditiveEncryptionScheme> for CryptoModule<K> {
     }
 }
 
-impl<K> DecryptorConstruction<EncryptionKeyId, AdditiveEncryptionScheme> for CryptoModule<K> 
-    where K: Store
-{
+impl DecryptorConstruction<EncryptionKeyId, AdditiveEncryptionScheme> for CryptoModule {
     fn new_share_decryptor(&self, id: &EncryptionKeyId, scheme: &AdditiveEncryptionScheme) -> SdaClientResult<Box<ShareDecryptor>> {
         match *scheme {
             AdditiveEncryptionScheme::Sodium => {

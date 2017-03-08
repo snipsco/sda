@@ -12,42 +12,63 @@ extern crate integer_encoding;
 extern crate rand;
 
 extern crate sda_protocol;
-extern crate sda_client_store;
 
 mod errors;
 mod crypto;
 mod trust;
-// mod service;
 mod profile;
 mod participate;
 mod clerk;
+// mod cache;
 
 pub use participate::{Participating, ParticipantInput};
 pub use clerk::Clerking;
 pub use profile::{new_agent, Maintenance};
-pub use errors::SdaClientError;
-pub use crypto::CryptoModule;
+pub use errors::{SdaClientResult, SdaClientError};
+pub use crypto::{Keystore, KeyStorage, EncryptionKeypair, SignatureKeypair};
+// pub use cache::CachedService;
 
-// use sda_protocol::Agent;
 use sda_protocol::*;
+use crypto::CryptoModule;
+
+pub trait Service : 
+    Send
+    + Sync
+    + SdaService
+    + SdaAgentService
+    + SdaAggregationService
+    + SdaClerkingService
+    + SdaParticipationService 
+{}
+
+impl<T> Service for T where T: 
+    Send
+    + Sync
+    + SdaService
+    + SdaAgentService
+    + SdaAggregationService
+    + SdaClerkingService
+    + SdaParticipationService
+{}
 
 /// Primary object for interacting with the SDA service.
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
-pub struct SdaClient<K> {
+pub struct SdaClient {
     agent: Agent,
-    crypto: CryptoModule<K>,
+    crypto: CryptoModule,
+    service: Box<Service>,
     trust: trust::Pessimistic,
-    service: Box<SdaService>,
 }
 
-impl<K> SdaClient<K> {
-    pub fn new(agent: Agent, crypto: CryptoModule<K>, service: SdaService+SdaAgentService) -> SdaClient<K, S> {
+impl SdaClient {
+    pub fn new(agent: Agent, keystore: Box<Keystore>, service: Box<Service>) -> SdaClient
+     {
         SdaClient {
             agent: agent,
-            crypto: crypto,
+            crypto: CryptoModule::new(keystore),
+            service: service,
             trust: trust::Pessimistic,
-            service: Box::new(service),
         }
     }
 }

@@ -1,34 +1,43 @@
 //! All crypto-related code.
 
-use errors::SdaClientResult;
-
-use sda_protocol::*;
-
-pub type Secret = i64;
-pub type Mask = i64;
-pub type MaskedSecret = i64;
-pub type Share = i64;
-
-pub struct CryptoModule<K> {
-    keystore: K
-}
-
-impl<K> CryptoModule<K> {
-    pub fn new(keystore: K) -> CryptoModule<K> {
-        CryptoModule { keystore: keystore }
-    }
-}
-
-pub trait KeyGeneration<T> {
-    fn new_key(&self) -> SdaClientResult<T>;
-}
-
 mod signing;
 mod masking;
 mod sharing;
 mod encryption;
 
-pub use self::signing::{SignExport, SignatureVerification};
+use sda_protocol::*;
+use errors::SdaClientResult;
+
+pub use self::signing::{SignatureKeypair, SignExport, SignatureVerification};
 pub use self::masking::{SecretMaskerConstruction};
 pub use self::sharing::{ShareGeneratorConstruction, ShareCombinerConstruction};
-pub use self::encryption::{EncryptorConstruction, DecryptorConstruction};
+pub use self::encryption::{EncryptionKeypair, EncryptorConstruction, DecryptorConstruction};
+
+type Secret = i64;
+type Mask = i64;
+type MaskedSecret = i64;
+pub type Share = i64;
+
+pub trait KeyGeneration<K> {
+    fn new_key(&self) -> SdaClientResult<K>;
+}
+
+pub trait KeyStorage<ID, K> {
+    fn put(&self, id: &ID, key: &K) -> SdaClientResult<()>;
+    fn get(&self, id: &ID) -> SdaClientResult<Option<K>>;
+}
+
+pub trait Keystore :
+    KeyStorage<EncryptionKeyId, EncryptionKeypair>
+    + KeyStorage<VerificationKeyId, SignatureKeypair>
+{}
+
+pub struct CryptoModule {
+    keystore: Box<Keystore>
+}
+
+impl CryptoModule {
+    pub fn new(keystore: Box<Keystore>) -> CryptoModule {
+        CryptoModule { keystore: keystore }
+    }
+}

@@ -54,10 +54,11 @@ pub struct Decryptor {
 }
 
 impl Decryptor {
-    pub fn new<K: Store>(id: &EncryptionKeyId, keystore: &K) -> SdaClientResult<Decryptor> {
-        match keystore.get(&id.stringify())? {
+    pub fn new(id: &EncryptionKeyId, keystore: &Box<Keystore>) -> SdaClientResult<Decryptor> {
+        let keypair = keystore.get(id)?.ok_or("Could not load keypair for decryption")?;
+        match keypair {
 
-            Some((EncryptionKey::Sodium(raw_ek), DecryptionKey::Sodium(raw_dk))) => {
+            EncryptionKeypair { ek: EncryptionKey::Sodium(raw_ek), dk: DecryptionKey::Sodium(raw_dk) } => {
 
                 let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
@@ -69,9 +70,7 @@ impl Decryptor {
                     pk: pk,
                     sk: sk,
                 })
-            },
-
-            _ => Err("Wrong key type(s) for this decryptor")?,
+            }
 
         }
     }
@@ -103,7 +102,7 @@ impl ShareDecryptor for Decryptor {
 }
 
 
-impl<K: Store> KeyGeneration<EncryptionKeyId> for CryptoModule<K> {
+impl KeyGeneration<EncryptionKeyId> for CryptoModule {
     fn new_key(&self) -> SdaClientResult<EncryptionKeyId> {
         // generate
         let (pk, sk) = sodiumoxide::crypto::box_::gen_keypair();
@@ -113,7 +112,7 @@ impl<K: Store> KeyGeneration<EncryptionKeyId> for CryptoModule<K> {
         // save
         let keypair = EncryptionKeypair { ek: wrapped_ek, dk: wrapped_dk };
         let id = EncryptionKeyId::random();
-        self.keystore.put(&id.stringify(), &keypair)?;
+        self.keystore.put(&id, &keypair)?;
 
         Ok(id)
     }

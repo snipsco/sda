@@ -5,7 +5,6 @@ use crypto::*;
 use errors::SdaClientResult;
 
 use sda_protocol::*;
-use sda_client_store::Store;
 
 /// Basic tasks needed by a clerk.
 pub trait Clerking {
@@ -23,12 +22,12 @@ pub trait Clerking {
 }
 
 
-impl<K, S> Clerking for SdaClient<K, S>
-    where
-        K: Store,
-        S: SdaAgentService,
-        S: SdaAggregationService,
-        S: SdaClerkingService,
+impl Clerking for SdaClient
+    // where
+    //     K: Keystore,
+        // S: SdaAgentService,
+        // S: SdaAggregationService,
+        // S: SdaClerkingService,
 {
 
     fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool> {
@@ -67,11 +66,11 @@ impl<K, S> Clerking for SdaClient<K, S>
 
 }
 
-impl<K, S> SdaClient<K, S>
-    where
-        K: Store,
-        S: SdaAgentService,
-        S: SdaAggregationService,
+impl SdaClient
+    // where
+    //     K: Keystore,
+        // S: SdaAgentService,
+        // S: SdaAggregationService,
 {
 
     fn process_clerking_job(&mut self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {

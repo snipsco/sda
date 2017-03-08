@@ -3,7 +3,7 @@ use serde;
 use jfs;
 
 use errors::*;
-use super::Store;
+use super::*;
 
 pub struct Filebased(jfs::Store);
 
@@ -42,3 +42,32 @@ impl Store for Filebased {
     }
 
 }
+
+macro_rules! wrap {
+    ($e:expr) => {
+        match $e {
+            Ok(o) => Ok(o),
+            Err(err) => Err(format!("Storage error: {}", err).into()),
+        }
+    }
+}
+
+impl KeyStorage<EncryptionKeyId, EncryptionKeypair> for Filebased {
+    fn put(&self, id: &EncryptionKeyId, obj: &EncryptionKeypair) -> SdaClientResult<()> {
+        wrap! { <Self as Store>::put(self, &id.stringify(), obj) }
+    }
+    fn get(&self, id: &EncryptionKeyId) -> SdaClientResult<Option<EncryptionKeypair>> {
+        wrap! { <Self as Store>::get(self, &id.stringify()) }
+    }
+}
+
+impl KeyStorage<VerificationKeyId, SignatureKeypair> for Filebased {
+    fn put(&self, id: &VerificationKeyId, obj: &SignatureKeypair) -> SdaClientResult<()> {
+        wrap! { <Self as Store>::put(self, &id.stringify(), obj) }
+    }
+    fn get(&self, id: &VerificationKeyId) -> SdaClientResult<Option<SignatureKeypair>> {
+        wrap! { <Self as Store>::get(self, &id.stringify()) }
+    }
+}
+
+impl Keystore for Filebased {}

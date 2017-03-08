@@ -12,7 +12,7 @@ pub trait SecretMasker {
 
 mod none;
 
-impl<K> SecretMaskerConstruction<LinearMaskingScheme> for CryptoModule<K> {
+impl SecretMaskerConstruction<LinearMaskingScheme> for CryptoModule {
     fn new_secret_masker(&self, scheme: &LinearMaskingScheme) -> SdaClientResult<Box<SecretMasker>> {
         match *scheme {
             LinearMaskingScheme::None => {

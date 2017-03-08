@@ -6,7 +6,6 @@ use trust::Policy;
 use errors::SdaClientResult;
 
 use sda_protocol::*;
-use sda_client_store::Store;
 
 use std::collections::HashMap;
 
@@ -30,12 +29,12 @@ pub trait Participating {
 
 }
 
-impl<K, S> Participating for SdaClient<K, S>
-    where
-        K: Store,
-        S: SdaAgentService,
-        S: SdaAggregationService,
-        S: SdaParticipationService,
+impl Participating for SdaClient
+    // where
+        // K: Store,
+        // S: SdaAgentService,
+        // S: SdaAggregationService,
+        // S: SdaParticipationService,
 {
 
     #[allow(unused_variables)]

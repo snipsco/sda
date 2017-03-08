@@ -1,8 +1,6 @@
 use super::*;
 use crypto::encryption::EncryptionKeypair;
 
-use sda_client_store::Store;
-
 use sodiumoxide;
 
 trait Export<I, O> {
@@ -21,13 +19,13 @@ pub trait SignatureVerification<O> {
 
 
 #[derive(Debug, Serialize, Deserialize)]
-struct SignatureKeypair {
+pub struct SignatureKeypair {
     pub vk: VerificationKey,
     pub sk: SigningKey,
 }
 
 
-impl<K: Store> KeyGeneration<VerificationKeyId> for CryptoModule<K> {
+impl KeyGeneration<VerificationKeyId> for CryptoModule {
     fn new_key(&self) -> SdaClientResult<VerificationKeyId> {
         // generate
         let (vk, sk) = sodiumoxide::crypto::sign::gen_keypair();
@@ -37,14 +35,14 @@ impl<K: Store> KeyGeneration<VerificationKeyId> for CryptoModule<K> {
         // save
         let keypair = SignatureKeypair { vk: wrapped_vk, sk: wrapped_sk };
         let id = VerificationKeyId::new();
-        self.keystore.put(&id.stringify(), &keypair)?;
+        self.keystore.put(&id, &keypair)?;
 
         Ok(id)
     }
 }
 
 
-impl<K: Store> KeyGeneration<Labeled<VerificationKeyId, VerificationKey>> for CryptoModule<K> {
+impl KeyGeneration<Labeled<VerificationKeyId, VerificationKey>> for CryptoModule {
     fn new_key(&self) -> SdaClientResult<Labeled<VerificationKeyId, VerificationKey>> {
         // generate key
         let key_id: VerificationKeyId = self.new_key()?;
@@ -60,9 +58,9 @@ impl<K: Store> KeyGeneration<Labeled<VerificationKeyId, VerificationKey>> for Cr
 }
 
 
-impl<K: Store> Export<VerificationKeyId, VerificationKey> for CryptoModule<K> {
+impl Export<VerificationKeyId, VerificationKey> for CryptoModule {
     fn export(&self, id: &VerificationKeyId) -> SdaClientResult<Option<VerificationKey>> {
-        let keypair: Option<SignatureKeypair> = self.keystore.get(&id.stringify())?;
+        let keypair: Option<SignatureKeypair> = self.keystore.get(id)?;
         match keypair {
             None => Ok(None),
             Some(keypair) => Ok(Some(keypair.vk))
@@ -71,10 +69,10 @@ impl<K: Store> Export<VerificationKeyId, VerificationKey> for CryptoModule<K> {
 }
 
 
-impl<K: Store> SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKey>> for CryptoModule<K> {
+impl SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKey>> for CryptoModule {
     fn sign_export(&self, signer: &Agent, id: &EncryptionKeyId) -> SdaClientResult<Option<Signed<Labeled<EncryptionKeyId, EncryptionKey>>>> {
         // message
-        let encryption_keypair: Option<EncryptionKeypair> = self.keystore.get(&id.stringify())?;
+        let encryption_keypair: Option<EncryptionKeypair> = self.keystore.get(id)?;
         let message_to_be_signed = match encryption_keypair {
             None => { return Ok(None) },
             Some(encryption_keypair) => {
@@ -85,7 +83,7 @@ impl<K: Store> SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKe
             }
         };
         // signature
-        let signature_keypair: Option<SignatureKeypair> = self.keystore.get(&signer.verification_key.id.stringify())?;
+        let signature_keypair: Option<SignatureKeypair> = self.keystore.get(&signer.verification_key.id)?;
         let signature = match signature_keypair {
             None => { return Ok(None) },
             Some(SignatureKeypair{ sk: SigningKey::Sodium(raw_sk), .. }) => {

@@ -1,11 +1,11 @@
+use sda_protocol::*;
+
 use SdaClient;
 use crypto::*;
 use errors::SdaClientResult;
 
-use sda_protocol::*;
-use sda_client_store::Store;
-
-pub fn new_agent<K: Store>(crypto: &CryptoModule<K>) -> SdaClientResult<Agent> {
+pub fn new_agent(keystore: Box<Keystore>) -> SdaClientResult<Agent> {
+    let crypto = CryptoModule::new(keystore);
     Ok(Agent {
         id: AgentId::new(),
         verification_key: crypto.new_key()?,
@@ -29,10 +29,10 @@ pub trait Maintenance {
 
 }
 
-impl<K, S> Maintenance for SdaClient<K, S> 
-    where
-        K: Store,
-        S: SdaAgentService,
+impl Maintenance for SdaClient
+    // where
+        // K: Store,
+        // S: SdaAgentService,
 {
     fn upload_agent(&self) -> SdaClientResult<()> {
         Ok(self.service.create_agent(&self.agent, &self.agent)?)
