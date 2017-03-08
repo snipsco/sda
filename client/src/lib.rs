@@ -34,15 +34,15 @@ use sda_protocol::*;
 /// Primary object for interacting with the SDA service.
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
-pub struct SdaClient<K, S> {
+pub struct SdaClient<K> {
     agent: Agent,
     crypto: CryptoModule<K>,
     trust: trust::Pessimistic,
     service: Box<SdaService>,
 }
 
-impl<K, S> SdaClient<K, S> {
-    pub fn new(agent: Agent, crypto: CryptoModule<K>, service: S) -> SdaClient<K, S> {
+impl<K> SdaClient<K> {
+    pub fn new(agent: Agent, crypto: CryptoModule<K>, service: SdaService+SdaAgentService) -> SdaClient<K, S> {
         SdaClient {
             agent: agent,
             crypto: crypto,
