@@ -191,6 +191,7 @@ identify!(Participation, ParticipationId);
 
 /// Capture existing participations in an agggregation in order to create a
 /// consistent set of clerkable shares.
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Snapshot {
     pub id: SnapshotId,
     pub aggregation: AggregationId,

@@ -50,6 +50,16 @@ pub fn full_mocked_loop() {
                 encryptions: vec!(),
             };
             ctx.part.create_participation(&p.0, &participation).unwrap();
-        }
+        };
+        let status = ctx.admin.get_aggregation_status(&alice, &agg.id).unwrap().unwrap();
+        assert_eq!(agg.id, status.aggregation);
+        assert_eq!(participants.len(), status.number_of_participations);
+        assert_eq!(0, status.number_of_clerking_results);
+        assert_eq!(false, status.result_ready);
+        let snapshot = Snapshot {
+            id: SnapshotId::random(),
+            aggregation: agg.id.clone()
+        };
+        ctx.admin.create_snapshot(&alice, &snapshot).unwrap();
     });
 }

@@ -25,6 +25,12 @@ impl JfsAggregationsStore {
             committees: jfs::Store::new(committees.to_str().ok_or("pathbuf to string")?)?,
         })
     }
+
+    fn aggregation_store(&self, aggregation: &AggregationId) -> SdaServerResult<jfs::Store> {
+        let path = self.participations.join(aggregation.stringify());
+        Ok(jfs::Store::new(path.to_str().ok_or("path to string")?)?)
+    }
+
 }
 
 impl BaseStore for JfsAggregationsStore {
@@ -70,9 +76,16 @@ impl AggregationsStore for JfsAggregationsStore {
     }
 
     fn create_participation(&self, participation: &Participation) -> SdaServerResult<()> {
-        let path = self.participations.join(participation.id().stringify());
-        let store = jfs::Store::new(path.to_str().ok_or("path to string")?)?;
+        let store = self.aggregation_store(&participation.aggregation)?;
         store.save_with_id(participation, &participation.id.stringify())?;
         Ok(())
     }
+
+    fn iter_participations<'a, 'b>(&'b self, aggregation:&AggregationId)
+         -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Participation>> + 'a>>
+        where 'b: 'a {
+        let store = self.aggregation_store(aggregation)?;
+        Ok(Box::new(store.all::<Participation>()?.into_iter().map(|p| Ok(p.1))))
+    }
+
 }

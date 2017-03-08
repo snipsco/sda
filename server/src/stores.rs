@@ -64,4 +64,29 @@ pub trait AggregationsStore: BaseStore {
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()>;
 
     fn create_participation(&self, participation: &Participation) -> SdaServerResult<()>;
+
+    fn count_participations(&self, aggregation:&AggregationId) -> SdaServerResult<usize> {
+        Ok(self.iter_participations(aggregation)?.count())
+    }
+
+    fn iter_participations<'a, 'b>(&'b self, aggregation:&AggregationId)
+         -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Participation>> + 'a>>
+        where 'b: 'a;
+
+    fn clerk_jobs_data_iter<'a, 'b> (&'b self, aggregation: &AggregationId, clerks_number: usize)
+         -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Vec<Encryption>>> + 'a>>
+        where 'b: 'a
+    {
+        let participations = self.count_participations(aggregation)?;
+        let mut shares: Vec<Vec<Encryption>> = (0..clerks_number)
+            .map(|_| Vec::with_capacity(participations))
+            .collect();
+
+        for participation in self.iter_participations(aggregation)? {
+            for (ix, share) in participation?.encryptions.into_iter().enumerate() {
+                shares[ix].push(share.1);
+            }
+        }
+        Ok(Box::new(shares.into_iter().map(|data| Ok(data))))
+    }
 }

@@ -62,7 +62,7 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
         (GET)  (/agents/{id: AgentId}/profile) => { H(&server).get_profile(&id, req) },
         (POST) (/agents/me/profile) => { H(&server).upsert_profile(req) },
 
-        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) => 
+        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) =>
             { H(&server).get_encryption_key(&id, req) },
         (POST)   (/agents/me/keys) => { H(&server).create_encryption_key(req) },
 
@@ -78,6 +78,10 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
             { H(&server).get_committee(&id, req) },
 
         (POST)  (/aggregations/participations) => { H(&server).create_participation(req) },
+        (GET)   (/aggregations/{id: AggregationId}/status) =>
+            { H(&server).get_aggregation_status(&id, req) },
+
+        (POST)  (/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
 
         _ => {
             error!("Not found: {} {}", req.method(), req.raw_url());
@@ -170,6 +174,15 @@ impl<'a> H<'a> {
 
     fn create_participation(&self, req:&Request) -> Result<Response> {
         self.0.create_participation(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
+    }
+
+    fn get_aggregation_status(&self, id: &AggregationId, req: &Request) -> Result<Response> {
+        send_json_option(self.0.get_aggregation_status(&self.caller(req)?, id)?)
+    }
+
+    fn create_snapshot(&self, req: &Request) -> Result<Response> {
+        self.0.create_snapshot(&self.caller(req)?, &read_json(&req)?)?;
         send_empty_201()
     }
 }

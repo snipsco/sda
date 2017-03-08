@@ -18,6 +18,7 @@ extern crate sda_protocol;
 
 mod errors;
 mod server;
+mod snapshot;
 
 pub mod stores;
 pub mod jfs_stores;

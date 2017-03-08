@@ -80,7 +80,20 @@ impl SdaServer {
     }
 
     fn create_participation(&self, participation: &Participation) -> SdaServerResult<()> {
-        wrap!(self.aggregation_store.create_participation(participation))
+        self.aggregation_store.create_participation(participation)
+    }
+
+    fn get_aggregation_status(&self, aggregation: &AggregationId) -> SdaServerResult<Option<AggregationStatus>> {
+        Ok(Some(AggregationStatus {
+            aggregation: aggregation.clone(),
+            number_of_participations: self.aggregation_store.count_participations(aggregation)?,
+            number_of_clerking_results: 0, // FIXME
+            result_ready: false, // FIXME
+        }))
+    }
+
+    fn create_snapshot(&self, snapshot:&Snapshot) -> SdaServerResult<()> {
+        ::snapshot::snapshot(self, snapshot)
     }
 
     pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
@@ -178,7 +191,7 @@ impl SdaAggregationService for SdaServer {
     }
 }
 
-impl SdaAdministrationService for SdaServer {
+impl SdaRecipientService for SdaServer {
     fn create_aggregation(&self, caller: &Agent, aggregation: &Aggregation) -> SdaResult<()> {
         acl_agent_is(caller, aggregation.recipient)?;
         wrap! { SdaServer::create_aggregation(self, &aggregation) }
@@ -206,6 +219,26 @@ impl SdaAdministrationService for SdaServer {
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
         wrap! { SdaServer::create_committee(self, committee) }
+    }
+
+    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>> {
+        let agg:SdaResult<Option<Aggregation>> = wrap! { SdaServer::get_aggregation(self, &aggregation) };
+        let agg = agg?;
+        let agg = agg.ok_or("No aggregation found")?;
+        acl_agent_is(caller, agg.recipient)?;
+        wrap!(Self::get_aggregation_status(&self, aggregation))
+    }
+
+    fn create_snapshot(&self, caller: &Agent, snapshot: &Snapshot) -> SdaResult<()> {
+        let agg:SdaResult<Option<Aggregation>> = wrap! { SdaServer::get_aggregation(self, &snapshot.aggregation) };
+        let agg = agg?;
+        let agg = agg.ok_or("No aggregation found")?;
+        acl_agent_is(caller, agg.recipient)?;
+        wrap! { SdaServer::create_snapshot(self, snapshot) }
+    }
+
+    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
+        unimplemented!();
     }
 }
 
