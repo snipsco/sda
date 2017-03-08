@@ -3,13 +3,14 @@ use jfs;
 use std::path;
 
 use sda_protocol::{Id, Identified};
-use sda_protocol::{AgentId, Aggregation, AggregationId, Committee};
+use sda_protocol::{AgentId, Aggregation, AggregationId, Committee, Participation};
 
 use SdaServerResult;
 
 use stores::{BaseStore, AggregationsStore};
 
 pub struct JfsAggregationsStore {
+    participations: path::PathBuf,
     aggregations: jfs::Store,
     committees: jfs::Store,
 }
@@ -19,6 +20,7 @@ impl JfsAggregationsStore {
         let aggregations = prefix.as_ref().join("aggregations");
         let committees = prefix.as_ref().join("committees");
         Ok(JfsAggregationsStore {
+            participations: prefix.as_ref().join("participations"),
             aggregations: jfs::Store::new(aggregations.to_str().ok_or("pathbuf to string")?)?,
             committees: jfs::Store::new(committees.to_str().ok_or("pathbuf to string")?)?,
         })
@@ -64,6 +66,13 @@ impl AggregationsStore for JfsAggregationsStore {
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()> {
         // FIXME: no overwriting
         self.committees.save_with_id(committee, &committee.aggregation.stringify())?;
+        Ok(())
+    }
+
+    fn create_participation(&self, participation: &Participation) -> SdaServerResult<()> {
+        let path = self.participations.join(participation.id().stringify());
+        let store = jfs::Store::new(path.to_str().ok_or("path to string")?)?;
+        store.save_with_id(participation, &participation.id.stringify())?;
         Ok(())
     }
 }

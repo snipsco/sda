@@ -12,7 +12,6 @@ extern crate error_chain;
 extern crate itertools;
 extern crate jfs;
 extern crate serde;
-extern crate serde_derive;
 extern crate uuid;
 
 extern crate sda_protocol;

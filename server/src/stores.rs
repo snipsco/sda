@@ -1,5 +1,4 @@
-use sda_protocol::{Agent, AgentId, Labeled, Profile, EncryptionKeyId, SignedEncryptionKey};
-use sda_protocol::{Aggregation, AggregationId, ClerkCandidate, Committee};
+use sda_protocol::*;
 use SdaServerResult;
 
 pub trait BaseStore : Sync + Send {
@@ -63,4 +62,6 @@ pub trait AggregationsStore: BaseStore {
     fn get_committee(&self, owner: &AggregationId) -> SdaServerResult<Option<Committee>>;
 
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()>;
+
+    fn create_participation(&self, participation: &Participation) -> SdaServerResult<()>;
 }

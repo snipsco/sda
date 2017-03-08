@@ -22,7 +22,7 @@ fn small_aggregation(recipient: &AgentId, recipient_key: &EncryptionKeyId) -> Ag
 }
 
 #[test]
-pub fn committee() {
+pub fn full_mocked_loop() {
     with_service(|ctx| {
         let agents: Vec<(Agent,SignedEncryptionKey)> = (0..10).map(|_| new_full_agent(&ctx.service)).collect();
         let (alice, alice_key) = new_full_agent(&ctx.service);
@@ -40,5 +40,16 @@ pub fn committee() {
         ctx.service.create_committee(&alice, &committee).unwrap();
         let committee_again = ctx.service.get_committee(&alice, &agg.id).unwrap();
         assert_eq!(Some(&committee), committee_again.as_ref());
+
+        let participants: Vec<(Agent,SignedEncryptionKey)> = (0..100).map(|_| new_full_agent(ctx.agents)).collect();
+        for p in participants.iter() {
+            let participation = Participation {
+                id: ParticipationId::random(),
+                participant: p.0.id().clone(),
+                aggregation: agg.id,
+                encryptions: vec!(),
+            };
+            ctx.part.create_participation(&p.0, &participation).unwrap();
+        }
     });
 }

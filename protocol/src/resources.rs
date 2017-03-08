@@ -184,12 +184,11 @@ pub struct Participation {
     pub id: ParticipationId,
     pub participant: AgentId,
     pub aggregation: AggregationId,
-    pub encryptions: HashMap<AgentId, Encryption>,
+    pub encryptions: Vec<(AgentId, Encryption)>,
 }
 
-/// Unique participatin identifer.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ParticipationId(pub Uuid);
+uuid_id!{ #[doc="Unique particiaption identifier."] ParticipationId }
+identify!(Participation, ParticipationId);
 
 /// Partial aggregation job to be performed by a clerk.
 ///

@@ -1,8 +1,6 @@
 use sda_protocol::*;
-
 use errors::*;
-
-use stores::{AgentStore, AuthStore, AuthToken, AggregationsStore}; // FIXME make all store names plural
+use stores::*; // FIXME make all store names plural
 
 pub struct SdaServer {
     pub agent_store: Box<AgentStore>,
@@ -81,6 +79,10 @@ impl SdaServer {
         self.aggregation_store.create_committee(committee)
     }
 
+    fn create_participation(&self, participation: &Participation) -> SdaServerResult<()> {
+        wrap!(self.aggregation_store.create_participation(participation))
+    }
+
     pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
         wrap! { self.auth_token_store.upsert_auth_token(token) }
     }
@@ -101,6 +103,7 @@ impl SdaServer {
     pub fn delete_auth_token(&self, agent: &AgentId) -> SdaResult<()> {
         wrap!(self.auth_token_store.delete_auth_token(agent))
     }
+
 }
 
 impl SdaService for SdaServer {}
@@ -206,14 +209,15 @@ impl SdaAdministrationService for SdaServer {
     }
 }
 
-// TODO
 impl SdaParticipationService for SdaServer {
+
     fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()> {
-        unimplemented!()
+        acl_agent_is(caller, participation.participant)?;
+        wrap!( SdaServer::create_participation(self, participation) )
     }
+
 }
 
-// TODO
 impl SdaClerkingService for SdaServer {
     fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
         unimplemented!()
@@ -223,3 +227,4 @@ impl SdaClerkingService for SdaServer {
         unimplemented!()
     }
 }
+

@@ -77,6 +77,7 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
         (GET)   (/aggregations/{id: AggregationId}/committee) =>
             { H(&server).get_committee(&id, req) },
 
+        (POST)  (/aggregations/participations) => { H(&server).create_participation(req) },
 
         _ => {
             error!("Not found: {} {}", req.method(), req.raw_url());
@@ -165,6 +166,11 @@ impl<'a> H<'a> {
 
     fn get_committee(&self, id: &AggregationId, req: &Request) -> Result<Response> {
         send_json_option(self.0.get_committee(&self.caller(req)?, id)?)
+    }
+
+    fn create_participation(&self, req:&Request) -> Result<Response> {
+        self.0.create_participation(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
     }
 }
 

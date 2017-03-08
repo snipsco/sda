@@ -276,7 +276,7 @@ impl<S> SdaParticipationService for SdaHttpClient<S>
     fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()> {
         wrap_empty! { self.post::<Participation, ()>(
             Some(caller),
-            self.url(format!("/aggregations/{}/participations", participation.aggregation.stringify()))?,
+            self.url("/aggregations/participations")?,
             participation
         ) }
     }
