@@ -44,6 +44,11 @@ Participate
 POST /aggregations/participations
 ```
 
+Snapshot participation
+```
+POST /aggregations/implied/snapshot
+```
+
 Clerking
 ```
 GET  /aggregations/-/jobs

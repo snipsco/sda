@@ -1,5 +1,4 @@
 use super::*;
-use std::collections::HashMap;
 use std::str;
 
 pub trait Identified {
@@ -187,8 +186,18 @@ pub struct Participation {
     pub encryptions: Vec<(AgentId, Encryption)>,
 }
 
-uuid_id!{ #[doc="Unique particiaption identifier."] ParticipationId }
+uuid_id!{ #[doc="Unique participation identifier."] ParticipationId }
 identify!(Participation, ParticipationId);
+
+/// Capture existing participations in an agggregation in order to create a
+/// consistent set of clerkable shares.
+pub struct Snapshot {
+    pub id: SnapshotId,
+    pub aggregation: AggregationId,
+}
+
+uuid_id!{ #[doc="Unique snapshot identifier."] SnapshotId }
+identify!(Snapshot, SnapshotId);
 
 /// Partial aggregation job to be performed by a clerk.
 ///
@@ -198,6 +207,7 @@ pub struct ClerkingJob {
     pub id: ClerkingJobId,
     pub clerk: AgentId,
     pub aggregation: AggregationId,
+    pub snapshot: SnapshotId,
     pub encryptions: Vec<Encryption>,
 }
 

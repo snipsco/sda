@@ -7,9 +7,6 @@ use errors::SdaClientResult;
 
 use sda_protocol::*;
 
-use std::collections::HashMap;
-
-
 pub struct ParticipantInput(pub Vec<i64>);
 
 /// Basic tasks needed by a participant.
@@ -69,7 +66,7 @@ impl Participating for SdaClient
         let committee: Committee = self.service.get_committee(&self.agent, aggregation_id)?.ok_or("Could not find committee")?;
 
         // encryptions for the participation; we'll fill this one up as we go along
-        let mut encryptions: HashMap<AgentId, Encryption> = HashMap::new();
+        let mut encryptions: Vec<(AgentId, Encryption)> = vec!();
 
         // mask the secrets
         let mut secret_masker = self.crypto.new_secret_masker(&aggregation.masking_scheme)?;
@@ -87,7 +84,7 @@ impl Participating for SdaClient
         let mask_encryptor = self.crypto.new_share_encryptor(&recipient_encryption_key, &aggregation.recipient_encryption_scheme)?;
         let recipient_encryption: Encryption = mask_encryptor.encrypt(&*recipient_mask)?;
         // .. and add result to collection
-        encryptions.insert(aggregation.recipient.clone(), recipient_encryption);
+        encryptions.push((aggregation.recipient.clone(), recipient_encryption));
 
         // share the committee's masked secrets: each inner vector corresponds to the shares of a single clerk
         let mut share_generator = self.crypto.new_share_generator(&aggregation.committee_sharing_scheme)?;
@@ -110,7 +107,7 @@ impl Participating for SdaClient
             let share_encryptor = self.crypto.new_share_encryptor(&clerk_encryption_key, &aggregation.committee_encryption_scheme)?;
             let clerk_encryption: Encryption = share_encryptor.encrypt(&*clerk_shares)?;
             // .. and add result to collection
-            encryptions.insert(clerk_id.clone(), clerk_encryption);
+            encryptions.push((clerk_id.clone(), clerk_encryption));
         }
 
         // generate fresh id for this participation
