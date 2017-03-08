@@ -34,7 +34,6 @@ DELETE /aggregations/<AggregationId>
 
 Committee
 ```
-GET  /aggregations/<AggregationId>/committee/candidates
 GET  /aggregations/<AggregationId>/committee/suggestions
 POST /aggregations/<AggregationId>/committee
 GET  /aggregations/<AggregationId>/committee

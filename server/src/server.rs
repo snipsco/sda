@@ -72,6 +72,11 @@ impl SdaServer {
         self.aggregation_store.delete_aggregation(aggregation)
     }
 
+    fn suggest_committee(&self, aggregation:&AggregationId) -> SdaServerResult<Vec<ClerkCandidate>> {
+        let _aggregation = self.aggregation_store.get_aggregation(aggregation)?.ok_or("deleted aggregation")?;
+        self.agent_store.suggest_committee()
+    }
+
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()> {
         self.aggregation_store.create_committee(committee)
     }
@@ -180,6 +185,14 @@ impl SdaAdministrationService for SdaServer {
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
         wrap! { SdaServer::delete_aggregation(self, &aggregation) }
+    }
+
+    fn suggest_committee(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<ClerkCandidate>> {
+        let agg:SdaResult<Option<Aggregation>> = wrap! { SdaServer::get_aggregation(self, aggregation) };
+        let agg = agg?;
+        let agg = agg.ok_or("No aggregation found")?;
+        acl_agent_is(caller, agg.recipient)?;
+        wrap! { SdaServer::suggest_committee(self, aggregation) }
     }
 
     fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()> {

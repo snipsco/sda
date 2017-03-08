@@ -45,7 +45,7 @@ impl Participating for SdaClient
         let recipient_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?.ok_or("Unknown encryption key")?;
         // committee data
         let committee = self.service.get_committee(&self.agent, &aggregation.id)?.ok_or("Unknown committee")?;
-        for (clerk_id, key_id) in committee.clerk_keys.iter() {
+        for &(ref clerk_id, ref key_id) in committee.clerks_and_keys.iter() {
             let _: Agent = self.service.get_agent(&self.agent, &clerk_id)?.ok_or("Unknown clerk")?;
             let _: SignedEncryptionKey = self.service.get_encryption_key(&self.agent, &key_id)?.ok_or("Unknown encryption key")?;
         }
@@ -96,12 +96,11 @@ impl Participating for SdaClient
         // encrypt the committee's shares
         for clerk_index in 0..committee_shares_per_clerk.len() {
             let clerk_shares = &committee_shares_per_clerk[clerk_index];
-            let clerk_id = &committee.clerk_order[clerk_index];
+            let clerk_id = &committee.clerks_and_keys[clerk_index].0;
 
             // fetch and verify clerk's encryption key
-            let clerk_signed_encryption_key_id = committee.clerk_keys.get(&clerk_id)
-                .ok_or("Keyset missing encryption key for clerk")?;
-            let clerk_signed_encryption_key = self.service.get_encryption_key(&self.agent, clerk_signed_encryption_key_id)?.ok_or("Unknown encryption key")?;
+            let clerk_signed_encryption_key_id = committee.clerks_and_keys[clerk_index].1;
+            let clerk_signed_encryption_key = self.service.get_encryption_key(&self.agent, &clerk_signed_encryption_key_id)?.ok_or("Unknown encryption key")?;
             let clerk = self.service.get_agent(&self.agent, clerk_id)?.ok_or("Unknown clerk")?;
             if !clerk.signature_is_valid(&clerk_signed_encryption_key)? {
                 Err("Signature verification failed for clerk key")?

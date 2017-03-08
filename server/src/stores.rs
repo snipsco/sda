@@ -1,5 +1,5 @@
 use sda_protocol::{Agent, AgentId, Labeled, Profile, EncryptionKeyId, SignedEncryptionKey};
-use sda_protocol::{Aggregation, AggregationId, Committee};
+use sda_protocol::{Aggregation, AggregationId, ClerkCandidate, Committee};
 use SdaServerResult;
 
 pub trait BaseStore : Sync + Send {
@@ -37,6 +37,12 @@ pub trait AgentStore: BaseStore {
 
     /// Retrieve agent encryption key.
     fn get_encryption_key(&self, key: &EncryptionKeyId) -> SdaServerResult<Option<SignedEncryptionKey>>;
+
+    /// FIXME: very temporary interface. As logic needs to be adapted to each store
+    /// capabilities, no real need to abstract this in server, but we do need to
+    /// give more information about what is needed (supported keys, liveliness,
+    /// number, ...)
+    fn suggest_committee(&self) -> SdaServerResult<Vec<ClerkCandidate>>;
 }
 
 pub trait AggregationsStore: BaseStore {

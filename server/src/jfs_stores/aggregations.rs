@@ -11,13 +11,16 @@ use stores::{BaseStore, AggregationsStore};
 
 pub struct JfsAggregationsStore {
     aggregations: jfs::Store,
+    committees: jfs::Store,
 }
 
 impl JfsAggregationsStore {
     pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaServerResult<JfsAggregationsStore> {
         let aggregations = prefix.as_ref().join("aggregations");
+        let committees = prefix.as_ref().join("committees");
         Ok(JfsAggregationsStore {
             aggregations: jfs::Store::new(aggregations.to_str().ok_or("pathbuf to string")?)?,
+            committees: jfs::Store::new(committees.to_str().ok_or("pathbuf to string")?)?,
         })
     }
 }
@@ -55,10 +58,12 @@ impl AggregationsStore for JfsAggregationsStore {
     }
 
     fn get_committee(&self, owner: &AggregationId) -> SdaServerResult<Option<Committee>> {
-        unimplemented!();
+        super::get_option(&self.committees, &*owner.stringify())
     }
 
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()> {
-        unimplemented!();
+        // FIXME: no overwriting
+        self.committees.save_with_id(committee, &committee.aggregation.stringify())?;
+        Ok(())
     }
 }
