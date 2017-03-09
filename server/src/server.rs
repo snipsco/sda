@@ -51,7 +51,7 @@ impl SdaServer {
         self.agent_store.get_encryption_key(key)
     }
 
-    fn list_aggregations(&self, filter: Option<&str>, recipient: Option<&AgentId>) 
+    fn list_aggregations(&self, filter: Option<&str>, recipient: Option<&AgentId>)
         -> SdaServerResult<Vec<AggregationId>> {
         self.aggregation_store.list_aggregations(filter, recipient)
     }
@@ -103,7 +103,9 @@ impl SdaServer {
     }
 }
 
-impl SdaService for SdaServer {
+impl SdaService for SdaServer {}
+
+impl SdaBaseService for SdaServer {
     fn ping(&self) -> SdaResult<Pong> {
         wrap!(SdaServer::ping(self))
     }
@@ -201,5 +203,23 @@ impl SdaAdministrationService for SdaServer {
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
         wrap! { SdaServer::create_committee(self, committee) }
+    }
+}
+
+// TODO
+impl SdaParticipationService for SdaServer {
+    fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()> {
+        unimplemented!()
+    }
+}
+
+// TODO
+impl SdaClerkingService for SdaServer {
+    fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
+        unimplemented!()
+    }
+
+    fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {
+        unimplemented!()
     }
 }

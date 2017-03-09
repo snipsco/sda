@@ -6,15 +6,26 @@ use super::*;
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Pong { pub running: bool }
 
-/// Basic methods for SDA services.
-pub trait SdaService : Sync + Send {
+pub trait SdaService :
+    Send
+    + Sync
+    + SdaBaseService
+    + SdaAgentService
+    + SdaAggregationService
+    + SdaClerkingService
+    + SdaParticipationService
+    + SdaAdministrationService
+{}
+
+/// Basic methods for all SDA services.
+pub trait SdaBaseService : Sync + Send {
     /// Send a ping to the service, expecting a pong in return if everything appears to be running.
     fn ping(&self) -> SdaResult<Pong>;
 }
 
 /// Methods used mainly for discovering and maintaining agents and their
 /// identities.
-pub trait SdaAgentService : SdaService {
+pub trait SdaAgentService : SdaBaseService {
 
     /// Create an agent.
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()>;
@@ -36,7 +47,7 @@ pub trait SdaAgentService : SdaService {
 }
 
 /// Methods used mainly for discovering aggregation objects.
-pub trait SdaAggregationService : SdaService {
+pub trait SdaAggregationService : SdaBaseService {
 
     /// Search for aggregations optionally filtering by title substring and/or
     /// recipient.
@@ -51,7 +62,7 @@ pub trait SdaAggregationService : SdaService {
 
 
 /// Methods used for participation in particular.
-pub trait SdaParticipationService : SdaService {
+pub trait SdaParticipationService : SdaBaseService {
 
     /// Provide user input to an aggregation.
     fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()>;
@@ -59,7 +70,7 @@ pub trait SdaParticipationService : SdaService {
 }
 
 /// Methods used for clerking in particular.
-pub trait SdaClerkingService : SdaService {
+pub trait SdaClerkingService : SdaBaseService {
 
     /// Pull any job waiting to be performed by the speficied clerk.
     fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>>;
@@ -70,7 +81,7 @@ pub trait SdaClerkingService : SdaService {
 }
 
 /// Methods used by the recipient in particular.
-pub trait SdaRecipientService : SdaService {
+pub trait SdaRecipientService : SdaBaseService {
 
     /// Poll status of an aggregation.
     fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>>;
@@ -81,7 +92,7 @@ pub trait SdaRecipientService : SdaService {
 }
 
 /// Methods used only for administration, including creating and deleting aggregations.
-pub trait SdaAdministrationService : SdaService {
+pub trait SdaAdministrationService : SdaBaseService {
 
     /// Create a new aggregation on the service (without any associated result).
     /// If successful, the original id has been replaced by the returned id.

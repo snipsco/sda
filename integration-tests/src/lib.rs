@@ -21,24 +21,6 @@ use std::sync::Arc;
 use sda_server::SdaServer;
 use sda_protocol::*;
 
-pub trait CombinedServices :
-    Send
-    + Sync
-    + SdaService
-    + SdaAgentService
-    + SdaAggregationService
-    + SdaAdministrationService
-{}
-
-impl<T> CombinedServices for T where T: 
-    Send
-    + Sync
-    + SdaService
-    + SdaAgentService
-    + SdaAggregationService
-    + SdaAdministrationService
-{}
-
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
 #[allow(dead_code)]
@@ -92,7 +74,7 @@ pub fn new_key_for_agent(alice: &Agent) -> SignedEncryptionKey {
     }
 }
 
-pub fn new_full_agent(agents: &Arc<CombinedServices>) -> (Agent, SignedEncryptionKey) {
+pub fn new_full_agent(agents: &Arc<SdaService>) -> (Agent, SignedEncryptionKey) {
     let ag = new_agent();
     agents.create_agent(&ag, &ag).unwrap();
     let key = new_key_for_agent(&ag);
@@ -103,7 +85,7 @@ pub fn new_full_agent(agents: &Arc<CombinedServices>) -> (Agent, SignedEncryptio
 
 pub struct TestContext {
     pub server: Arc<SdaServer>,
-    pub service: Arc<CombinedServices>,
+    pub service: Arc<SdaService>,
 }
 
 pub fn with_server<F>(f: F)
@@ -112,7 +94,7 @@ pub fn with_server<F>(f: F)
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
     let server: SdaServer = jfs_server(tempdir.path());
     let s: Arc<SdaServer> = Arc::new(server);
-    let service: Arc<CombinedServices> = s.clone() as _;
+    let service: Arc<SdaService> = s.clone() as _;
 //    println!("tempdir: {:?}", tempdir.into_path());
     let tc = TestContext {
         server: s,

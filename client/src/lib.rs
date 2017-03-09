@@ -33,38 +33,18 @@ use crypto::CryptoModule;
 
 use std::sync::Arc;
 
-pub trait Service : 
-    Send
-    + Sync
-    + SdaService
-    + SdaAgentService
-    + SdaAggregationService
-    + SdaClerkingService
-    + SdaParticipationService 
-{}
-
-impl<T> Service for T where T: 
-    Send
-    + Sync
-    + SdaService
-    + SdaAgentService
-    + SdaAggregationService
-    + SdaClerkingService
-    + SdaParticipationService
-{}
-
 /// Primary object for interacting with the SDA service.
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
 pub struct SdaClient {
     agent: Agent,
     crypto: CryptoModule,
-    service: Arc<Service>,
+    service: Arc<SdaService>,
     trust: trust::Pessimistic,
 }
 
 impl SdaClient {
-    pub fn new(agent: Agent, keystore: Arc<Keystore>, service: Arc<Service>) -> SdaClient
+    pub fn new(agent: Agent, keystore: Arc<Keystore>, service: Arc<SdaService>) -> SdaClient
      {
         SdaClient {
             agent: agent,

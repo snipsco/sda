@@ -47,27 +47,13 @@ pub fn committee() {
     });
 }
 
-// #[test]
-// pub fn clients() {
-//     with_service(|ctx| {
-
-//         let dir = ".tests/";
-//         use std::sync::Arc;
-//         use sda_server::SdaServer;
-
-//         // server
-//         let agents = sda_server::jfs_stores::JfsAgentStore::new(dir.join("agents")).unwrap();
-//         let auth = sda_server::jfs_stores::JfsAuthStore::new(dir.join("auths")).unwrap();
-//         let agg = sda_server::jfs_stores::JfsAggregationsStore::new(dir.join("service")).unwrap();
-//         let server = Arc::new(Box::new(SdaServer {
-//             agent_store: Box::new(agents),
-//             auth_token_store: Box::new(auth),
-//             aggregation_store: Box::new(agg),
-//         }));
-
-//         // client
-//         let agent = sda_tests::new_agent();
-//         let keystore = sda_client_store::Filebased::new(&".sda").unwrap();
-//         let client = SdaClient::new(agent, Box::new(keystore), server.clone());
-//     });
-// }
+#[test]
+pub fn clients() {
+    with_service(|ctx| {
+        use std::sync::Arc;
+        
+        let agent = sda_tests::new_agent();
+        let keystore = sda_client_store::Filebased::new(&".sda").unwrap();
+        let client = SdaClient::new(agent, Arc::new(keystore), ctx.service.clone());
+    });
+}
