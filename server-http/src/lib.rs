@@ -85,6 +85,9 @@ pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
 
         (POST)  (/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
 
+        // FIXME. don't like it.
+        (GET)   (/aggregations/any/jobs) => { H(&server).get_clerking_job(req) },
+
         _ => {
             error!("Not found: {} {}", req.method(), req.raw_url());
             Ok(Response::empty_404())
@@ -186,6 +189,11 @@ impl<'a> H<'a> {
     fn create_snapshot(&self, req: &Request) -> Result<Response> {
         self.0.create_snapshot(&self.caller(req)?, &read_json(&req)?)?;
         send_empty_201()
+    }
+
+    fn get_clerking_job(&self, req: &Request) -> Result<Response> {
+        let caller = self.caller(req)?;
+        send_json_option(self.0.get_clerking_job(&caller, &caller.id)?)
     }
 }
 

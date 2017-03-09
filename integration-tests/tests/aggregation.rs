@@ -24,12 +24,13 @@ fn small_aggregation(recipient: &AgentId, recipient_key: &EncryptionKeyId) -> Ag
 #[test]
 pub fn full_mocked_loop() {
     with_service(|ctx| {
-        let agents: Vec<(Agent,SignedEncryptionKey)> = (0..10).map(|_| new_full_agent(&ctx.service)).collect();
-        let (alice, alice_key) = new_full_agent(&ctx.service);
+        let agents: Vec<(Agent, SignedEncryptionKey)> =
+            (0..20).map(|_| new_full_agent(&ctx.service)).collect();
+        let (ref alice, ref alice_key) = agents[0];
         let agg = small_aggregation(&alice.id(), &alice_key.body.id());
         ctx.service.create_aggregation(&alice, &agg).unwrap();
         let candidates = ctx.service.suggest_committee(&alice, &agg.id).unwrap();
-        assert_eq!(agents.len() + 1, candidates.len());
+        assert_eq!(agents.len(), candidates.len());
 
         let clerks = &candidates[0..agg.committee_sharing_scheme.output_size()];
 
@@ -41,16 +42,20 @@ pub fn full_mocked_loop() {
         let committee_again = ctx.service.get_committee(&alice, &agg.id).unwrap();
         assert_eq!(Some(&committee), committee_again.as_ref());
 
-        let participants: Vec<(Agent,SignedEncryptionKey)> = (0..100).map(|_| new_full_agent(&ctx.service)).collect();
-        for p in participants.iter() {
+        let participants: Vec<(Agent, SignedEncryptionKey)> =
+            (0..100).map(|_| new_full_agent(&ctx.service)).collect();
+        for (pi, p) in participants.iter().enumerate() {
             let participation = Participation {
                 id: ParticipationId::random(),
                 participant: p.0.id().clone(),
                 aggregation: agg.id,
-                encryptions: vec!(),
+                encryptions: clerks.iter()
+                    .enumerate()
+                    .map(|(ci, c)| (c.id, Encryption::Sodium(vec![ci as u8, pi as u8])))
+                    .collect(),
             };
             ctx.service.create_participation(&p.0, &participation).unwrap();
-        };
+        }
         let status = ctx.service.get_aggregation_status(&alice, &agg.id).unwrap().unwrap();
         assert_eq!(agg.id, status.aggregation);
         assert_eq!(participants.len(), status.number_of_participations);
@@ -58,8 +63,18 @@ pub fn full_mocked_loop() {
         assert_eq!(false, status.result_ready);
         let snapshot = Snapshot {
             id: SnapshotId::random(),
-            aggregation: agg.id.clone()
+            aggregation: agg.id.clone(),
         };
         ctx.service.create_snapshot(&alice, &snapshot).unwrap();
+
+        for (ci, c) in clerks.iter().enumerate() {
+            let agent = agents.iter().find(|a| a.0.id == c.id).unwrap();
+            let job = ctx.service.get_clerking_job(&agent.0, &c.id).unwrap().unwrap();
+            assert_eq!(snapshot.id, job.snapshot);
+            for enc in job.encryptions.iter() {
+                let &Encryption::Sodium(ref data) = enc;
+                assert_eq!(ci as u8, data[0]);
+            }
+        }
     });
 }

@@ -290,7 +290,7 @@ impl<S> SdaClerkingService for SdaHttpClient<S>
     fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
         wrap_option_payload! { self.get(
             Some(caller),
-            self.url(format!("/aggregations/any/jobs/{}", clerk.stringify()))?
+            self.url("/aggregations/any/jobs")?
         ) }
     }
 

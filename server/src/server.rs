@@ -98,6 +98,10 @@ impl SdaServer {
         ::snapshot::snapshot(self, snapshot)
     }
 
+    pub fn get_clerking_job(&self, clerk: &AgentId) -> SdaServerResult<Option<ClerkingJob>> {
+        self.clerking_job_store.get_clerking_job(clerk)
+    }
+
     pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
         wrap! { self.auth_token_store.upsert_auth_token(token) }
     }
@@ -272,7 +276,8 @@ impl SdaParticipationService for SdaServerService {
 
 impl SdaClerkingService for SdaServerService {
     fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
-        unimplemented!()
+        acl_agent_is(caller, *clerk)?;
+        wrap!( self.0.get_clerking_job(clerk) )
     }
 
     fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {

@@ -51,8 +51,7 @@ POST /aggregations/implied/snapshot
 
 Clerking
 ```
-GET  /aggregations/-/jobs
-GET  /aggregations/<AggregationId>/jobs/<ClerkingJobId>
+GET  /aggregations/any/jobs
 POST /aggregations/<AggregationId>/jobs/<ClerkingJobId>/result
 ```
 
