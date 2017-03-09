@@ -56,16 +56,26 @@ pub fn full_mocked_loop() {
             };
             ctx.service.create_participation(&p.0, &participation).unwrap();
         }
+
         let status = ctx.service.get_aggregation_status(&alice, &agg.id).unwrap().unwrap();
         assert_eq!(agg.id, status.aggregation);
         assert_eq!(participants.len(), status.number_of_participations);
-        assert_eq!(0, status.number_of_clerking_results);
-        assert_eq!(false, status.result_ready);
+        assert_eq!(0, status.snapshots.len());
         let snapshot = Snapshot {
             id: SnapshotId::random(),
             aggregation: agg.id.clone(),
         };
         ctx.service.create_snapshot(&alice, &snapshot).unwrap();
+
+        let status = ctx.service.get_aggregation_status(&alice, &agg.id).unwrap().unwrap();
+        assert_eq!(agg.id, status.aggregation);
+        assert_eq!(participants.len(), status.number_of_participations);
+        assert_eq!(1, status.snapshots.len());
+        assert_eq!(vec![SnapshotStatus {
+            id: snapshot.id.clone(),
+            number_of_clerking_results: 0,
+            result_ready: false,
+        }], status.snapshots);
 
         for (ci, c) in clerks.iter().enumerate() {
             let agent = agents.iter().find(|a| a.0.id == c.id).unwrap();
@@ -84,10 +94,28 @@ pub fn full_mocked_loop() {
 
         }
 
+        let status = ctx.service.get_aggregation_status(&alice, &agg.id).unwrap().unwrap();
+        assert_eq!(agg.id, status.aggregation);
+        assert_eq!(participants.len(), status.number_of_participations);
+        assert_eq!(1, status.snapshots.len());
+        assert_eq!(vec![SnapshotStatus {
+            id: snapshot.id.clone(),
+            number_of_clerking_results: clerks.len(),
+            result_ready: true,
+        }], status.snapshots);
+
         for c in clerks.iter() {
             let agent = agents.iter().find(|a| a.0.id == c.id).unwrap();
             let job = ctx.service.get_clerking_job(&agent.0, &c.id).unwrap();
             assert!(job.is_none());
+        }
+
+        let final_result = ctx.service.get_snapshot_result(&alice, &agg.id, &snapshot.id).unwrap().unwrap();
+        assert_eq!(3, final_result.encryptions.len());
+        for (ci, c) in clerks.iter().enumerate() {
+            let agent = agents.iter().find(|a| a.0.id == c.id).unwrap();
+            let Encryption::Sodium(ref enc) = final_result.encryptions.iter().find(|enc| enc.clerk == agent.0.id).unwrap().encryption;
+            assert_eq!(enc, &vec!(ci as u8));
         }
     });
 }

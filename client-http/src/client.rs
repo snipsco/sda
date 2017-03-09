@@ -346,10 +346,10 @@ impl<S> SdaRecipientService for SdaHttpClient<S>
         ) }
     }
 
-    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
+    fn get_snapshot_result(&self, caller: &Agent, aggregation: &AggregationId, snapshot:&SnapshotId) -> SdaResult<Option<SnapshotResult>> {
         wrap_payload! { self.get(
-            Some(caller), 
-            self.url(format!("/aggregations/{}/results", aggregation.stringify()))?
+            Some(caller),
+            self.url(format!("/aggregations/{}/snapshots/{}/result", aggregation.stringify(), snapshot.stringify()))?
         ) }
     }
 

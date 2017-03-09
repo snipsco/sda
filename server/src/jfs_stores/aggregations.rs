@@ -103,7 +103,7 @@ impl AggregationsStore for JfsAggregationsStore {
         Ok(())
     }
 
-    fn count_participations(&self, aggregation:&AggregationId) -> SdaServerResult<usize> {
+    fn count_participations(&self, aggregation: &AggregationId) -> SdaServerResult<usize> {
         let store = self.aggregation_store(aggregation)?;
         Ok(store.all::<Participation>()?.len())
     }
@@ -115,11 +115,28 @@ impl AggregationsStore for JfsAggregationsStore {
         let store = self.aggregation_store(aggregation)?;
         let list: SdaServerResult<Vec<ParticipationId>> = store.all::<Participation>()?
             .into_iter()
-            .map(|p| Ok(ParticipationId::from_str(&p.0)?) )
+            .map(|p| Ok(ParticipationId::from_str(&p.0)?))
             .collect();
         let snap = SnapshotContent { participations: list? };
         self.snapshot_contents.save_with_id(&snap, &snapshot.stringify())?;
         Ok(())
+    }
+
+    fn list_snapshots(&self, aggregation: &AggregationId) -> SdaServerResult<Vec<SnapshotId>> {
+        Ok(self.snapshots
+            .all::<Snapshot>()?
+            .into_iter()
+            .map(|p| p.1)
+            .filter(|s| &s.aggregation == aggregation)
+            .map(|s| s.id)
+            .collect())
+    }
+
+    fn get_snapshot(&self,
+                    aggregation: &AggregationId,
+                    snapshot: &SnapshotId)
+                    -> SdaServerResult<Option<Snapshot>> {
+        super::get_option(&self.snapshots, &snapshot.stringify())
     }
 
     fn iter_snapped_participations<'a, 'b>
@@ -131,7 +148,8 @@ impl AggregationsStore for JfsAggregationsStore {
     {
         let store = self.aggregation_store(aggregation)?;
         let snap = self.snapshot_contents.get::<SnapshotContent>(&snapshot.stringify())?;
-        Ok(Box::new(snap.participations.into_iter().map(move |id| Ok(store.get::<Participation>(&id.stringify())?))))
+        Ok(Box::new(snap.participations
+            .into_iter()
+            .map(move |id| Ok(store.get::<Participation>(&id.stringify())?))))
     }
-
 }

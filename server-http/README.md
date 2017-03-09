@@ -58,5 +58,5 @@ POST /aggregations/implied/jobs/<ClerkingJobId>/result
 Get status and result
 ```
 GET /aggregations/<AggregationId>/status
-GET /aggregations/<AggregationId>/result
+GET /aggregations/<AggregationId>/snapshots/<SnapshotId>/result
 ```
