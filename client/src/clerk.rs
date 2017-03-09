@@ -21,14 +21,7 @@ pub trait Clerking {
 
 }
 
-
-impl Clerking for SdaClient
-    // where
-    //     K: Keystore,
-        // S: SdaAgentService,
-        // S: SdaAggregationService,
-        // S: SdaClerkingService,
-{
+impl Clerking for SdaClient {
 
     fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool> {
         // TODO
@@ -55,7 +48,7 @@ impl Clerking for SdaClient
         // repeatedly process jobs
         let max_iterations = 10;
         for _ in 0..max_iterations {
-            if self.clerk_once()? { 
+            if self.clerk_once()? {
                 continue
             } else {
                 break
@@ -66,22 +59,17 @@ impl Clerking for SdaClient
 
 }
 
-impl SdaClient
-    // where
-    //     K: Keystore,
-        // S: SdaAgentService,
-        // S: SdaAggregationService,
-{
+impl SdaClient {
 
     fn process_clerking_job(&mut self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
 
         let aggregation = self.service.get_aggregation(&self.agent, &job.aggregation)?.ok_or("Unknown aggregation")?;
         let committee = self.service.get_committee(&self.agent, &job.aggregation)?.ok_or("Unknown committee")?;
-        
+
         // TODO what is the right policy for whether we want to help with this aggregation or not?
         //  - based on aggregation and recipient?
 
-        // TODO there is some waste in the following split between decrypting and combining 
+        // TODO there is some waste in the following split between decrypting and combining
         //  - this could be improved by e.g. allowing an accumulating combiner
 
         // determine which one of our encryption keys were used (in turn giving the decryption key we need to use)
@@ -109,7 +97,7 @@ impl SdaClient
         // .. and re-encrypt summed shares
         let share_encryptor = self.crypto.new_share_encryptor(&recipient_encryption_key, &aggregation.recipient_encryption_scheme)?;
         let recipient_encryption: Encryption = share_encryptor.encrypt(&fully_combined_shares)?;
-        
+
         Ok(ClerkingResult {
             job: job.id.clone(),
             aggregation: job.aggregation.clone(),

@@ -21,6 +21,7 @@ use sda_client_store::Filebased;
 
 use slog::*;
 use std::sync::Arc;
+use std::path::PathBuf;
 
 use errors::*;
 
@@ -36,12 +37,12 @@ fn main() {
 }
 
 fn run() -> SdaCliResult<()> {
-    
+
     let matches = clap_app!(sda =>
         (@arg server: -s --server +takes_value "Server root")
         (@arg identity: -i --identity +takes_value "Storage directory for identity, including keys")
         (@subcommand ping =>)
-        (@subcommand agent => 
+        (@subcommand agent =>
             (@subcommand show =>)
             (@subcommand create =>
                 (@arg force: -f --force "Overwrite any existing identity")
@@ -67,16 +68,20 @@ fn run() -> SdaCliResult<()> {
         SdaHttpClient::new(server_root, authstore)?
     };
 
+    let identity_path = PathBuf::from(matches
+        .value_of("identity")
+        .unwrap_or(".sda")
+    );
+
     let identitystore = {
-        let path = matches.value_of("identity").unwrap_or(".sda");
-        debug!("Using identity at {}", path);
-        Filebased::new(path)?
+        debug!("Using identity at {:?}", &identity_path);
+        Filebased::new(&identity_path)?
     };
 
-    let keystore_path = {
-        let path = matches.value_of("identity").unwrap_or(".sda").to_string() + "/keys"; // TODO
-        debug!("Using keystore at {}", path);
-        path
+    let keystore = {
+        let keystore_path = identity_path.join("keys");
+        debug!("Using keystore at {:?}", &keystore_path);
+        Arc::new(Filebased::new(&keystore_path)?)
     };
 
     use sda_client_store::Store;
@@ -104,20 +109,18 @@ fn run() -> SdaCliResult<()> {
                         warn!("Using existing agent; use --force to create new");
                         agent.unwrap()
                     } else {
-                        let keystore = Filebased::new(&keystore_path)?;
-                        let agent = sda_client::new_agent(Arc::new(keystore))?;
+                        let agent = SdaClient::new_agent(keystore.clone())?;
                         identitystore.put_aliased("agent", &agent)?;
                         info!("Created new agent with id {:?}", &agent.id);
                         agent
                     };
-                    let keystore = Filebased::new(&keystore_path)?;
-                    let client = SdaClient::new(agent, Arc::new(keystore), Arc::new(service));
+                    let client = SdaClient::new(agent, keystore, Arc::new(service));
                     Ok(client.upload_agent()?)
                 },
 
                 ("show", Some(_)) => {
                     match agent {
-                        None => { 
+                        None => {
                             warn!("No local agent found");
                             Ok(())
                         },
@@ -130,8 +133,7 @@ fn run() -> SdaCliResult<()> {
 
                 ("keys", Some(matches)) => {
                     let agent = agent.ok_or("Agent missing")?;
-                    let keystore = Filebased::new(&keystore_path)?;
-                    let client = SdaClient::new(agent, Arc::new(keystore), Arc::new(service));
+                    let client = SdaClient::new(agent, keystore, Arc::new(service));
 
                     match matches.subcommand() {
                         ("create", Some(_)) => {
@@ -147,7 +149,7 @@ fn run() -> SdaCliResult<()> {
                 (cmd, _) => Err(format!("Unknown subcommand {}",  cmd))?
 
             }
-            
+
         },
 
         (cmd, _) => Err(format!("Unknown command {}", cmd))?

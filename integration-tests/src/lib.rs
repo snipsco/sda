@@ -72,10 +72,10 @@ pub fn new_full_agent(agents: &Arc<SdaService>) -> (Agent, SignedEncryptionKey) 
     (ag, key)
 }
 
-pub fn new_client(agent: Agent, service: &Arc<SdaService>) -> SdaClient {
-    let tempdir = ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap();
-    let keystore = sda_client_store::Filebased::new(&tempdir.path()).unwrap();
-    SdaClient::new(agent, Arc::new(keystore), service.clone())
+pub fn new_client(identity: &::tempdir::TempDir, service: &Arc<SdaService>) -> SdaClient {
+    let keystore = Arc::new(sda_client_store::Filebased::new(identity.path()).unwrap());
+    let agent = SdaClient::new_agent(keystore.clone()).unwrap();
+    SdaClient::new(agent, keystore.clone(), service.clone())
 }
 
 

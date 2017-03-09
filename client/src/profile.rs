@@ -6,12 +6,14 @@ use errors::SdaClientResult;
 
 use std::sync::Arc;
 
-pub fn new_agent(keystore: Arc<Keystore>) -> SdaClientResult<Agent> {
-    let crypto = CryptoModule::new(keystore);
-    Ok(Agent {
-        id: AgentId::new(),
-        verification_key: crypto.new_key()?,
-    })
+impl SdaClient {
+    pub fn new_agent(keystore: Arc<Keystore>) -> SdaClientResult<Agent> {
+        let crypto = CryptoModule::new(keystore);
+        Ok(Agent {
+            id: AgentId::new(),
+            verification_key: crypto.new_key()?,
+        })
+    }
 }
 
 pub trait Maintenance {
@@ -32,9 +34,6 @@ pub trait Maintenance {
 }
 
 impl Maintenance for SdaClient
-    // where
-        // K: Store,
-        // S: SdaAgentService,
 {
     fn upload_agent(&self) -> SdaClientResult<()> {
         Ok(self.service.create_agent(&self.agent, &self.agent)?)
@@ -56,13 +55,13 @@ impl Maintenance for SdaClient
 
 
 // impl<L, I, S> IdentityManagement for SdaClient<L, I, S>
-//     where 
+//     where
 //         S: SdaIdentityService,
 //         I: IdentityStore,
 // {
 
 //     fn create_profile(&mut self) -> Profile {
-       
+
 //        // create an empty profile
 //        let mut profile = Profile::default();
 
@@ -90,7 +89,7 @@ impl Maintenance for SdaClient
 // impl<L,I,S> SdaClient<L,I,S> {
 
 //     fn register_new_encryption_key(&mut self, scheme: AdditiveEncryptionScheme) -> SdaClientResult<()> {
-        
+
 //         //
 //         let (pk, sk) = sodiumoxide::crypto::box_::gen_keypair();
 

@@ -26,13 +26,7 @@ pub trait Participating {
 
 }
 
-impl Participating for SdaClient
-    // where
-        // K: Store,
-        // S: SdaAgentService,
-        // S: SdaAggregationService,
-        // S: SdaParticipationService,
-{
+impl Participating for SdaClient {
 
     #[allow(unused_variables)]
     fn preload_for_participation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
@@ -56,9 +50,9 @@ impl Participating for SdaClient
         // load aggregation
         let aggregation = self.service.get_aggregation(&self.agent, aggregation_id)?.ok_or("Could not find aggregation")?;
         if require_trusted && !self.trust.is_flagged_as_trusted(&aggregation.recipient)? {
-            Err("Recipient is required to be trusted but is not")? 
+            Err("Recipient is required to be trusted but is not")?
         }
-        if secrets.len() != aggregation.vector_dimension { 
+        if secrets.len() != aggregation.vector_dimension {
             Err("The input length does not match the aggregation.")?
         }
 

@@ -8,8 +8,8 @@ use super::*;
 pub struct Filebased(jfs::Store);
 
 impl Filebased {
-    pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaClientStoreResult<Filebased> {
-        let path = prefix.as_ref();
+    pub fn new<P: AsRef<path::Path>>(path: P) -> SdaClientStoreResult<Filebased> {
+        let path = path.as_ref();
         let filename = path.to_str()
             .ok_or("Could not format filename for store")?;
         let filestore = jfs::Store::new(filename)?;

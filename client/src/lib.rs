@@ -23,7 +23,7 @@ mod clerk;
 
 pub use participate::{Participating, ParticipantInput};
 pub use clerk::Clerking;
-pub use profile::{new_agent, Maintenance};
+pub use profile::{Maintenance};
 pub use errors::{SdaClientResult, SdaClientError};
 pub use crypto::{Keystore, KeyStorage, EncryptionKeypair, SignatureKeypair};
 // pub use cache::CachedService;

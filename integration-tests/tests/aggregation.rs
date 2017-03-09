@@ -1,7 +1,10 @@
 extern crate sda_protocol;
 extern crate sda_server;
+extern crate sda_client;
 extern crate sda_tests;
+extern crate tempdir;
 use sda_protocol::*;
+use sda_client::*;
 use sda_tests::*;
 
 fn small_aggregation(recipient: &AgentId, recipient_key: &EncryptionKeyId) -> Aggregation {
@@ -61,5 +64,25 @@ pub fn full_mocked_loop() {
             aggregation: agg.id.clone()
         };
         ctx.service.create_snapshot(&alice, &snapshot).unwrap();
+    });
+}
+
+#[test]
+pub fn participation() {
+    with_service(|ctx| {
+        let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        let clients: Vec<SdaClient> = stores.iter().map(|store| new_client(store, &ctx.service)).collect();
+
+        for client in clients {
+            client.upload_agent().unwrap();
+
+            let key = client.new_encryption_key().unwrap();
+            client.upload_encryption_key(&key).unwrap();
+        }
+
+        // let recipient = clients.as_slice()[0];
+        // let participants = &clients[1..10];
+
+        assert!(true);
     });
 }
