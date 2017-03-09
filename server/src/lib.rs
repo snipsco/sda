@@ -25,5 +25,5 @@ mod snapshot;
 pub mod stores;
 pub mod jfs_stores;
 
-pub use server::SdaServer;
+pub use server::{ SdaServer, SdaServerService };
 use errors::*;

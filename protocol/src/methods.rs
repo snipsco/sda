@@ -14,7 +14,7 @@ pub trait SdaService :
     + SdaAggregationService
     + SdaClerkingService
     + SdaParticipationService
-    + SdaAdministrationService
+    + SdaRecipientService
 {}
 
 /// Basic methods for all SDA services.
@@ -82,12 +82,6 @@ pub trait SdaClerkingService : SdaBaseService {
 
 /// Methods used by the recipient in particular.
 pub trait SdaRecipientService : SdaBaseService {
-
-    /// Poll status of an aggregation.
-    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>>;
-
-    /// Retrieve results of an aggregation.
-    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>>;
 
     /// Create a new aggregation on the service (without any associated result).
     /// If successful, the original id has been replaced by the returned id.

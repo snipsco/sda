@@ -41,7 +41,7 @@ pub fn full_mocked_loop() {
         let committee_again = ctx.service.get_committee(&alice, &agg.id).unwrap();
         assert_eq!(Some(&committee), committee_again.as_ref());
 
-        let participants: Vec<(Agent,SignedEncryptionKey)> = (0..100).map(|_| new_full_agent(ctx.agents)).collect();
+        let participants: Vec<(Agent,SignedEncryptionKey)> = (0..100).map(|_| new_full_agent(&ctx.service)).collect();
         for p in participants.iter() {
             let participation = Participation {
                 id: ParticipationId::random(),
@@ -49,9 +49,9 @@ pub fn full_mocked_loop() {
                 aggregation: agg.id,
                 encryptions: vec!(),
             };
-            ctx.part.create_participation(&p.0, &participation).unwrap();
+            ctx.service.create_participation(&p.0, &participation).unwrap();
         };
-        let status = ctx.admin.get_aggregation_status(&alice, &agg.id).unwrap().unwrap();
+        let status = ctx.service.get_aggregation_status(&alice, &agg.id).unwrap().unwrap();
         assert_eq!(agg.id, status.aggregation);
         assert_eq!(participants.len(), status.number_of_participations);
         assert_eq!(0, status.number_of_clerking_results);
@@ -60,6 +60,6 @@ pub fn full_mocked_loop() {
             id: SnapshotId::random(),
             aggregation: agg.id.clone()
         };
-        ctx.admin.create_snapshot(&alice, &snapshot).unwrap();
+        ctx.service.create_snapshot(&alice, &snapshot).unwrap();
     });
 }

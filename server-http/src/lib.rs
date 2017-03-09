@@ -34,26 +34,28 @@ mod errors {
 }
 
 macro_rules! wrap {
-    ($e:expr) => { match $e {
+    ($req:expr, $e:expr) => { match $e {
         Ok(resp) => resp,
-        Err(e) => match e {
-            Error(ErrorKind::Sda(SdaErrorKind::InvalidCredentials), _)
-                => Response::text(format!("{:?}", e)).with_status_code(401),
-            Error(ErrorKind::Sda(SdaErrorKind::PermissionDenied), _)
-                => Response::text(format!("{:?}", e)).with_status_code(403),
-            _ => Response::text(format!("{:?}", e)).with_status_code(500),
+        Err(e) => {
+            let code = match e {
+                Error(ErrorKind::Sda(SdaErrorKind::InvalidCredentials), _) => 401,
+                Error(ErrorKind::Sda(SdaErrorKind::PermissionDenied), _) => 403,
+                _ => 500,
+            };
+            error!("Error: {} {} {} ({})", $req.method(), $req.raw_url(), e, code);
+            Response::text(format!("{}", e)).with_status_code(code)
         }
     }}
 }
 
-pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServer>) -> !
+pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServerService>) -> !
     where A: ToSocketAddrs
 {
     rouille::start_server(addr, move |r| handle(&server, r))
 }
 
-pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
-    wrap! { router! { req,
+pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
+    wrap! { req, router! { req,
         (GET)  (/ping) => { H(&server).ping(req) },
 
         (GET)  (/agents/{id: AgentId}) => { H(&server).get_agent(&id, req) },
@@ -90,12 +92,12 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
     } }
 }
 
-struct H<'a>(&'a sda_server::SdaServer);
+struct H<'a>(&'a sda_server::SdaServerService);
 
 impl<'a> H<'a> {
     fn caller(&self, req: &Request) -> Result<Agent> {
         let auth = auth_token(&req)?;
-        Ok(self.0.check_auth_token(&auth)?)
+        Ok((self.0).0.check_auth_token(&auth)?)
     }
 
     fn ping(&self, _req: &Request) -> Result<Response> {
@@ -109,7 +111,7 @@ impl<'a> H<'a> {
             return Ok(client_error("inconsistent agent ids"));
         }
         self.0.create_agent(&agent, &agent)?;
-        self.0.upsert_auth_token(&auth)?;
+        (self.0).0.upsert_auth_token(&auth)?;
         send_empty_201()
     }
 

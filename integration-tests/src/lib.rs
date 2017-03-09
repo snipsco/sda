@@ -14,10 +14,10 @@ extern crate slog_scope;
 extern crate slog_term;
 extern crate tempdir;
 
-use std::{path, sync};
+use std::sync;
 use std::sync::Arc;
 
-use sda_server::SdaServer;
+use sda_server::SdaServerService;
 use sda_protocol::*;
 use sda_client::*;
 use sda_client_store::*;
@@ -39,17 +39,6 @@ fn ensure_logs() {
                                         o!());
         ::slog_scope::set_global_logger(root);
     });
-}
-
-fn jfs_server(dir: &path::Path) -> SdaServer {
-    let agents = sda_server::jfs_stores::JfsAgentStore::new(dir.join("agents")).unwrap();
-    let auth = sda_server::jfs_stores::JfsAuthStore::new(dir.join("auths")).unwrap();
-    let agg = sda_server::jfs_stores::JfsAggregationsStore::new(dir.join("service")).unwrap();
-    SdaServer {
-        agent_store: Box::new(agents),
-        auth_token_store: Box::new(auth),
-        aggregation_store: Box::new(agg),
-    }
 }
 
 pub fn new_agent() -> Agent {
@@ -91,7 +80,7 @@ pub fn new_client(agent: Agent, service: &Arc<SdaService>) -> SdaClient {
 
 
 pub struct TestContext {
-    pub server: Arc<SdaServer>,
+    pub server: Arc<SdaServerService>,
     pub service: Arc<SdaService>,
 }
 
@@ -99,8 +88,8 @@ pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
-    let server: SdaServer = jfs_server(tempdir.path());
-    let s: Arc<SdaServer> = Arc::new(server);
+    let server: SdaServerService = sda_server::SdaServerService::new_jfs_server(tempdir.path()).unwrap();
+    let s: Arc<SdaServerService> = Arc::new(server);
     let service: Arc<SdaService> = s.clone() as _;
 //    println!("tempdir: {:?}", tempdir.into_path());
     let tc = TestContext {
