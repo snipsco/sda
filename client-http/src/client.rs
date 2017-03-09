@@ -287,7 +287,7 @@ impl<S> SdaClerkingService for SdaHttpClient<S>
     where S: Send + Sync + TokenStore
 {
 
-    fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
+    fn get_clerking_job(&self, caller: &Agent, _clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
         wrap_option_payload! { self.get(
             Some(caller),
             self.url("/aggregations/any/jobs")?
@@ -297,7 +297,7 @@ impl<S> SdaClerkingService for SdaHttpClient<S>
     fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {
         wrap_empty! { self.post::<ClerkingResult, ()>(
             Some(caller),
-            self.url(format!("/aggregations/{}/jobs/{}/result", result.aggregation.stringify(), result.job.stringify()))?,
+            self.url(format!("/aggregations/implied/jobs/{}/result", result.job.stringify()))?,
             result
         ) }
     }

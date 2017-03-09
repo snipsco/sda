@@ -85,8 +85,10 @@ pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
 
         (POST)  (/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
 
-        // FIXME. don't like it.
+        // FIXME. I don't like these. snapshot (and maybe jobs) should travel
+        // first class 
         (GET)   (/aggregations/any/jobs) => { H(&server).get_clerking_job(req) },
+        (POST)  (/aggregations/implied/jobs/{id}/result) => { H(&server).create_clerking_result(&id, req) },
 
         _ => {
             error!("Not found: {} {}", req.method(), req.raw_url());
@@ -194,6 +196,11 @@ impl<'a> H<'a> {
     fn get_clerking_job(&self, req: &Request) -> Result<Response> {
         let caller = self.caller(req)?;
         send_json_option(self.0.get_clerking_job(&caller, &caller.id)?)
+    }
+
+    fn create_clerking_result(&self, _id: &ClerkingJobId, req:&Request) -> Result<Response> {
+        self.0.create_clerking_result(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
     }
 }
 
