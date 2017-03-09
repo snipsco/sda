@@ -52,7 +52,7 @@ POST /aggregations/implied/snapshot
 Clerking
 ```
 GET  /aggregations/any/jobs
-POST /aggregations/<AggregationId>/jobs/<ClerkingJobId>/result
+POST /aggregations/implied/jobs/<ClerkingJobId>/result
 ```
 
 Get status and result

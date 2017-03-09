@@ -216,7 +216,7 @@ pub struct ClerkingJob {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClerkingResult {
     pub job: ClerkingJobId,
-    pub aggregation: AggregationId,
+    pub clerk: AgentId,
     pub encryption: Encryption,
 }
 

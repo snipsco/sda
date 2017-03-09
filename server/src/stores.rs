@@ -100,5 +100,9 @@ pub trait AggregationsStore: BaseStore {
 pub trait ClerkingJobStore: BaseStore {
     fn enqueue_clerking_job(&self, job:&ClerkingJob) -> SdaServerResult<()>;
 
-    fn get_clerking_job(&self, clerk:&AgentId) -> SdaServerResult<Option<ClerkingJob>>;
+    fn poll_clerking_job(&self, clerk:&AgentId) -> SdaServerResult<Option<ClerkingJob>>;
+
+    fn get_clerking_job(&self, clerk:&AgentId, job:&ClerkingJobId) -> SdaServerResult<Option<ClerkingJob>>;
+
+    fn create_clerking_result(&self, result: &ClerkingResult) -> SdaServerResult<()>;
 }

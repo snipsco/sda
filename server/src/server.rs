@@ -98,8 +98,16 @@ impl SdaServer {
         ::snapshot::snapshot(self, snapshot)
     }
 
-    pub fn get_clerking_job(&self, clerk: &AgentId) -> SdaServerResult<Option<ClerkingJob>> {
-        self.clerking_job_store.get_clerking_job(clerk)
+    pub fn poll_clerking_job(&self, clerk: &AgentId) -> SdaServerResult<Option<ClerkingJob>> {
+        self.clerking_job_store.poll_clerking_job(clerk)
+    }
+
+    pub fn get_clerking_job(&self, clerk: &AgentId, job:&ClerkingJobId) -> SdaServerResult<Option<ClerkingJob>> {
+        self.clerking_job_store.get_clerking_job(clerk, job)
+    }
+
+    pub fn create_clerking_result(&self, result: &ClerkingResult) -> SdaServerResult<()> {
+        self.clerking_job_store.create_clerking_result(&result)
     }
 
     pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
@@ -277,11 +285,17 @@ impl SdaParticipationService for SdaServerService {
 impl SdaClerkingService for SdaServerService {
     fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
         acl_agent_is(caller, *clerk)?;
-        wrap!( self.0.get_clerking_job(clerk) )
+        wrap!( self.0.poll_clerking_job(clerk) )
     }
 
     fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {
-        unimplemented!()
+        // double check the job really belongs to the caller (could be spoofed
+        // if the store do a find_by_job_id without filtering on clerk id)
+        let job:SdaResult<Option<ClerkingJob>> = wrap! { self.0.get_clerking_job(&result.clerk, &result.job) };
+        let job = job?;
+        let job = job.ok_or("Job not found")?;
+        acl_agent_is(caller, job.clerk)?;
+        wrap!( self.0.create_clerking_result(result) )
     }
 }
 

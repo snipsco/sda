@@ -75,6 +75,19 @@ pub fn full_mocked_loop() {
                 let &Encryption::Sodium(ref data) = enc;
                 assert_eq!(ci as u8, data[0]);
             }
+
+            ctx.service.create_clerking_result(&agent.0, &ClerkingResult {
+                job: job.id,
+                clerk: c.id.clone(),
+                encryption: Encryption::Sodium(vec![ci as u8])
+            }).unwrap();
+
+        }
+
+        for c in clerks.iter() {
+            let agent = agents.iter().find(|a| a.0.id == c.id).unwrap();
+            let job = ctx.service.get_clerking_job(&agent.0, &c.id).unwrap();
+            assert!(job.is_none());
         }
     });
 }
