@@ -3,12 +3,14 @@ use jfs;
 use errors::*;
 
 mod agents;
-mod auth;
 mod aggregations;
+mod auth;
+mod clerking_jobs;
 
 pub use self::agents::JfsAgentStore;
 pub use self::auth::JfsAuthStore;
 pub use self::aggregations::JfsAggregationsStore;
+pub use self::clerking_jobs::JfsClerkingJobStore;
 
 fn get_option<T>(store: &jfs::Store, id: &str) -> SdaServerResult<Option<T>>
     where T: ::serde::Serialize + ::serde::Deserialize

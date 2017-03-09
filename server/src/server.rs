@@ -6,6 +6,7 @@ pub struct SdaServer {
     pub agent_store: Box<AgentStore>,
     pub auth_token_store: Box<AuthStore>,
     pub aggregation_store: Box<AggregationsStore>,
+    pub clerking_job_store: Box<ClerkingJobStore>,
 }
 
 macro_rules! wrap {
@@ -18,6 +19,20 @@ macro_rules! wrap {
 }
 
 impl SdaServer {
+
+    pub fn new_jfs_server(dir: &::std::path::Path) -> SdaServer {
+        let agents = ::jfs_stores::JfsAgentStore::new(dir.join("agents")).unwrap();
+        let auth = ::jfs_stores::JfsAuthStore::new(dir.join("auths")).unwrap();
+        let agg = ::jfs_stores::JfsAggregationsStore::new(dir.join("agg")).unwrap();
+        let jobs = ::jfs_stores::JfsClerkingJobStore::new(dir.join("jobs")).unwrap();
+        SdaServer {
+            agent_store: Box::new(agents),
+            auth_token_store: Box::new(auth),
+            aggregation_store: Box::new(agg),
+            clerking_job_store: Box::new(jobs),
+        }
+    }
+
     fn ping(&self) -> SdaServerResult<Pong> {
         self.agent_store.ping()?;
         Ok(Pong { running: true })
@@ -54,11 +69,11 @@ impl SdaServer {
         self.aggregation_store.list_aggregations(filter, recipient)
     }
 
-    fn get_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Aggregation>> {
+    pub fn get_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Aggregation>> {
         self.aggregation_store.get_aggregation(aggregation)
     }
 
-    fn get_committee(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Committee>> {
+    pub fn get_committee(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Committee>> {
         self.aggregation_store.get_committee(aggregation)
     }
 
@@ -92,7 +107,7 @@ impl SdaServer {
         }))
     }
 
-    fn create_snapshot(&self, snapshot:&Snapshot) -> SdaServerResult<()> {
+    pub fn create_snapshot(&self, snapshot:&Snapshot) -> SdaServerResult<()> {
         ::snapshot::snapshot(self, snapshot)
     }
 
