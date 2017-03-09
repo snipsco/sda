@@ -100,7 +100,7 @@ impl SdaClient {
 
         Ok(ClerkingResult {
             job: job.id.clone(),
-            aggregation: job.aggregation.clone(),
+            clerk: job.clerk,
             encryption: recipient_encryption,
         })
     }

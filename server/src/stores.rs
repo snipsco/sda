@@ -67,6 +67,10 @@ pub trait AggregationsStore: BaseStore {
 
     fn create_snapshot(&self, snapshot: &Snapshot) -> SdaServerResult<()>;
 
+    fn list_snapshots(&self, aggregation: &AggregationId) -> SdaServerResult<Vec<SnapshotId>>;
+
+    fn get_snapshot(&self, aggregation: &AggregationId, snapshot: &SnapshotId) -> SdaServerResult<Option<Snapshot>>;
+
     fn count_participations(&self, aggregation:&AggregationId) -> SdaServerResult<usize>;
 
     fn snapshot_participations(&self, aggregation: &AggregationId, snapshot:&SnapshotId) -> SdaServerResult<()>;
@@ -99,4 +103,14 @@ pub trait AggregationsStore: BaseStore {
 
 pub trait ClerkingJobStore: BaseStore {
     fn enqueue_clerking_job(&self, job:&ClerkingJob) -> SdaServerResult<()>;
+
+    fn poll_clerking_job(&self, clerk:&AgentId) -> SdaServerResult<Option<ClerkingJob>>;
+
+    fn get_clerking_job(&self, clerk:&AgentId, job:&ClerkingJobId) -> SdaServerResult<Option<ClerkingJob>>;
+
+    fn create_clerking_result(&self, result: &ClerkingResult) -> SdaServerResult<()>;
+
+    fn list_results(&self, snapshot: &SnapshotId) -> SdaServerResult<Vec<ClerkingJobId>>;
+
+    fn get_result(&self, snapshot: &SnapshotId, job:&ClerkingJobId) -> SdaServerResult<Option<ClerkingResult>>;
 }

@@ -85,8 +85,16 @@ pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
 
         (POST)  (/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
 
+        // FIXME. I don't like these. snapshot (and maybe jobs) should travel
+        // first class 
+        (GET)   (/aggregations/any/jobs) => { H(&server).get_clerking_job(req) },
+        (POST)  (/aggregations/implied/jobs/{id}/result) => { H(&server).create_clerking_result(&id, req) },
+
+        (GET)   (/aggregations/{aid}/snapshots/{sid}/result) =>
+            { H(&server).get_snapshot_result(&aid, &sid, req) },
+
         _ => {
-            error!("Not found: {} {}", req.method(), req.raw_url());
+            error!("Route not found: {} {}", req.method(), req.raw_url());
             Ok(Response::empty_404())
         }
     } }
@@ -186,6 +194,20 @@ impl<'a> H<'a> {
     fn create_snapshot(&self, req: &Request) -> Result<Response> {
         self.0.create_snapshot(&self.caller(req)?, &read_json(&req)?)?;
         send_empty_201()
+    }
+
+    fn get_clerking_job(&self, req: &Request) -> Result<Response> {
+        let caller = self.caller(req)?;
+        send_json_option(self.0.get_clerking_job(&caller, &caller.id)?)
+    }
+
+    fn create_clerking_result(&self, _id: &ClerkingJobId, req:&Request) -> Result<Response> {
+        self.0.create_clerking_result(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
+    }
+
+    fn get_snapshot_result(&self, aggregation: &AggregationId, snapshot: &SnapshotId, req: &Request) -> Result<Response> {
+        send_json_option(self.0.get_snapshot_result(&self.caller(req)?, aggregation, snapshot)?)
     }
 }
 

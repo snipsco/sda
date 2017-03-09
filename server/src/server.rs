@@ -19,7 +19,6 @@ macro_rules! wrap {
 }
 
 impl SdaServer {
-
     pub fn ping(&self) -> SdaServerResult<Pong> {
         self.agent_store.ping()?;
         Ok(Pong { running: true })
@@ -46,17 +45,21 @@ impl SdaServer {
     }
 
     pub fn get_encryption_key(&self,
-                          key: &EncryptionKeyId)
-                          -> SdaServerResult<Option<SignedEncryptionKey>> {
+                              key: &EncryptionKeyId)
+                              -> SdaServerResult<Option<SignedEncryptionKey>> {
         self.agent_store.get_encryption_key(key)
     }
 
-    pub fn list_aggregations(&self, filter: Option<&str>, recipient: Option<&AgentId>)
-        -> SdaServerResult<Vec<AggregationId>> {
+    pub fn list_aggregations(&self,
+                             filter: Option<&str>,
+                             recipient: Option<&AgentId>)
+                             -> SdaServerResult<Vec<AggregationId>> {
         self.aggregation_store.list_aggregations(filter, recipient)
     }
 
-    pub fn get_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Aggregation>> {
+    pub fn get_aggregation(&self,
+                           aggregation: &AggregationId)
+                           -> SdaServerResult<Option<Aggregation>> {
         self.aggregation_store.get_aggregation(aggregation)
     }
 
@@ -72,8 +75,11 @@ impl SdaServer {
         self.aggregation_store.delete_aggregation(aggregation)
     }
 
-    pub fn suggest_committee(&self, aggregation:&AggregationId) -> SdaServerResult<Vec<ClerkCandidate>> {
-        let _aggregation = self.aggregation_store.get_aggregation(aggregation)?.ok_or("deleted aggregation")?;
+    pub fn suggest_committee(&self,
+                             aggregation: &AggregationId)
+                             -> SdaServerResult<Vec<ClerkCandidate>> {
+        let _aggregation =
+            self.aggregation_store.get_aggregation(aggregation)?.ok_or("deleted aggregation")?;
         self.agent_store.suggest_committee()
     }
 
@@ -85,17 +91,67 @@ impl SdaServer {
         self.aggregation_store.create_participation(participation)
     }
 
-    pub fn get_aggregation_status(&self, aggregation: &AggregationId) -> SdaServerResult<Option<AggregationStatus>> {
+    pub fn get_aggregation_status(&self,
+                                  aggregation: &AggregationId)
+                                  -> SdaServerResult<Option<AggregationStatus>> {
+        let agg = match self.aggregation_store.get_aggregation(aggregation)? {
+            None => return Ok(None),
+            Some(agg) => agg,
+        };
+        let snapshots = self.aggregation_store
+            .list_snapshots(aggregation)?
+            .iter()
+            .map(|id| {
+                let results_count = self.clerking_job_store.list_results(id)?.len();
+                Ok(SnapshotStatus {
+                    id: id.clone(),
+                    number_of_clerking_results: results_count,
+                    result_ready: results_count >=
+                                  agg.committee_sharing_scheme.reconstruction_threshold(),
+                })
+            })
+            .collect::<SdaServerResult<Vec<SnapshotStatus>>>()?;
         Ok(Some(AggregationStatus {
             aggregation: aggregation.clone(),
             number_of_participations: self.aggregation_store.count_participations(aggregation)?,
-            number_of_clerking_results: 0, // FIXME
-            result_ready: false, // FIXME
+            snapshots: snapshots,
         }))
     }
 
-    pub fn create_snapshot(&self, snapshot:&Snapshot) -> SdaServerResult<()> {
+    pub fn create_snapshot(&self, snapshot: &Snapshot) -> SdaServerResult<()> {
         ::snapshot::snapshot(self, snapshot)
+    }
+
+    pub fn poll_clerking_job(&self, clerk: &AgentId) -> SdaServerResult<Option<ClerkingJob>> {
+        self.clerking_job_store.poll_clerking_job(clerk)
+    }
+
+    pub fn get_clerking_job(&self,
+                            clerk: &AgentId,
+                            job: &ClerkingJobId)
+                            -> SdaServerResult<Option<ClerkingJob>> {
+        self.clerking_job_store.get_clerking_job(clerk, job)
+    }
+
+    pub fn create_clerking_result(&self, result: &ClerkingResult) -> SdaServerResult<()> {
+        self.clerking_job_store.create_clerking_result(&result)
+    }
+
+    pub fn get_snapshot_result(&self,
+                               aggregation: &AggregationId,
+                               snapshot: &SnapshotId)
+                               -> SdaServerResult<Option<SnapshotResult>> {
+        let results = self.clerking_job_store
+            .list_results(snapshot)?
+            .iter()
+            .map(|id| Ok(self.clerking_job_store.get_result(snapshot, id)?.ok_or("inconsistent storage")?))
+            .collect::<SdaServerResult<Vec<ClerkingResult>>>()?;
+        Ok(Some(SnapshotResult {
+            snapshot: snapshot.clone(),
+            number_of_participations: self.aggregation_store
+                .count_participations_snapshot(aggregation, snapshot)?,
+            encryptions: results,
+        }))
     }
 
     pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
@@ -107,9 +163,10 @@ impl SdaServer {
             .get_auth_token(token.id())
             .map_err(|e| format!("error in server: {}", e))?;
         if db.as_ref() == Some(token) {
-            Ok(self.agent_store.get_agent(&token.id)
-            .map_err(|e| format!("error in server: {}", e))?
-            .ok_or("Agent not found")?)
+            Ok(self.agent_store
+                .get_agent(&token.id)
+                .map_err(|e| format!("error in server: {}", e))?
+                .ok_or("Agent not found")?)
         } else {
             Err(SdaErrorKind::InvalidCredentials)?
         }
@@ -118,7 +175,6 @@ impl SdaServer {
     pub fn delete_auth_token(&self, agent: &AgentId) -> SdaResult<()> {
         wrap!(self.auth_token_store.delete_auth_token(agent))
     }
-
 }
 
 pub struct SdaServerService(pub SdaServer);
@@ -155,10 +211,9 @@ fn acl_agent_is(agent: &Agent, agent_id: AgentId) -> SdaResult<()> {
 }
 
 impl SdaAgentService for SdaServerService {
-
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()> {
         acl_agent_is(caller, agent.id)?;
-        wrap!( self.0.create_agent(&agent))
+        wrap!(self.0.create_agent(&agent))
     }
 
     fn get_agent(&self, _caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>> {
@@ -191,7 +246,11 @@ impl SdaAgentService for SdaServerService {
 }
 
 impl SdaAggregationService for SdaServerService {
-    fn list_aggregations(&self, _caller: &Agent, filter: Option<&str>, recipient: Option<&AgentId>) -> SdaResult<Vec<AggregationId>> {
+    fn list_aggregations(&self,
+                         _caller: &Agent,
+                         filter: Option<&str>,
+                         recipient: Option<&AgentId>)
+                         -> SdaResult<Vec<AggregationId>> {
         wrap! { self.0.list_aggregations(filter, recipient) }
     }
 
@@ -217,15 +276,18 @@ impl SdaRecipientService for SdaServerService {
     }
 
     fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<()> {
-        let agg:SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(aggregation) };
+        let agg: SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(aggregation) };
         let agg = agg?;
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
         wrap! { self.0.delete_aggregation(&aggregation) }
     }
 
-    fn suggest_committee(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<ClerkCandidate>> {
-        let agg:SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(aggregation) };
+    fn suggest_committee(&self,
+                         caller: &Agent,
+                         aggregation: &AggregationId)
+                         -> SdaResult<Vec<ClerkCandidate>> {
+        let agg: SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(aggregation) };
         let agg = agg?;
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
@@ -233,50 +295,69 @@ impl SdaRecipientService for SdaServerService {
     }
 
     fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()> {
-        let agg:SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(&committee.aggregation) };
+        let agg: SdaResult<Option<Aggregation>> =
+            wrap! { self.0.get_aggregation(&committee.aggregation) };
         let agg = agg?;
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
         wrap! { self.0.create_committee(committee) }
     }
 
-    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>> {
-        let agg:SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(&aggregation) };
+    fn get_aggregation_status(&self,
+                              caller: &Agent,
+                              aggregation: &AggregationId)
+                              -> SdaResult<Option<AggregationStatus>> {
+        let agg: SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(&aggregation) };
         let agg = agg?;
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
-        wrap!( self.0.get_aggregation_status(aggregation))
+        wrap!(self.0.get_aggregation_status(aggregation))
     }
 
     fn create_snapshot(&self, caller: &Agent, snapshot: &Snapshot) -> SdaResult<()> {
-        let agg:SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(&snapshot.aggregation) };
+        let agg: SdaResult<Option<Aggregation>> =
+            wrap! { self.0.get_aggregation(&snapshot.aggregation) };
         let agg = agg?;
         let agg = agg.ok_or("No aggregation found")?;
         acl_agent_is(caller, agg.recipient)?;
         wrap! { self.0.create_snapshot(snapshot) }
     }
 
-    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
-        unimplemented!();
+    fn get_snapshot_result(&self,
+                           caller: &Agent,
+                           aggregation: &AggregationId,
+                           snapshot: &SnapshotId)
+                           -> SdaResult<Option<SnapshotResult>> {
+        // FIXME no aggregation/snapshot spoofing
+        let agg: SdaResult<Option<Aggregation>> = wrap! { self.0.get_aggregation(&aggregation) };
+        let agg = agg?;
+        let agg = agg.ok_or("No aggregation found")?;
+        acl_agent_is(caller, agg.recipient)?;
+        wrap! { self.0.get_snapshot_result(aggregation, snapshot) }
     }
 }
 
 impl SdaParticipationService for SdaServerService {
-
     fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()> {
         acl_agent_is(caller, participation.participant)?;
-        wrap!( self.0.create_participation(participation) )
+        wrap!(self.0.create_participation(participation))
     }
-
 }
 
 impl SdaClerkingService for SdaServerService {
     fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
-        unimplemented!()
+        acl_agent_is(caller, *clerk)?;
+        wrap!(self.0.poll_clerking_job(clerk))
     }
 
     fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {
-        unimplemented!()
+        // double check the job really belongs to the caller (could be spoofed
+        // if the store do a find_by_job_id without filtering on clerk id)
+        let job: SdaResult<Option<ClerkingJob>> =
+            wrap! { self.0.get_clerking_job(&result.clerk, &result.job) };
+        let job = job?;
+        let job = job.ok_or("Job not found")?;
+        acl_agent_is(caller, job.clerk)?;
+        wrap!(self.0.create_clerking_result(result))
     }
 }
-

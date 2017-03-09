@@ -287,17 +287,17 @@ impl<S> SdaClerkingService for SdaHttpClient<S>
     where S: Send + Sync + TokenStore
 {
 
-    fn get_clerking_job(&self, caller: &Agent, clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
+    fn get_clerking_job(&self, caller: &Agent, _clerk: &AgentId) -> SdaResult<Option<ClerkingJob>> {
         wrap_option_payload! { self.get(
             Some(caller),
-            self.url(format!("/aggregations/any/jobs/{}", clerk.stringify()))?
+            self.url("/aggregations/any/jobs")?
         ) }
     }
 
     fn create_clerking_result(&self, caller: &Agent, result: &ClerkingResult) -> SdaResult<()> {
         wrap_empty! { self.post::<ClerkingResult, ()>(
             Some(caller),
-            self.url(format!("/aggregations/{}/jobs/{}/result", result.aggregation.stringify(), result.job.stringify()))?,
+            self.url(format!("/aggregations/implied/jobs/{}/result", result.job.stringify()))?,
             result
         ) }
     }
@@ -346,10 +346,10 @@ impl<S> SdaRecipientService for SdaHttpClient<S>
         ) }
     }
 
-    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
+    fn get_snapshot_result(&self, caller: &Agent, aggregation: &AggregationId, snapshot:&SnapshotId) -> SdaResult<Option<SnapshotResult>> {
         wrap_payload! { self.get(
-            Some(caller), 
-            self.url(format!("/aggregations/{}/results", aggregation.stringify()))?
+            Some(caller),
+            self.url(format!("/aggregations/{}/snapshots/{}/result", aggregation.stringify(), snapshot.stringify()))?
         ) }
     }
 

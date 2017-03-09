@@ -51,13 +51,12 @@ POST /aggregations/implied/snapshot
 
 Clerking
 ```
-GET  /aggregations/-/jobs
-GET  /aggregations/<AggregationId>/jobs/<ClerkingJobId>
-POST /aggregations/<AggregationId>/jobs/<ClerkingJobId>/result
+GET  /aggregations/any/jobs
+POST /aggregations/implied/jobs/<ClerkingJobId>/result
 ```
 
 Get status and result
 ```
 GET /aggregations/<AggregationId>/status
-GET /aggregations/<AggregationId>/result
+GET /aggregations/<AggregationId>/snapshots/<SnapshotId>/result
 ```

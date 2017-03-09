@@ -191,7 +191,7 @@ identify!(Participation, ParticipationId);
 
 /// Capture existing participations in an agggregation in order to create a
 /// consistent set of clerkable shares.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Snapshot {
     pub id: SnapshotId,
     pub aggregation: AggregationId,
@@ -216,7 +216,7 @@ pub struct ClerkingJob {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClerkingResult {
     pub job: ClerkingJobId,
-    pub aggregation: AggregationId,
+    pub clerk: AgentId,
     pub encryption: Encryption,
 }
 
@@ -228,20 +228,27 @@ pub struct AggregationStatus {
     pub aggregation: AggregationId,
     /// Current number of participations received from the users.
     pub number_of_participations: usize,
+    /// Snapshot and their status for this aggregation
+    pub snapshots: Vec<SnapshotStatus>
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct SnapshotStatus {
+    /// Snapshot id
+    pub id: SnapshotId,
     /// Current number of clerking results received from the clerks.
     pub number_of_clerking_results: usize,
     /// Indication of whether a result of the aggregation can be produced from the current clerking results.
     pub result_ready: bool,
 }
 
-/// Result of an aggregation, including output.
+/// Result of an aggregation snapshot, including output, ready for
+/// reconstruction.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AggregationResult {
-    pub aggregation: AggregationId,
+pub struct SnapshotResult {
+    pub snapshot: SnapshotId,
     /// Number of participation used in this result.
     pub number_of_participations: usize,
-    /// Number of clerking results used in this result.
-    pub number_of_clerking_results: usize,
     /// Result of the aggregation.
-    pub encryptions: Vec<Encryption>,
+    pub encryptions: Vec<ClerkingResult>,
 }

@@ -105,6 +105,6 @@ pub trait SdaRecipientService : SdaBaseService {
     fn create_snapshot(&self, caller: &Agent, snapshot: &Snapshot) -> SdaResult<()>;
 
     /// retrieve results of an aggregation.
-    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>>;
+    fn get_snapshot_result(&self, caller: &Agent, aggregation: &AggregationId, snapshot: &SnapshotId) -> SdaResult<Option<SnapshotResult>>;
 
 }
