@@ -34,26 +34,28 @@ mod errors {
 }
 
 macro_rules! wrap {
-    ($e:expr) => { match $e {
+    ($req:expr, $e:expr) => { match $e {
         Ok(resp) => resp,
-        Err(e) => match e {
-            Error(ErrorKind::Sda(SdaErrorKind::InvalidCredentials), _)
-                => Response::text(format!("{:?}", e)).with_status_code(401),
-            Error(ErrorKind::Sda(SdaErrorKind::PermissionDenied), _)
-                => Response::text(format!("{:?}", e)).with_status_code(403),
-            _ => Response::text(format!("{:?}", e)).with_status_code(500),
+        Err(e) => {
+            let code = match e {
+                Error(ErrorKind::Sda(SdaErrorKind::InvalidCredentials), _) => 401,
+                Error(ErrorKind::Sda(SdaErrorKind::PermissionDenied), _) => 403,
+                _ => 500,
+            };
+            error!("Error: {} {} {} ({})", $req.method(), $req.raw_url(), e, code);
+            Response::text(format!("{}", e)).with_status_code(code)
         }
     }}
 }
 
-pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServer>) -> !
+pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServerService>) -> !
     where A: ToSocketAddrs
 {
     rouille::start_server(addr, move |r| handle(&server, r))
 }
 
-pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
-    wrap! { router! { req,
+pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
+    wrap! { req, router! { req,
         (GET)  (/ping) => { H(&server).ping(req) },
 
         (GET)  (/agents/{id: AgentId}) => { H(&server).get_agent(&id, req) },
@@ -62,7 +64,7 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
         (GET)  (/agents/{id: AgentId}/profile) => { H(&server).get_profile(&id, req) },
         (POST) (/agents/me/profile) => { H(&server).upsert_profile(req) },
 
-        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) => 
+        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) =>
             { H(&server).get_encryption_key(&id, req) },
         (POST)   (/agents/me/keys) => { H(&server).create_encryption_key(req) },
 
@@ -77,6 +79,11 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
         (GET)   (/aggregations/{id: AggregationId}/committee) =>
             { H(&server).get_committee(&id, req) },
 
+        (POST)  (/aggregations/participations) => { H(&server).create_participation(req) },
+        (GET)   (/aggregations/{id: AggregationId}/status) =>
+            { H(&server).get_aggregation_status(&id, req) },
+
+        (POST)  (/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
 
         _ => {
             error!("Not found: {} {}", req.method(), req.raw_url());
@@ -85,12 +92,12 @@ pub fn handle(server: &sda_server::SdaServer, req:&Request) -> Response {
     } }
 }
 
-struct H<'a>(&'a sda_server::SdaServer);
+struct H<'a>(&'a sda_server::SdaServerService);
 
 impl<'a> H<'a> {
     fn caller(&self, req: &Request) -> Result<Agent> {
         let auth = auth_token(&req)?;
-        Ok(self.0.check_auth_token(&auth)?)
+        Ok((self.0).0.check_auth_token(&auth)?)
     }
 
     fn ping(&self, _req: &Request) -> Result<Response> {
@@ -104,7 +111,7 @@ impl<'a> H<'a> {
             return Ok(client_error("inconsistent agent ids"));
         }
         self.0.create_agent(&agent, &agent)?;
-        self.0.upsert_auth_token(&auth)?;
+        (self.0).0.upsert_auth_token(&auth)?;
         send_empty_201()
     }
 
@@ -165,6 +172,20 @@ impl<'a> H<'a> {
 
     fn get_committee(&self, id: &AggregationId, req: &Request) -> Result<Response> {
         send_json_option(self.0.get_committee(&self.caller(req)?, id)?)
+    }
+
+    fn create_participation(&self, req:&Request) -> Result<Response> {
+        self.0.create_participation(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
+    }
+
+    fn get_aggregation_status(&self, id: &AggregationId, req: &Request) -> Result<Response> {
+        send_json_option(self.0.get_aggregation_status(&self.caller(req)?, id)?)
+    }
+
+    fn create_snapshot(&self, req: &Request) -> Result<Response> {
+        self.0.create_snapshot(&self.caller(req)?, &read_json(&req)?)?;
+        send_empty_201()
     }
 }
 

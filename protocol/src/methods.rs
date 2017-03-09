@@ -14,7 +14,7 @@ pub trait SdaService :
     + SdaAggregationService
     + SdaClerkingService
     + SdaParticipationService
-    + SdaAdministrationService
+    + SdaRecipientService
 {}
 
 /// Basic methods for all SDA services.
@@ -83,17 +83,6 @@ pub trait SdaClerkingService : SdaBaseService {
 /// Methods used by the recipient in particular.
 pub trait SdaRecipientService : SdaBaseService {
 
-    /// Poll status of an aggregation.
-    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>>;
-
-    /// Retrieve results of an aggregation.
-    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>>;
-
-}
-
-/// Methods used only for administration, including creating and deleting aggregations.
-pub trait SdaAdministrationService : SdaBaseService {
-
     /// Create a new aggregation on the service (without any associated result).
     /// If successful, the original id has been replaced by the returned id.
     fn create_aggregation(&self, caller: &Agent, aggregation: &Aggregation) -> SdaResult<()>;
@@ -108,4 +97,14 @@ pub trait SdaAdministrationService : SdaBaseService {
 
     /// Set the committee for an aggregation.
     fn create_committee(&self, caller: &Agent, committee: &Committee) -> SdaResult<()>;
+
+    /// Poll status of an aggregation.
+    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>>;
+
+    /// Create a snapshot for an aggregation.
+    fn create_snapshot(&self, caller: &Agent, snapshot: &Snapshot) -> SdaResult<()>;
+
+    /// retrieve results of an aggregation.
+    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>>;
+
 }

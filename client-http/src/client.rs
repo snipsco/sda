@@ -276,7 +276,7 @@ impl<S> SdaParticipationService for SdaHttpClient<S>
     fn create_participation(&self, caller: &Agent, participation: &Participation) -> SdaResult<()> {
         wrap_empty! { self.post::<Participation, ()>(
             Some(caller),
-            self.url(format!("/aggregations/{}/participations", participation.aggregation.stringify()))?,
+            self.url("/aggregations/participations")?,
             participation
         ) }
     }
@@ -308,26 +308,6 @@ impl<S> SdaRecipientService for SdaHttpClient<S>
     where S: Send + Sync + TokenStore
 {
 
-    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>> {
-        wrap_option_payload! { self.get(
-            Some(caller),
-            self.url(format!("/aggregations/{}/status", aggregation.stringify()))?
-        ) }
-    }
-
-    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
-        wrap_payload! { self.get(
-            Some(caller),
-            self.url(format!("/aggregations/{}/results", aggregation.stringify()))?
-        ) }
-    }
-
-}
-
-impl<S> SdaAdministrationService for SdaHttpClient<S>
-    where S: Send + Sync + TokenStore
-{
-
     fn create_aggregation(&self, caller: &Agent, aggregation: &Aggregation) -> SdaResult<()> {
         wrap_empty! { self.post::<Aggregation, ()>(
             Some(caller),
@@ -350,6 +330,29 @@ impl<S> SdaAdministrationService for SdaHttpClient<S>
             committee
         ) }
     }
+
+    fn get_aggregation_status(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Option<AggregationStatus>> {
+        wrap_option_payload! { self.get(
+            Some(caller), 
+            self.url(format!("/aggregations/{}/status", aggregation.stringify()))?
+        ) }
+    }
+
+    fn create_snapshot(&self, caller: &Agent, snapshot:&Snapshot) -> SdaResult<()> {
+        wrap_empty! { self.post::<Snapshot, ()>(
+            Some(caller),
+            self.url("/aggregations/implied/snapshot")?,
+            snapshot
+        ) }
+    }
+
+    fn get_aggregation_results(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<AggregationResult>> {
+        wrap_payload! { self.get(
+            Some(caller), 
+            self.url(format!("/aggregations/{}/results", aggregation.stringify()))?
+        ) }
+    }
+
 
     fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<()> {
         wrap_empty! { self.delete::<()>(

@@ -1,5 +1,4 @@
-use sda_protocol::{Agent, AgentId, Labeled, Profile, EncryptionKeyId, SignedEncryptionKey};
-use sda_protocol::{Aggregation, AggregationId, ClerkCandidate, Committee};
+use sda_protocol::*;
 use SdaServerResult;
 
 pub trait BaseStore : Sync + Send {
@@ -63,4 +62,41 @@ pub trait AggregationsStore: BaseStore {
     fn get_committee(&self, owner: &AggregationId) -> SdaServerResult<Option<Committee>>;
 
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()>;
+
+    fn create_participation(&self, participation: &Participation) -> SdaServerResult<()>;
+
+    fn create_snapshot(&self, snapshot: &Snapshot) -> SdaServerResult<()>;
+
+    fn count_participations(&self, aggregation:&AggregationId) -> SdaServerResult<usize>;
+
+    fn snapshot_participations(&self, aggregation: &AggregationId, snapshot:&SnapshotId) -> SdaServerResult<()>;
+
+    fn iter_snapped_participations<'a, 'b>(&'b self, aggregation:&AggregationId, snapshot:&SnapshotId)
+         -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Participation>> + 'a>>
+        where 'b: 'a;
+
+    fn count_participations_snapshot(&self, aggregation:&AggregationId, snapshot: &SnapshotId) -> SdaServerResult<usize> {
+        Ok(self.iter_snapped_participations(aggregation, snapshot)?.count())
+    }
+
+    fn iter_snapshot_clerk_jobs_data<'a, 'b> (&'b self, aggregation: &AggregationId, snapshot: &SnapshotId, clerks_number: usize)
+         -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Vec<Encryption>>> + 'a>>
+        where 'b: 'a
+    {
+        let participations = self.count_participations_snapshot(aggregation, snapshot)?;
+        let mut shares: Vec<Vec<Encryption>> = (0..clerks_number)
+            .map(|_| Vec::with_capacity(participations))
+            .collect();
+
+        for participation in self.iter_snapped_participations(aggregation, snapshot)? {
+            for (ix, share) in participation?.encryptions.into_iter().enumerate() {
+                shares[ix].push(share.1);
+            }
+        }
+        Ok(Box::new(shares.into_iter().map(|data| Ok(data))))
+    }
+}
+
+pub trait ClerkingJobStore: BaseStore {
+    fn enqueue_clerking_job(&self, job:&ClerkingJob) -> SdaServerResult<()>;
 }

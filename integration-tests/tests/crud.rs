@@ -112,22 +112,22 @@ pub fn auth_tokens_crud() {
             id: alice.id,
             body: "tok".into(),
         };
-        assert!(ctx.server.check_auth_token(&alice_token).is_err());
+        assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
         // TODO check error kind is InvalidCredentials
         ctx.server.create_agent(&alice, &alice).unwrap();
-        ctx.server.upsert_auth_token(&alice_token).unwrap();
-        assert!(ctx.server.check_auth_token(&alice_token).is_ok());
+        ctx.server.0.upsert_auth_token(&alice_token).unwrap();
+        assert!(ctx.server.0.check_auth_token(&alice_token).is_ok());
         let alice_token_new = AuthToken {
             id: alice.id,
             body: "token".into(),
         };
-        assert!(ctx.server.check_auth_token(&alice_token_new).is_err());
-        ctx.server.upsert_auth_token(&alice_token_new).unwrap();
-        assert!(ctx.server.check_auth_token(&alice_token_new).is_ok());
-        assert!(ctx.server.check_auth_token(&alice_token).is_err());
-        ctx.server.delete_auth_token(&alice.id).unwrap();
-        assert!(ctx.server.check_auth_token(&alice_token_new).is_err());
-        assert!(ctx.server.check_auth_token(&alice_token).is_err());
+        assert!(ctx.server.0.check_auth_token(&alice_token_new).is_err());
+        ctx.server.0.upsert_auth_token(&alice_token_new).unwrap();
+        assert!(ctx.server.0.check_auth_token(&alice_token_new).is_ok());
+        assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
+        ctx.server.0.delete_auth_token(&alice.id).unwrap();
+        assert!(ctx.server.0.check_auth_token(&alice_token_new).is_err());
+        assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
     });
 }
 
@@ -135,9 +135,7 @@ pub fn auth_tokens_crud() {
 pub fn aggregation_crud() {
     with_service(|ctx| {
         use sda_protocol as p;
-        let alice = new_agent();
-        ctx.server.create_agent(&alice, &alice).unwrap();
-        let alice_key = new_key_for_agent(&alice);
+        let (alice, alice_key) = new_full_agent(&ctx.service);
         assert_eq!(0,
                    ctx.service.list_aggregations(&alice, None, None).unwrap().len());
         let agg = sda_protocol::Aggregation {

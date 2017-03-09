@@ -35,14 +35,18 @@ DELETE /aggregations/<AggregationId>
 Committee
 ```
 GET  /aggregations/<AggregationId>/committee/suggestions
-POST /aggregations/<AggregationId>/committee
+POST /aggregations/implied/committee
 GET  /aggregations/<AggregationId>/committee
 ```
 
 Participate
 ```
-GET  /aggregations/<AggregationId>/participations/<ParticipationId>
-POST /aggregations/<AggregationId>/participations/<ParticipationId>
+POST /aggregations/participations
+```
+
+Snapshot participation
+```
+POST /aggregations/implied/snapshot
 ```
 
 Clerking

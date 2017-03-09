@@ -12,6 +12,7 @@ extern crate error_chain;
 extern crate itertools;
 extern crate jfs;
 extern crate serde;
+#[macro_use]
 extern crate serde_derive;
 extern crate uuid;
 
@@ -19,9 +20,10 @@ extern crate sda_protocol;
 
 mod errors;
 mod server;
+mod snapshot;
 
 pub mod stores;
 pub mod jfs_stores;
 
-pub use server::SdaServer;
+pub use server::{ SdaServer, SdaServerService };
 use errors::*;
