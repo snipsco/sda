@@ -8,6 +8,8 @@ mod encryption;
 use sda_protocol::*;
 use errors::SdaClientResult;
 
+use std::sync::Arc;
+
 pub use self::signing::{SignatureKeypair, SignExport, SignatureVerification};
 pub use self::masking::{SecretMaskerConstruction};
 pub use self::sharing::{ShareGeneratorConstruction, ShareCombinerConstruction};
@@ -33,11 +35,11 @@ pub trait Keystore :
 {}
 
 pub struct CryptoModule {
-    keystore: Box<Keystore>
+    keystore: Arc<Keystore>
 }
 
 impl CryptoModule {
-    pub fn new(keystore: Box<Keystore>) -> CryptoModule {
+    pub fn new(keystore: Arc<Keystore>) -> CryptoModule {
         CryptoModule { keystore: keystore }
     }
 }

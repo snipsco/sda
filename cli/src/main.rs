@@ -20,6 +20,7 @@ use sda_client_http::*;
 use sda_client_store::Filebased;
 
 use slog::*;
+use std::sync::Arc;
 
 use errors::*;
 
@@ -80,7 +81,7 @@ fn run() -> SdaCliResult<()> {
 
     use sda_client_store::Store;
     let agent = identitystore.get_aliased("agent")?;
-    
+
     match matches.subcommand() {
 
         ("ping", Some(_)) => {
@@ -104,13 +105,13 @@ fn run() -> SdaCliResult<()> {
                         agent.unwrap()
                     } else {
                         let keystore = Filebased::new(&keystore_path)?;
-                        let agent = sda_client::new_agent(Box::new(keystore))?;
+                        let agent = sda_client::new_agent(Arc::new(keystore))?;
                         identitystore.put_aliased("agent", &agent)?;
                         info!("Created new agent with id {:?}", &agent.id);
                         agent
                     };
                     let keystore = Filebased::new(&keystore_path)?;
-                    let client = SdaClient::new(agent, Box::new(keystore), Box::new(service));
+                    let client = SdaClient::new(agent, Arc::new(keystore), Arc::new(service));
                     Ok(client.upload_agent()?)
                 },
 
@@ -130,7 +131,7 @@ fn run() -> SdaCliResult<()> {
                 ("keys", Some(matches)) => {
                     let agent = agent.ok_or("Agent missing")?;
                     let keystore = Filebased::new(&keystore_path)?;
-                    let client = SdaClient::new(agent, Box::new(keystore), Box::new(service));
+                    let client = SdaClient::new(agent, Arc::new(keystore), Arc::new(service));
 
                     match matches.subcommand() {
                         ("create", Some(_)) => {

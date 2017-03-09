@@ -12,11 +12,12 @@ tempdir = "0.3.5"
 sda-protocol = { path= "../protocol" }
 sda-server = { path= "../server" }
 sda-server-http = { path= "../server-http", optional=true }
+sda-client = { path= "../client" }
+sda-client-store = { path= "../client-store" }
 sda-client-http = { path= "../client-http", optional=true }
-sda-client-store = { path= "../client-store", optional=true }
 slog = "1.5"
 slog-scope = "0.2"
 slog-term = "1.3.5"
 
 [features]
-http = ["sda-server-http", "sda-client-http", "sda-client-store" ]
+http = ["sda-server-http", "sda-client-http" ]

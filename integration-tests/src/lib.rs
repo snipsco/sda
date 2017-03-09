@@ -2,6 +2,7 @@
 extern crate rouille;
 extern crate sda_protocol;
 extern crate sda_server;
+extern crate sda_client;
 #[cfg(feature="http")]
 extern crate sda_client_http;
 #[cfg(feature="http")]
@@ -19,6 +20,24 @@ use std::sync::Arc;
 
 use sda_server::SdaServer;
 use sda_protocol::*;
+
+pub trait CombinedServices :
+    Send
+    + Sync
+    + SdaService
+    + SdaAgentService
+    + SdaAggregationService
+    + SdaAdministrationService
+{}
+
+impl<T> CombinedServices for T where T: 
+    Send
+    + Sync
+    + SdaService
+    + SdaAgentService
+    + SdaAggregationService
+    + SdaAdministrationService
+{}
 
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
@@ -39,15 +58,15 @@ fn ensure_logs() {
     });
 }
 
-fn jfs_server(dir: &path::Path) -> Arc<SdaServer> {
+fn jfs_server(dir: &path::Path) -> SdaServer {
     let agents = sda_server::jfs_stores::JfsAgentStore::new(dir.join("agents")).unwrap();
     let auth = sda_server::jfs_stores::JfsAuthStore::new(dir.join("auths")).unwrap();
     let agg = sda_server::jfs_stores::JfsAggregationsStore::new(dir.join("service")).unwrap();
-    Arc::new(SdaServer {
+    SdaServer {
         agent_store: Box::new(agents),
         auth_token_store: Box::new(auth),
         aggregation_store: Box::new(agg),
-    })
+    }
 }
 
 pub fn new_agent() -> Agent {
@@ -73,7 +92,7 @@ pub fn new_key_for_agent(alice: &Agent) -> SignedEncryptionKey {
     }
 }
 
-pub fn new_full_agent(agents: &SdaAgentService) -> (Agent, SignedEncryptionKey) {
+pub fn new_full_agent(agents: &Arc<CombinedServices>) -> (Agent, SignedEncryptionKey) {
     let ag = new_agent();
     agents.create_agent(&ag, &ag).unwrap();
     let key = new_key_for_agent(&ag);
@@ -82,25 +101,22 @@ pub fn new_full_agent(agents: &SdaAgentService) -> (Agent, SignedEncryptionKey) 
 }
 
 
-pub struct TestContext<'a> {
+pub struct TestContext {
     pub server: Arc<SdaServer>,
-    pub agents: &'a SdaAgentService,
-    pub aggregation: &'a SdaAggregationService,
-    pub admin: &'a SdaAdministrationService,
+    pub service: Arc<CombinedServices>,
 }
 
 pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
-    let server = jfs_server(tempdir.path());
+    let server: SdaServer = jfs_server(tempdir.path());
+    let s: Arc<SdaServer> = Arc::new(server);
+    let service: Arc<CombinedServices> = s.clone() as _;
 //    println!("tempdir: {:?}", tempdir.into_path());
-    let services = server.clone();
     let tc = TestContext {
-        server: server,
-        agents: &*services,
-        aggregation: &*services,
-        admin: &*services,
+        server: s,
+        service: service,
     };
     f(&tc)
 }
@@ -135,9 +151,7 @@ pub fn with_service<F>(f: F)
         let services = ::sda_client_http::SdaHttpClient::new(&*http_address,store).unwrap();
         let tc = TestContext {
             server: ctx.server.clone(),
-            agents: &services,
-            aggregation: &services,
-            admin: &services,
+            service: Arc::new(services),
         };
         f(&tc);
         running.store(false, Ordering::SeqCst);

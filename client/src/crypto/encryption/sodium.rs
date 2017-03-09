@@ -1,7 +1,7 @@
 use super::*;
 
 use sodiumoxide;
-use std::sync::{Once, ONCE_INIT};
+use std::sync::{Arc, Once, ONCE_INIT};
 use integer_encoding::VarInt;
 
 
@@ -54,7 +54,7 @@ pub struct Decryptor {
 }
 
 impl Decryptor {
-    pub fn new(id: &EncryptionKeyId, keystore: &Box<Keystore>) -> SdaClientResult<Decryptor> {
+    pub fn new(id: &EncryptionKeyId, keystore: &Arc<Keystore>) -> SdaClientResult<Decryptor> {
         let keypair = keystore.get(id)?.ok_or("Could not load keypair for decryption")?;
         match keypair {
 

@@ -31,6 +31,8 @@ pub use crypto::{Keystore, KeyStorage, EncryptionKeypair, SignatureKeypair};
 use sda_protocol::*;
 use crypto::CryptoModule;
 
+use std::sync::Arc;
+
 pub trait Service : 
     Send
     + Sync
@@ -57,12 +59,12 @@ impl<T> Service for T where T:
 pub struct SdaClient {
     agent: Agent,
     crypto: CryptoModule,
-    service: Box<Service>,
+    service: Arc<Service>,
     trust: trust::Pessimistic,
 }
 
 impl SdaClient {
-    pub fn new(agent: Agent, keystore: Box<Keystore>, service: Box<Service>) -> SdaClient
+    pub fn new(agent: Agent, keystore: Arc<Keystore>, service: Arc<Service>) -> SdaClient
      {
         SdaClient {
             agent: agent,

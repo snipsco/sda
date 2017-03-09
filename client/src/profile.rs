@@ -4,7 +4,9 @@ use SdaClient;
 use crypto::*;
 use errors::SdaClientResult;
 
-pub fn new_agent(keystore: Box<Keystore>) -> SdaClientResult<Agent> {
+use std::sync::Arc;
+
+pub fn new_agent(keystore: Arc<Keystore>) -> SdaClientResult<Agent> {
     let crypto = CryptoModule::new(keystore);
     Ok(Agent {
         id: AgentId::new(),

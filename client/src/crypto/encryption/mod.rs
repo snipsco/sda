@@ -2,7 +2,6 @@
 
 use super::*;
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub enum DecryptionKey {
     Sodium(::sda_protocol::byte_arrays::B32)
