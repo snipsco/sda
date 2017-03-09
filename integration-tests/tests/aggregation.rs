@@ -1,11 +1,7 @@
 extern crate sda_protocol;
 extern crate sda_server;
-extern crate sda_client;
-extern crate sda_client_store;
 extern crate sda_tests;
 use sda_protocol::*;
-use sda_client::*;
-use sda_client_store::*;
 use sda_tests::*;
 
 fn small_aggregation(recipient: &AgentId, recipient_key: &EncryptionKeyId) -> Aggregation {
@@ -44,16 +40,5 @@ pub fn committee() {
         ctx.service.create_committee(&alice, &committee).unwrap();
         let committee_again = ctx.service.get_committee(&alice, &agg.id).unwrap();
         assert_eq!(Some(&committee), committee_again.as_ref());
-    });
-}
-
-#[test]
-pub fn clients() {
-    with_service(|ctx| {
-        use std::sync::Arc;
-        
-        let agent = sda_tests::new_agent();
-        let keystore = sda_client_store::Filebased::new(&".sda").unwrap();
-        let client = SdaClient::new(agent, Arc::new(keystore), ctx.service.clone());
     });
 }

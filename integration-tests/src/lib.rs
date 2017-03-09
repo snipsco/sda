@@ -3,10 +3,9 @@ extern crate rouille;
 extern crate sda_protocol;
 extern crate sda_server;
 extern crate sda_client;
+extern crate sda_client_store;
 #[cfg(feature="http")]
 extern crate sda_client_http;
-#[cfg(feature="http")]
-extern crate sda_client_store;
 #[cfg(feature="http")]
 extern crate sda_server_http;
 #[macro_use]
@@ -20,6 +19,8 @@ use std::sync::Arc;
 
 use sda_server::SdaServer;
 use sda_protocol::*;
+use sda_client::*;
+use sda_client_store::*;
 
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
@@ -80,6 +81,12 @@ pub fn new_full_agent(agents: &Arc<SdaService>) -> (Agent, SignedEncryptionKey) 
     let key = new_key_for_agent(&ag);
     agents.create_encryption_key(&ag, &key).unwrap();
     (ag, key)
+}
+
+pub fn new_client(agent: Agent, service: &Arc<SdaService>) -> SdaClient {
+    let tempdir = ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap();
+    let keystore = sda_client_store::Filebased::new(&tempdir.path()).unwrap();
+    SdaClient::new(agent, Arc::new(keystore), service.clone())
 }
 
 
