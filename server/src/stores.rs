@@ -93,7 +93,7 @@ pub trait AggregationsStore: BaseStore {
             .collect();
 
         for participation in self.iter_snapped_participations(aggregation, snapshot)? {
-            for (ix, share) in participation?.encryptions.into_iter().enumerate() {
+            for (ix, share) in participation?.clerk_encryptions.into_iter().enumerate() {
                 shares[ix].push(share.1);
             }
         }

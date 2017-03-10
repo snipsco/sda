@@ -17,7 +17,9 @@ pub trait Clerking {
     fn clerk_once(&self) -> SdaClientResult<bool>;
 
     /// Execute routine clerking chores, including registering if not done so already.
-    fn run_chores(&self) -> SdaClientResult<()>;
+    ///
+    /// Note that a negative `max_iterations` will continue the clerking process until there are no more jobs.
+    fn run_chores(&self, mut max_iterations: isize) -> SdaClientResult<()>;
 
 }
 
@@ -42,17 +44,18 @@ impl Clerking for SdaClient {
         }
     }
 
-    fn run_chores(&self) -> SdaClientResult<()> {
+    fn run_chores(&self, mut max_iterations: isize) -> SdaClientResult<()> {
         // register if we haven't done so already
         self.register_as_clerk(false)?;
         // repeatedly process jobs
-        let max_iterations = 10;
-        for _ in 0..max_iterations {
-            if self.clerk_once()? {
-                continue
-            } else {
+        loop {
+            if max_iterations == 0 {
                 break
             }
+            if !self.clerk_once()? {
+                break
+            }
+            max_iterations -= 1;
         }
         Ok(())
     }

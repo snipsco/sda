@@ -82,13 +82,10 @@ impl ShareDecryptor for Decryptor {
             &Encryption::Sodium(ref raw) => raw,
         };
         // decrypt
-        let result = sodiumoxide::crypto::sealedbox::open(&encryption[..], &self.pk, &self.sk);
-        // TODO better way of doing this?
-        let raw_data = if result.is_ok() {
-            Ok(result.unwrap())
-        } else {
-            Err("Sodium decryption failure")
-        }?;
+        let raw_data = match sodiumoxide::crypto::sealedbox::open(&encryption[..], &self.pk, &self.sk) {
+            Ok(raw_data) => raw_data,
+            Err(()) => Err("Sodium decryption failure")?
+        };
         // decode
         let mut reader = &raw_data[..];
         let mut decoded_shares = vec![];

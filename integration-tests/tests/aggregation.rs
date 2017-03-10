@@ -53,7 +53,8 @@ pub fn full_mocked_loop() {
                 id: ParticipationId::random(),
                 participant: p.0.id().clone(),
                 aggregation: agg.id,
-                encryptions: clerks.iter()
+                recipient_encryption: None,
+                clerk_encryptions: clerks.iter()
                     .enumerate()
                     .map(|(ci, c)| (c.id, Encryption::Sodium(vec![ci as u8, pi as u8])))
                     .collect(),
@@ -153,7 +154,7 @@ pub fn participation() {
         recipient.upload_aggregation(&aggregation).unwrap();
 
         // prepare clerks
-        let clerks_store: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        let clerks_store: Vec<::tempdir::TempDir> = (0..3).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
         let clerks: Vec<SdaClient> = clerks_store.iter().map(|store| new_client(store, &ctx.service)).collect();
         for clerk in clerks.iter() {
             let clerk_key = clerk.new_encryption_key().unwrap();
@@ -171,24 +172,50 @@ pub fn participation() {
                 })
                 .collect(),
         };
+        
         ctx.service.create_committee(&recipient.agent, &committee).unwrap();
         assert_eq!(ctx.service.get_committee(&recipient.agent, &aggregation.id).unwrap().as_ref(), Some(&committee));
 
         // prepare participants
-        let participants_store: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        let participants_store: Vec<::tempdir::TempDir> = (0..1).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
         let participants: Vec<SdaClient> = participants_store.iter().map(|store| new_client(store, &ctx.service)).collect();
 
         // participate
-        for participant in participants {
-            let input = ParticipantInput(vec![1,2,3,4]);
-            let participation = participant.new_participation(&input, &aggregation.id, false).unwrap();
-            participant.upload_participation(&participation).unwrap();
+        for participant in &participants {
+            participant.participate(vec![1,2,3,4], &aggregation.id).unwrap();
         }
+
+        // create snapshot
+        let snapshot = Snapshot {
+            id: SnapshotId::random(),
+            aggregation: aggregation.id.clone(),
+        };
+        ctx.service.create_snapshot(&recipient.agent, &snapshot).unwrap();
+        // .. and check status
+        let status = ctx.service.get_aggregation_status(&recipient.agent, &aggregation.id).unwrap().unwrap();
+        assert_eq!(aggregation.id, status.aggregation);
+        assert_eq!(&participants.len(), &status.number_of_participations);
+        assert_eq!(1, status.snapshots.len());
+        assert_eq!(SnapshotStatus {
+            id: snapshot.id.clone(),
+            number_of_clerking_results: 0,
+            result_ready: false,
+        }, status.snapshots[0]);
 
         // perform clerking
         for clerk in clerks {
-            clerk.run_chores().unwrap();
+            clerk.run_chores(-1).unwrap();
         }
+        // .. and recheck status
+        let status = ctx.service.get_aggregation_status(&recipient.agent, &aggregation.id).unwrap().unwrap();
+        assert_eq!(aggregation.id, status.aggregation);
+        assert_eq!(&participants.len(), &status.number_of_participations);
+        assert_eq!(1, status.snapshots.len());
+        assert_eq!(SnapshotStatus {
+            id: snapshot.id.clone(),
+            number_of_clerking_results: 3,
+            result_ready: true,
+        }, status.snapshots[0]);
 
         //
         // let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();

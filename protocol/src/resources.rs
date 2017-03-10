@@ -183,7 +183,8 @@ pub struct Participation {
     pub id: ParticipationId,
     pub participant: AgentId,
     pub aggregation: AggregationId,
-    pub encryptions: Vec<(AgentId, Encryption)>,
+    pub recipient_encryption: Option<Encryption>,
+    pub clerk_encryptions: Vec<(AgentId, Encryption)>,
 }
 
 uuid_id!{ #[doc="Unique participation identifier."] ParticipationId }

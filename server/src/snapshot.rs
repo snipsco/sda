@@ -5,7 +5,7 @@ use stores::AggregationsStore;
 
 pub fn snapshot(server: &SdaServer, snapshot: &Snapshot) -> SdaServerResult<()> {
     server.aggregation_store.snapshot_participations(&snapshot.aggregation, &snapshot.id)?;
-    let committee = server.get_committee(&snapshot.aggregation)?.ok_or("lost committe")?;
+    let committee = server.get_committee(&snapshot.aggregation)?.ok_or("lost committee")?;
     let encryptions = server.aggregation_store
         .iter_snapshot_clerk_jobs_data(&snapshot.aggregation,
                                        &snapshot.id,

@@ -24,9 +24,17 @@ pub trait Participating {
     /// Upload participation to the service.
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()>;
 
+    fn participate(&self, input: Vec<i64>, aggregation: &AggregationId) -> SdaClientResult<()>;
+
 }
 
 impl Participating for SdaClient {
+
+    fn participate(&self, input: Vec<i64>, aggregation: &AggregationId) -> SdaClientResult<()> {
+        let input = ParticipantInput(input);
+        let participation = self.new_participation(&input, &aggregation, false)?;
+        self.upload_participation(&participation)
+    }
 
     #[allow(unused_variables)]
     fn preload_for_participation(&self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
@@ -59,30 +67,32 @@ impl Participating for SdaClient {
         // load committee
         let committee: Committee = self.service.get_committee(&self.agent, aggregation_id)?.ok_or("Could not find committee")?;
 
-        // encryptions for the participation; we'll fill this one up as we go along
-        let mut encryptions: Vec<(AgentId, Encryption)> = vec!();
-
         // mask the secrets
         let mut secret_masker = self.crypto.new_secret_masker(&aggregation.masking_scheme)?;
         let (recipient_mask, committee_masked_secrets) = secret_masker.mask_secrets(secrets);
 
-        // fetch and verify recipient's encryption key
-        let recipient_id = &aggregation.recipient;
-        let recipient_signed_encryption_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?.ok_or("Unknown encryption key")?;
-        let recipient = self.service.get_agent(&self.agent, recipient_id)?.ok_or("Unknown agent")?;
-        if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
-            Err("Signature verification failed for recipient key")?
-        }
-        let recipient_encryption_key = recipient_signed_encryption_key.body.body;
-        // .. encrypt the recipient's mask using it
-        let mask_encryptor = self.crypto.new_share_encryptor(&recipient_encryption_key, &aggregation.recipient_encryption_scheme)?;
-        let recipient_encryption: Encryption = mask_encryptor.encrypt(&*recipient_mask)?;
-        // .. and add result to collection
-        encryptions.push((aggregation.recipient.clone(), recipient_encryption));
+        let recipient_encryption: Option<Encryption> = if recipient_mask.len() == 0 {
+            None
+        } else {
+            // fetch and verify recipient's encryption key
+            let recipient_id = &aggregation.recipient;
+            let recipient_signed_encryption_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?.ok_or("Unknown encryption key")?;
+            let recipient = self.service.get_agent(&self.agent, recipient_id)?.ok_or("Unknown agent")?;
+            if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
+                Err("Signature verification failed for recipient key")?
+            }
+            let recipient_encryption_key = recipient_signed_encryption_key.body.body;
+            // .. encrypt the recipient's mask using it
+            let mask_encryptor = self.crypto.new_share_encryptor(&recipient_encryption_key, &aggregation.recipient_encryption_scheme)?;
+            Some(mask_encryptor.encrypt(&*recipient_mask)?)
+        };
 
         // share the committee's masked secrets: each inner vector corresponds to the shares of a single clerk
         let mut share_generator = self.crypto.new_share_generator(&aggregation.committee_sharing_scheme)?;
         let committee_shares_per_clerk: Vec<Vec<Share>> = share_generator.generate_shares(&committee_masked_secrets);
+
+        // encryptions for the participation; we'll fill this one up as we go along
+        let mut clerk_encryptions: Vec<(AgentId, Encryption)> = vec!();
 
         // encrypt the committee's shares
         for clerk_index in 0..committee_shares_per_clerk.len() {
@@ -101,7 +111,7 @@ impl Participating for SdaClient {
             let share_encryptor = self.crypto.new_share_encryptor(&clerk_encryption_key, &aggregation.committee_encryption_scheme)?;
             let clerk_encryption: Encryption = share_encryptor.encrypt(&*clerk_shares)?;
             // .. and add result to collection
-            encryptions.push((clerk_id.clone(), clerk_encryption));
+            clerk_encryptions.push((clerk_id.clone(), clerk_encryption));
         }
 
         // generate fresh id for this participation
@@ -111,7 +121,8 @@ impl Participating for SdaClient {
             id: participation_id,
             participant: self.agent.id.clone(),
             aggregation: aggregation.id.clone(),
-            encryptions: encryptions,
+            recipient_encryption: recipient_encryption,
+            clerk_encryptions: clerk_encryptions,
         })
     }
 
