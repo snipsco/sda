@@ -22,7 +22,7 @@ impl AdditiveSecretSharing {
 
 impl BatchShareGenerator for AdditiveSecretSharing {
 
-    fn batch_input_size(&self) -> usize { 
+    fn batch_input_size(&self) -> usize {
         1
     }
 
@@ -39,13 +39,15 @@ impl BatchShareGenerator for AdditiveSecretSharing {
         // specifically, that self.modulus fits within i32
 
         // pick share_count - 1 random values from group
-        let mut shares: Vec<Share> = repeat(self.rng.gen_range(0_i64, self.modulus))
-            .take(self.share_count - 1)
+        let mut shares: Vec<Share> = (0..self.share_count - 1)
+            .map(|_| self.rng.gen_range(0_i64, self.modulus))
             .collect();
 
         // compute the last share as the secret minus the sum of all other shares
         let last_share = shares.iter().fold(-secret, |sum, &x| { (sum + x) % self.modulus });
         shares.push(last_share);
+
+        // println!("shares: {:?}", shares);
 
         shares
     }
