@@ -251,5 +251,7 @@ pub struct SnapshotResult {
     /// Number of participation used in this result.
     pub number_of_participations: usize,
     /// Result of the aggregation.
-    pub encryptions: Vec<ClerkingResult>,
+    pub clerk_encryptions: Vec<ClerkingResult>,
+    /// Optional mask
+    pub recipient_encryptions: Option<Vec<Encryption>>,
 }

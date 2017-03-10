@@ -4,8 +4,8 @@ use std::path;
 use std::str::FromStr;
 
 use sda_protocol::{Id, Identified};
-use sda_protocol::{AgentId, Aggregation, AggregationId, Committee, Participation, ParticipationId,
-                   Snapshot, SnapshotId};
+use sda_protocol::{AgentId, Aggregation, AggregationId, Committee, Encryption, Participation,
+                   ParticipationId, Snapshot, SnapshotId};
 
 use SdaServerResult;
 
@@ -22,6 +22,7 @@ pub struct JfsAggregationsStore {
     committees: jfs::Store,
     snapshots: jfs::Store,
     snapshot_contents: jfs::Store,
+    snapshot_masks: jfs::Store,
 }
 
 impl JfsAggregationsStore {
@@ -30,12 +31,15 @@ impl JfsAggregationsStore {
         let committees = prefix.as_ref().join("committees");
         let snapshots = prefix.as_ref().join("snapshots");
         let snapshot_contents = prefix.as_ref().join("snapshot_contents");
+        let snapshot_masks = prefix.as_ref().join("snapshot_masks");
         Ok(JfsAggregationsStore {
             participations: prefix.as_ref().join("participations"),
             aggregations: jfs::Store::new(aggregations.to_str().ok_or("pathbuf to string")?)?,
             committees: jfs::Store::new(committees.to_str().ok_or("pathbuf to string")?)?,
             snapshots: jfs::Store::new(snapshots.to_str().ok_or("pathbuf to string")?)?,
             snapshot_contents: jfs::Store::new(snapshot_contents.to_str()
+                .ok_or("pathbuf to string")?)?,
+            snapshot_masks: jfs::Store::new(snapshot_masks.to_str()
                 .ok_or("pathbuf to string")?)?,
         })
     }
@@ -133,7 +137,7 @@ impl AggregationsStore for JfsAggregationsStore {
     }
 
     fn get_snapshot(&self,
-                    aggregation: &AggregationId,
+                    _aggregation: &AggregationId,
                     snapshot: &SnapshotId)
                     -> SdaServerResult<Option<Snapshot>> {
         super::get_option(&self.snapshots, &snapshot.stringify())
@@ -151,5 +155,17 @@ impl AggregationsStore for JfsAggregationsStore {
         Ok(Box::new(snap.participations
             .into_iter()
             .map(move |id| Ok(store.get::<Participation>(&id.stringify())?))))
+    }
+
+    fn create_snapshot_mask(&self,
+                            snapshot: &SnapshotId,
+                            mask: Vec<Encryption>)
+                            -> SdaServerResult<()> {
+        self.snapshot_masks.save_with_id(&mask, &snapshot.stringify())?;
+        Ok(())
+    }
+
+    fn get_snapshot_mask(&self, snapshot: &SnapshotId) -> SdaServerResult<Option<Vec<Encryption>>> {
+        super::get_option(&self.snapshot_masks, &snapshot.stringify())
     }
 }

@@ -44,6 +44,14 @@ pub enum LinearMaskingScheme {
 
 }
 
+impl LinearMaskingScheme {
+    pub fn has_mask(&self) -> bool {
+        match self {
+            &LinearMaskingScheme::None => false,
+        }
+    }
+}
+
 /// Supported secret sharing schemes and their parameters.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LinearSecretSharingScheme {

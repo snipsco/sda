@@ -150,7 +150,8 @@ impl SdaServer {
             snapshot: snapshot.clone(),
             number_of_participations: self.aggregation_store
                 .count_participations_snapshot(aggregation, snapshot)?,
-            encryptions: results,
+            clerk_encryptions: results,
+            recipient_encryptions: self.aggregation_store.get_snapshot_mask(snapshot)?,
         }))
     }
 

@@ -99,6 +99,10 @@ pub trait AggregationsStore: BaseStore {
         }
         Ok(Box::new(shares.into_iter().map(|data| Ok(data))))
     }
+
+    fn create_snapshot_mask(&self, snapshot:&SnapshotId, mask:Vec<Encryption>) -> SdaServerResult<()>;
+
+    fn get_snapshot_mask(&self, snapshot:&SnapshotId) -> SdaServerResult<Option<Vec<Encryption>>>;
 }
 
 pub trait ClerkingJobStore: BaseStore {

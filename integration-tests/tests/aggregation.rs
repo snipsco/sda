@@ -116,10 +116,10 @@ pub fn full_mocked_loop() {
         }
 
         let final_result = ctx.service.get_snapshot_result(&alice, &agg.id, &snapshot.id).unwrap().unwrap();
-        assert_eq!(3, final_result.encryptions.len());
+        assert_eq!(3, final_result.clerk_encryptions.len());
         for (ci, c) in clerks.iter().enumerate() {
             let agent = agents.iter().find(|a| a.0.id == c.id).unwrap();
-            let Encryption::Sodium(ref enc) = final_result.encryptions.iter().find(|enc| enc.clerk == agent.0.id).unwrap().encryption;
+            let Encryption::Sodium(ref enc) = final_result.clerk_encryptions.iter().find(|enc| enc.clerk == agent.0.id).unwrap().encryption;
             assert_eq!(enc, &vec!(ci as u8));
         }
     });
