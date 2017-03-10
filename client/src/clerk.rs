@@ -19,7 +19,7 @@ pub trait Clerking {
     /// Execute routine clerking chores, including registering if not done so already.
     ///
     /// Note that a negative `max_iterations` will continue the clerking process until there are no more jobs.
-    fn run_chores(&self, mut max_iterations: isize) -> SdaClientResult<()>;
+    fn run_chores(&self, max_iterations: isize) -> SdaClientResult<()>;
 
 }
 

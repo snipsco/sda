@@ -11,13 +11,20 @@ pub trait ShareGenerator {
     fn generate_shares(&mut self, secrets: &[Secret]) -> Vec<Vec<Share>>;
 }
 
-
 pub trait ShareCombinerConstruction<S> {
     fn new_share_combiner(&self, scheme: &S) -> SdaClientResult<Box<ShareCombiner>>;
 }
 
 pub trait ShareCombiner {
     fn combine(&self, shares: &Vec<Vec<Share>>) -> Vec<Share>;
+}
+
+pub trait SecretReconstructorConstruction<S> {
+    fn new_secret_reconstructor(&self, scheme: &S) -> SdaClientResult<Box<SecretReconstructor>>;
+}
+
+pub trait SecretReconstructor {
+    fn reconstruct(&self, shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret>;
 }
 
 mod helpers;
@@ -56,6 +63,21 @@ impl ShareCombinerConstruction<LinearSecretSharingScheme> for CryptoModule {
             },
 
             // TODO
+            _ => unimplemented!(),
+
+        }
+    }
+}
+
+impl SecretReconstructorConstruction<LinearSecretSharingScheme> for CryptoModule {
+    fn new_secret_reconstructor(&self, scheme: &LinearSecretSharingScheme) -> SdaClientResult<Box<SecretReconstructor>> {
+        match *scheme {
+
+            LinearSecretSharingScheme::Additive { share_count, modulus } => {
+                let reconstructor = additive::AdditiveSecretSharing::new(share_count, modulus);
+                Ok(Box::new(reconstructor))
+            },
+
             _ => unimplemented!(),
 
         }

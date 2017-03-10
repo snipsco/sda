@@ -9,16 +9,6 @@ pub struct RecipientOutput(pub Vec<i64>);
 /// Basic tasks needed by a recipient.
 pub trait Receive {
 
-    // fn new_aggregation(&self,
-    //                    title: &str,
-    //                    vector_dimension: usize,
-    //                    recipient_key: &EncryptionKeyId,
-    //                    masking_scheme: &LinearMaskingScheme,
-    //                    committee_sharing_scheme: &LinearSecretSharingScheme,
-    //                    recipient_encryption_scheme: &AdditiveEncryptionScheme,
-    //                    committee_encryption_scheme: &AdditiveEncryptionScheme)
-    //                    -> SdaClientResult<Aggregation>;
-
     fn upload_aggregation(&self, aggregation: &Aggregation) -> SdaClientResult<()>;
 
     /// Assign any committee to the aggregation if none already.
@@ -31,34 +21,6 @@ pub trait Receive {
 }
 
 impl Receive for SdaClient {
-
-    // fn new_aggregation(&self,
-    //                    title: &str,
-    //                    vector_dimension: usize,
-    //                    recipient_key: &EncryptionKeyId,
-    //                    masking_scheme: &LinearMaskingScheme,
-    //                    committee_sharing_scheme: &LinearSecretSharingScheme,
-    //                    recipient_encryption_scheme: &AdditiveEncryptionScheme,
-    //                    committee_encryption_scheme: &AdditiveEncryptionScheme)
-    //                    -> SdaClientResult<Aggregation>
-    // {
-    //     // ensure key matches with scheme
-    //     if !recipient_key.suitable_for(recipient_encryption_scheme) {
-    //         Err("Encryption key unsuitable")?
-    //     }
-    //
-    //     Ok(Aggregation {
-    //         id: AggregationId::random(),
-    //         title: title.to_string(),
-    //         vector_dimension: vector_dimension,
-    //         recipient: self.agent.id().clone(),
-    //         recipient_key: recipient_key.clone(),
-    //         masking_scheme: masking_scheme.clone(),
-    //         committee_sharing_scheme: committee_sharing_scheme.clone(),
-    //         recipient_encryption_scheme: recipient_encryption_scheme.clone(),
-    //         committee_encryption_scheme: committee_encryption_scheme.clone(),
-    //     })
-    // }
 
     fn upload_aggregation(&self, aggregation: &Aggregation) -> SdaClientResult<()> {
         Ok(self.service.create_aggregation(&self.agent, aggregation)?)
@@ -95,9 +57,11 @@ impl Receive for SdaClient {
 
     fn reveal_aggregation(&self, aggregation_id: &AggregationId) -> SdaClientResult<RecipientOutput> {
 
-        // we'll need this guy later
+        // we'll need these guys later
         let aggregation = self.service.get_aggregation(&self.agent, aggregation_id)?
             .ok_or("Aggregation missing")?;
+        let committee = self.service.get_committee(&self.agent, aggregation_id)?
+            .ok_or("Committee missing")?;
 
         // take first ready snapshot
         let status = self.service.get_aggregation_status(&self.agent, aggregation_id)?
@@ -111,10 +75,10 @@ impl Receive for SdaClient {
             .ok_or("Missing aggregation result")?;
 
         let encrypted_masks = result.recipient_encryptions;
-        let encrypted_masked_output = result.clerk_encryptions;
+        let encrypted_masked_output_shares = result.clerk_encryptions;
 
         // decrypt masks if needed
-        let mask = match encrypted_masks {
+        let mask: Option<Vec<Mask>> = match encrypted_masks {
             None => None,
             Some(encrypted_masks) => {
                 let mask_decryptor = self.crypto.new_share_decryptor(
@@ -133,9 +97,42 @@ impl Receive for SdaClient {
             }
         };
 
-        // let masked_output = 
+        let share_decryptor = self.crypto.new_share_decryptor(
+            &aggregation.recipient_key,
+            &aggregation.recipient_encryption_scheme)?;
+
+        // decrypt shares
+        let masked_output_shares: Vec<(usize, Vec<Share>)> = encrypted_masked_output_shares.iter()
+            .map(|clerking_result| {
+
+                // TODO we could avoid this scan if the server is guaranteed to result in right order
+                let clerk_index = committee.clerks_and_keys.iter()
+                    .position(|&(id,_)| clerking_result.clerk == id)
+                    .ok_or("Missing clerk")?;
+
+                let shares = share_decryptor.decrypt(&clerking_result.encryption)?;
+                Ok((clerk_index, shares))
+            })
+            .collect::<SdaClientResult<Vec<(usize, Vec<Share>)>>>()?;
+
+        let secret_reconstructor = self.crypto.new_secret_reconstructor(
+            &aggregation.committee_sharing_scheme)?;
+
+        //
+        //
+        // TODO combined reconstrcuted secrets with mask
+        //
+        //
+
+        unimplemented!()
 
         Ok(RecipientOutput(vec![]))
     }
+
+}
+
+impl SdaClient {
+
+    // pub fn reveal_snapshot()
 
 }

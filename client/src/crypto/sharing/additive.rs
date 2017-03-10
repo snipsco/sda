@@ -68,3 +68,13 @@ impl ShareCombiner for AdditiveSecretSharing {
         result
     }
 }
+
+impl SecretReconstructor for AdditiveSecretSharing {
+    fn reconstruct(&self, shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret> {
+        shares.iter()
+            .map(|&(_, ref sharing)|
+                sharing.iter().fold(0, |sum, &x| { (sum + x) % self.modulus })
+            )
+            .collect()
+    }
+}
