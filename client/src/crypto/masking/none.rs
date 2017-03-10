@@ -17,3 +17,12 @@ impl SecretMasker for Masker {
         (mask, masked_values)
     }
 }
+
+impl MaskCombiner for Masker {
+    fn combine(&self, masks: &Vec<Vec<Mask>>) -> Vec<Mask> {
+        for mask in masks {
+            assert!(mask.len() == 0);
+        }
+        vec![]
+    }
+}

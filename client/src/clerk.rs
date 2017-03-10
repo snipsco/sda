@@ -50,14 +50,13 @@ impl Clerking for SdaClient {
         // repeatedly process jobs
         loop {
             if max_iterations == 0 {
-                break
+                return Ok(())
             }
             if !self.clerk_once()? {
-                break
+                return Ok(())
             }
             max_iterations -= 1;
         }
-        Ok(())
     }
 
 }

@@ -172,7 +172,9 @@ pub fn participation() {
                 })
                 .collect(),
         };
-        
+
+        ctx.service.create_committee(&recipient.agent, &committee).unwrap();
+        assert_eq!(ctx.service.get_committee(&recipient.agent, &aggregation.id).unwrap().as_ref(), Some(&committee));
         ctx.service.create_committee(&recipient.agent, &committee).unwrap();
         assert_eq!(ctx.service.get_committee(&recipient.agent, &aggregation.id).unwrap().as_ref(), Some(&committee));
 
@@ -182,40 +184,37 @@ pub fn participation() {
 
         // participate
         for participant in &participants {
+            participant.upload_agent().unwrap();
             participant.participate(vec![1,2,3,4], &aggregation.id).unwrap();
         }
 
-        // create snapshot
-        let snapshot = Snapshot {
-            id: SnapshotId::random(),
-            aggregation: aggregation.id.clone(),
-        };
-        ctx.service.create_snapshot(&recipient.agent, &snapshot).unwrap();
+        // close aggregation (by creating snapshot)
+        recipient.close_aggregation(&aggregation.id);
+
         // .. and check status
         let status = ctx.service.get_aggregation_status(&recipient.agent, &aggregation.id).unwrap().unwrap();
         assert_eq!(aggregation.id, status.aggregation);
         assert_eq!(&participants.len(), &status.number_of_participations);
         assert_eq!(1, status.snapshots.len());
-        assert_eq!(SnapshotStatus {
-            id: snapshot.id.clone(),
-            number_of_clerking_results: 0,
-            result_ready: false,
-        }, status.snapshots[0]);
+        let snapshot_status = &status.snapshots[0];
+        assert_eq!(0, snapshot_status.number_of_clerking_results);
+        assert_eq!(false, snapshot_status.result_ready);
 
         // perform clerking
         for clerk in clerks {
             clerk.run_chores(-1).unwrap();
         }
+
         // .. and recheck status
         let status = ctx.service.get_aggregation_status(&recipient.agent, &aggregation.id).unwrap().unwrap();
         assert_eq!(aggregation.id, status.aggregation);
         assert_eq!(&participants.len(), &status.number_of_participations);
         assert_eq!(1, status.snapshots.len());
-        assert_eq!(SnapshotStatus {
-            id: snapshot.id.clone(),
-            number_of_clerking_results: 3,
-            result_ready: true,
-        }, status.snapshots[0]);
+        let snapshot_status = &status.snapshots[0];
+        assert_eq!(3, snapshot_status.number_of_clerking_results);
+        assert_eq!(true, snapshot_status.result_ready);
+
+        
 
         //
         // let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();

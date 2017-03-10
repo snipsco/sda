@@ -47,8 +47,6 @@ impl BatchShareGenerator for AdditiveSecretSharing {
         let last_share = shares.iter().fold(-secret, |sum, &x| { (sum + x) % self.modulus });
         shares.push(last_share);
 
-        // println!("shares: {:?}", shares);
-
         shares
     }
 

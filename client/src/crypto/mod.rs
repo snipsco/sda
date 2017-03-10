@@ -11,13 +11,13 @@ use errors::SdaClientResult;
 use std::sync::Arc;
 
 pub use self::signing::{SignatureKeypair, SignExport, SignatureVerification};
-pub use self::masking::{SecretMaskerConstruction};
+pub use self::masking::{SecretMaskerConstruction, MaskCombinerConstruction};
 pub use self::sharing::{ShareGeneratorConstruction, ShareCombinerConstruction};
-pub use self::encryption::{EncryptionKeypair, EncryptorConstruction, DecryptorConstruction};
+pub use self::encryption::{EncryptionKeypair, EncryptorConstruction, DecryptorConstruction, ShareDecryptor};
 
-type Secret = i64;
-type Mask = i64;
-type MaskedSecret = i64;
+pub type Secret = i64;
+pub type Mask = i64;
+pub type MaskedSecret = i64;
 pub type Share = i64;
 
 pub trait KeyGeneration<K> {
