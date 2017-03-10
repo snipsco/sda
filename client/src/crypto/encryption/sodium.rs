@@ -14,7 +14,7 @@ pub struct Encryptor {
 
 impl Encryptor {
     pub fn new(ek: &EncryptionKey) -> SdaClientResult<Encryptor> {
-        // initialise Sodium per recommendations; 
+        // initialise Sodium per recommendations;
         //  - documentation hints it's okay to do so more than once but we'll play it safe
         SODIUM_INITIALIZED.call_once(|| { sodiumoxide::init(); });
 
@@ -65,7 +65,7 @@ impl Decryptor {
 
                 let sk = sodiumoxide::crypto::box_::SecretKey::from_slice(&*raw_dk)
                     .ok_or("Failed to parse Sodium secret key")?;
-                
+
                 Ok(Decryptor {
                     pk: pk,
                     sk: sk,
@@ -108,12 +108,20 @@ impl KeyGeneration<EncryptionKeyId> for CryptoModule {
         let (pk, sk) = sodiumoxide::crypto::box_::gen_keypair();
         let wrapped_ek = EncryptionKey::Sodium(pk.0.into());
         let wrapped_dk = DecryptionKey::Sodium(sk.0.into());
-        
+
         // save
         let keypair = EncryptionKeypair { ek: wrapped_ek, dk: wrapped_dk };
         let id = EncryptionKeyId::random();
         self.keystore.put(&id, &keypair)?;
 
         Ok(id)
+    }
+}
+
+impl Suitable<AdditiveEncryptionScheme> for EncryptionKeyId {
+    fn suitable_for(&self, scheme: &AdditiveEncryptionScheme) -> bool {
+        match *scheme {
+            AdditiveEncryptionScheme::Sodium => true
+        }
     }
 }

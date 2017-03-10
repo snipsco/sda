@@ -1,6 +1,7 @@
 extern crate sda_protocol;
 extern crate sda_server;
 extern crate sda_client;
+extern crate sda_client_store;
 extern crate sda_tests;
 extern crate tempdir;
 use sda_protocol::*;
@@ -126,18 +127,86 @@ pub fn full_mocked_loop() {
 #[test]
 pub fn participation() {
     with_service(|ctx| {
-        let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
-        let clients: Vec<SdaClient> = stores.iter().map(|store| new_client(store, &ctx.service)).collect();
 
-        for client in clients {
-            client.upload_agent().unwrap();
+        // prepare recipient
+        let recipient_store = ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap();
+        let recipient = new_client(&recipient_store, &ctx.service);
+        let recipient_key = recipient.new_encryption_key().unwrap();
+        recipient.upload_agent().unwrap();
+        recipient.upload_encryption_key(&recipient_key).unwrap();
 
-            let key = client.new_encryption_key().unwrap();
-            client.upload_encryption_key(&key).unwrap();
+        // prepare aggregation
+        let aggregation = Aggregation {
+            id: AggregationId::random(),
+            title: "foo".into(),
+            vector_dimension: 4,
+            recipient: recipient.agent.id().clone(),
+            recipient_key: recipient_key.clone(),
+            masking_scheme: LinearMaskingScheme::None,
+            committee_sharing_scheme: LinearSecretSharingScheme::Additive {
+                share_count: 3,
+                modulus: 13,
+            },
+            recipient_encryption_scheme: AdditiveEncryptionScheme::Sodium,
+            committee_encryption_scheme: AdditiveEncryptionScheme::Sodium,
+        };
+        recipient.upload_aggregation(&aggregation).unwrap();
+
+        // prepare clerks
+        let clerks_store: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        let clerks: Vec<SdaClient> = clerks_store.iter().map(|store| new_client(store, &ctx.service)).collect();
+        for clerk in clerks.iter() {
+            let clerk_key = clerk.new_encryption_key().unwrap();
+            clerk.upload_agent().unwrap();
+            clerk.upload_encryption_key(&clerk_key).unwrap();
         }
+
+        // assign committee
+        let candidates = ctx.service.suggest_committee(&recipient.agent, &aggregation.id).unwrap();
+        let committee = Committee {
+            aggregation: aggregation.id,
+            clerks_and_keys: candidates.iter()
+                .map(|candidate| {
+                    (candidate.id, candidate.keys[0])
+                })
+                .collect(),
+        };
+        ctx.service.create_committee(&recipient.agent, &committee).unwrap();
+        assert_eq!(ctx.service.get_committee(&recipient.agent, &aggregation.id).unwrap().as_ref(), Some(&committee));
+
+        // prepare participants
+        let participants_store: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        let participants: Vec<SdaClient> = participants_store.iter().map(|store| new_client(store, &ctx.service)).collect();
+
+        // participate
+        for participant in participants {
+            let input = ParticipantInput(vec![1,2,3,4]);
+            let participation = participant.new_participation(&input, &aggregation.id, false).unwrap();
+            participant.upload_participation(&participation).unwrap();
+        }
+
+        // perform clerking
+        for clerk in clerks {
+            clerk.run_chores().unwrap();
+        }
+
+        //
+        // let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        // let clients: Vec<SdaClient> = stores.iter().map(|store| new_client(store, &ctx.service)).collect();
+        //
+        // for client in clients {
+        //     client.upload_agent().unwrap();
+        //
+        //     let key = client.new_encryption_key().unwrap();
+        //     client.upload_encryption_key(&key).unwrap();
+        // }
 
         // let recipient = clients.as_slice()[0];
         // let participants = &clients[1..10];
+
+
+
+
 
         assert!(true);
     });

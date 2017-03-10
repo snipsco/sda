@@ -13,13 +13,13 @@ pub struct ParticipantInput(pub Vec<i64>);
 pub trait Participating {
 
     /// This will store relevant objects in cache to enable offline computation of `new_participation`.
-    fn preload_for_participation(&mut self, aggregation: &AggregationId) -> SdaClientResult<()>;
+    fn preload_for_participation(&self, aggregation: &AggregationId) -> SdaClientResult<()>;
 
     /// Create a new participation to the given aggregation.
     ///
     /// Having this as a seperate method allows background computation and retrying in case of network failure,
     /// without risk of recomputation and double participation.
-    fn new_participation(&mut self, input: &ParticipantInput, aggregation: &AggregationId, enforce_trusted: bool) -> SdaClientResult<Participation>;
+    fn new_participation(&self, input: &ParticipantInput, aggregation: &AggregationId, enforce_trusted: bool) -> SdaClientResult<Participation>;
 
     /// Upload participation to the service.
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()>;
@@ -29,7 +29,7 @@ pub trait Participating {
 impl Participating for SdaClient {
 
     #[allow(unused_variables)]
-    fn preload_for_participation(&mut self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
+    fn preload_for_participation(&self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
         let aggregation = self.service.get_aggregation(&self.agent, aggregation_id)?.ok_or("Unknown aggregation")?;
         // recipient data
         let recipient = self.service.get_agent(&self.agent, &aggregation.recipient)?.ok_or("Unknown recipient")?;
@@ -43,7 +43,7 @@ impl Participating for SdaClient {
         Ok(())
     }
 
-    fn new_participation(&mut self, input: &ParticipantInput, aggregation_id: &AggregationId, require_trusted: bool) -> SdaClientResult<Participation> {
+    fn new_participation(&self, input: &ParticipantInput, aggregation_id: &AggregationId, require_trusted: bool) -> SdaClientResult<Participation> {
 
         let secrets = &input.0;
 

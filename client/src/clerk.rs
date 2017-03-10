@@ -14,21 +14,21 @@ pub trait Clerking {
     fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool>;
 
     /// Execute clerking process once: download, process, and upload the next job pending on the service, if any.
-    fn clerk_once(&mut self) -> SdaClientResult<bool>;
+    fn clerk_once(&self) -> SdaClientResult<bool>;
 
     /// Execute routine clerking chores, including registering if not done so already.
-    fn run_chores(&mut self) -> SdaClientResult<()>;
+    fn run_chores(&self) -> SdaClientResult<()>;
 
 }
 
 impl Clerking for SdaClient {
 
     fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool> {
-        // TODO
-        unimplemented!()
+        // TODO for now everyone's a clerk
+        Ok(false)
     }
 
-    fn clerk_once(&mut self) -> SdaClientResult<bool> {
+    fn clerk_once(&self) -> SdaClientResult<bool> {
         let job = self.service.get_clerking_job(&self.agent, &self.agent.id)?;
         match job {
             None => {
@@ -42,7 +42,7 @@ impl Clerking for SdaClient {
         }
     }
 
-    fn run_chores(&mut self) -> SdaClientResult<()> {
+    fn run_chores(&self) -> SdaClientResult<()> {
         // register if we haven't done so already
         self.register_as_clerk(false)?;
         // repeatedly process jobs
@@ -61,7 +61,7 @@ impl Clerking for SdaClient {
 
 impl SdaClient {
 
-    fn process_clerking_job(&mut self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
+    fn process_clerking_job(&self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
 
         let aggregation = self.service.get_aggregation(&self.agent, &job.aggregation)?.ok_or("Unknown aggregation")?;
         let committee = self.service.get_committee(&self.agent, &job.aggregation)?.ok_or("Unknown committee")?;

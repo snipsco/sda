@@ -31,7 +31,7 @@ impl KeyGeneration<VerificationKeyId> for CryptoModule {
         let (vk, sk) = sodiumoxide::crypto::sign::gen_keypair();
         let wrapped_vk = VerificationKey::Sodium(vk.0.into());
         let wrapped_sk = SigningKey::Sodium(sk.0.into());
-        
+
         // save
         let keypair = SignatureKeypair { vk: wrapped_vk, sk: wrapped_sk };
         let id = VerificationKeyId::new();
@@ -46,7 +46,7 @@ impl KeyGeneration<Labeled<VerificationKeyId, VerificationKey>> for CryptoModule
     fn new_key(&self) -> SdaClientResult<Labeled<VerificationKeyId, VerificationKey>> {
         // generate key
         let key_id: VerificationKeyId = self.new_key()?;
-        
+
         // export public part, assuming that it is there since we just created it and haven't failed
         let key: VerificationKey = self.export(&key_id)?.unwrap();
 
@@ -103,26 +103,29 @@ impl SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKey>> for Cr
 }
 
 
-impl SignatureVerification<SignedEncryptionKey> for Agent {
-    fn signature_is_valid(&self, signed_encryption_key: &SignedEncryptionKey) -> SdaClientResult<bool> {
+impl<M> SignatureVerification<Signed<M>> for Agent
+    where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    fn signature_is_valid(&self, signed: &Signed<M>) -> SdaClientResult<bool> {
 
         // TODO remember result to avoid running verification more than once
 
-        let raw_msg = match &signed_encryption_key.body.body {
-            &EncryptionKey::Sodium(raw_ek) => raw_ek
-        };
+        if signed.signer != self.id {
+            Err("Agent differs from claimed signer")?
+        }
 
+        let wrapped_sig = &signed.signature;
         let wrapped_vk = &self.verification_key.body;
-        let wrapped_sig = &signed_encryption_key.signature;
 
         match (wrapped_vk, wrapped_sig) {
 
             (&VerificationKey::Sodium(raw_vk), &Signature::Sodium(raw_sig)) => {
                 let sig = sodiumoxide::crypto::sign::Signature(*raw_sig);
                 let vk = sodiumoxide::crypto::sign::PublicKey(*raw_vk);
-                let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &*raw_msg, &vk);
+                let msg = signed.body.canonical()?;
+                let is_valid = sodiumoxide::crypto::sign::verify_detached(&sig, &*msg, &vk);
                 Ok(is_valid)
-            },
+            }
 
         }
     }

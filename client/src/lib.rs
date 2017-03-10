@@ -19,13 +19,16 @@ mod trust;
 mod profile;
 mod participate;
 mod clerk;
+mod receive;
 // mod cache;
 
-pub use participate::{Participating, ParticipantInput};
-pub use clerk::Clerking;
-pub use profile::{Maintenance};
 pub use errors::{SdaClientResult, SdaClientError};
 pub use crypto::{Keystore, KeyStorage, EncryptionKeypair, SignatureKeypair};
+pub use profile::{Maintenance};
+pub use participate::{Participating, ParticipantInput};
+pub use clerk::Clerking;
+pub use receive::Receive;
+
 // pub use cache::CachedService;
 
 use sda_protocol::*;
@@ -37,7 +40,7 @@ use std::sync::Arc;
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
 pub struct SdaClient {
-    agent: Agent,
+    pub agent: Agent,
     crypto: CryptoModule,
     service: Arc<SdaService>,
     trust: trust::Pessimistic,

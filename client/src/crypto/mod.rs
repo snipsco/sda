@@ -34,6 +34,10 @@ pub trait Keystore :
     + KeyStorage<VerificationKeyId, SignatureKeypair>
 {}
 
+pub trait Suitable<S> {
+    fn suitable_for(&self, scheme: &S) -> bool;
+}
+
 pub struct CryptoModule {
     keystore: Arc<Keystore>
 }
