@@ -60,7 +60,6 @@ impl JfsStoreExt for jfs::Store {
         where T: ::serde::Serialize + ::serde::Deserialize,
               I: Id
     {
-        println!("id.to_string(): {}", id.to_string());
         self.save_with_id(it, &*id.to_string())?;
         Ok(())
     }

@@ -37,7 +37,6 @@ impl AuthStore for JfsAuthStore {
     }
 
     fn delete_auth_token(&self, id: &AgentId) -> SdaServerResult<()> {
-        println!("delete: {}", id.to_string());
         self.auth_tokens.delete(&*id.to_string())?;
         Ok(())
     }
