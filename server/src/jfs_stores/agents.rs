@@ -2,11 +2,12 @@ use jfs;
 
 use std::path;
 
-use sda_protocol::{Id, Identified};
+use sda_protocol::Identified;
 use sda_protocol::{Agent, AgentId, ClerkCandidate, Profile, SignedEncryptionKey, EncryptionKeyId};
 
 use SdaServerResult;
 use stores::{BaseStore, AgentStore};
+use jfs_stores::JfsStoreExt;
 
 use itertools::Itertools;
 
@@ -37,32 +38,29 @@ impl BaseStore for JfsAgentStore {
 
 impl AgentStore for JfsAgentStore {
     fn create_agent(&self, agent: &Agent) -> SdaServerResult<()> {
-        self.agents.save_with_id(agent, &agent.id().stringify())?;
-        Ok(())
+        self.agents.save_ident(agent)
     }
 
     fn get_agent(&self, id: &AgentId) -> SdaServerResult<Option<Agent>> {
-        super::get_option(&self.agents, &id.stringify())
+        self.agents.get_option(id)
     }
 
     fn upsert_profile(&self, profile: &Profile) -> SdaServerResult<()> {
-        self.profiles.save_with_id(profile, &profile.owner.stringify())?;
-        Ok(())
+        self.profiles.save_at(profile, &profile.owner)
     }
 
     fn get_profile(&self, owner: &AgentId) -> SdaServerResult<Option<Profile>> {
-        super::get_option(&self.profiles, &owner.stringify())
+        self.profiles.get_option(owner)
     }
 
     fn create_encryption_key(&self, key: &SignedEncryptionKey) -> SdaServerResult<()> {
-        self.encryption_keys.save_with_id(key, &key.id().stringify())?;
-        Ok(())
+        self.encryption_keys.save_ident(key)
     }
 
     fn get_encryption_key(&self,
                           key: &EncryptionKeyId)
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
-        super::get_option(&self.encryption_keys, &key.stringify())
+        self.encryption_keys.get_option(key)
     }
 
     fn suggest_committee(&self) -> SdaServerResult<Vec<ClerkCandidate>> {
@@ -76,7 +74,7 @@ impl AgentStore for JfsAgentStore {
             .map(|(k, v)| {
                 ClerkCandidate {
                     id: k,
-                    keys: v.map(|sek| sek.body.id().clone()).collect()
+                    keys: v.map(|sek| sek.body.id().clone()).collect(),
                 }
             })
             .collect();

@@ -1,5 +1,92 @@
+use serde::{ Deserialize, Serialize};
+use std::fmt::Debug;
 
 use super::*;
+
+pub trait Identified {
+    type I : Id;
+    fn id(&self) -> &Self::I;
+}
+
+pub trait Id: Sized + ::std::str::FromStr<Err=String> + ToString {}
+
+macro_rules! uuid_id {
+    ( #[$doc:meta] $name:ident ) => {
+        #[$doc]
+        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+        pub struct $name(pub Uuid);
+
+        impl $name {
+            pub fn random() -> $name {
+                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+            }
+        }
+
+        impl Default for $name {
+            fn default() -> $name {
+                $name::random()
+            }
+        }
+
+        impl ::std::str::FromStr for $name {
+            type Err=String;
+            fn from_str(s: &str) -> std::result::Result<$name, String> {
+                let uuid = Uuid::parse_str(s).map_err(|_| format!("unparseable uuid {}", s))?;
+                Ok($name(uuid))
+            }
+        }
+
+        impl ToString for $name {
+            fn to_string(&self) -> String {
+                self.0.hyphenated().to_string()
+            }
+        }
+
+        impl Id for $name {}
+    }
+}
+
+macro_rules! identify {
+    ($object:ident, $id:ident) => {
+        impl Identified for $object {
+            type I = $id;
+            fn id(&self) -> &$id {
+                &self.id
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Signed<M>
+where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    pub signature: Signature,
+    pub signer: AgentId,
+    pub body: M
+}
+
+impl<M> std::ops::Deref for Signed<M>
+where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    type Target = M;
+    fn deref(&self) -> &M {
+        &self.body
+    }
+}
+
+impl<ID,M> Identified for Signed<M>
+where M:Identified<I=ID>+Clone+Debug+PartialEq+Serialize+Deserialize, ID:Id {
+    type I = ID;
+    fn id(&self) -> &ID {
+        use std::ops::Deref;
+        self.deref().id()
+    }
+}
+
+pub trait Sign {
+    fn canonical(&self) -> SdaResult<Vec<u8>>;
+}
 
 impl<T: ::serde::Serialize> Sign for T {
     fn canonical(&self) -> SdaResult<Vec<u8>> {
@@ -7,69 +94,22 @@ impl<T: ::serde::Serialize> Sign for T {
     }
 }
 
-impl AgentId {
-    pub fn new() -> AgentId {
-        AgentId(Uuid::new_v4())
-    }
-    pub fn to_string(&self) -> String {
-        format!("{}", self.0.simple())
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Labeled<ID,M>
+where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Id + Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+{
+    pub id: ID,
+    pub body: M
+}
+
+impl<ID,M> Identified for Labeled<ID,M>
+where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Id + Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
+{
+    type I = ID;
+    fn id(&self) -> &ID {
+        &self.id
     }
 }
 
-impl ParticipationId {
-    pub fn new() -> ParticipationId {
-        ParticipationId(Uuid::new_v4())
-    }
-    pub fn to_string(&self) -> String {
-        format!("{}", self.0.simple())
-    }
-}
-
-impl VerificationKeyId {
-    pub fn new() -> VerificationKeyId {
-        VerificationKeyId(Uuid::new_v4())
-    }
-    pub fn to_string(&self) -> String {
-        format!("{}", self.0.simple())
-    }
-}
-
-impl Default for VerificationKey {
-    fn default() -> Self {
-        VerificationKey::Sodium(::byte_arrays::B32([0; 32]))
-    }
-}
-
-//impl Clone for SigningKey {
-//    fn clone(&self) -> Self {
-//        match self {
-//            &SigningKey::Sodium(raw_sk) => SigningKey::Sodium(raw_sk)
-//        }
-//    }
-//}
-//
-//impl Clone for VerificationKey {
-//    fn clone(&self) -> Self {
-//        match self {
-//            &VerificationKey::Sodium(raw_vk) => VerificationKey::Sodium(raw_vk)
-//        }
-//    }
-//}
-
-// impl From<&'static str> for AgentId {
-//     fn from(s: &'static str) -> AgentId {
-//         AgentId(Uuid::from(s))
-//     }
-// }
-
-// impl From<&'static str> for AggregationId {
-//     fn from(s: &'static str) -> AggregationId {
-//         AggregationId(s)
-//     }
-// }
-
-// impl<'a> From<&'a AgentId> for UserId {
-//     fn from(id: &'a AgentId) -> UserId {
-//         UserId(id.0.clone())
-//     }
-// }

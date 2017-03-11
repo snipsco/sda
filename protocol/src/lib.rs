@@ -40,13 +40,15 @@ mod errors {
 use uuid::Uuid;
 pub use errors::*;
 
+#[macro_use]
+pub mod helpers;
+
 mod crypto;
 mod resources;
 mod methods;
-mod helpers;
 pub mod byte_arrays;
 
+pub use helpers::*;
 pub use crypto::*;
 pub use resources::*;
 pub use methods::*;
-pub use helpers::*;

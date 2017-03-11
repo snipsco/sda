@@ -112,6 +112,7 @@ pub fn auth_tokens_crud() {
             id: alice.id,
             body: "tok".into(),
         };
+        println!("1");
         assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
         // TODO check error kind is InvalidCredentials
         ctx.server.create_agent(&alice, &alice).unwrap();
@@ -121,13 +122,21 @@ pub fn auth_tokens_crud() {
             id: alice.id,
             body: "token".into(),
         };
+        println!("2");
         assert!(ctx.server.0.check_auth_token(&alice_token_new).is_err());
+        println!("3");
         ctx.server.0.upsert_auth_token(&alice_token_new).unwrap();
+        println!("4");
         assert!(ctx.server.0.check_auth_token(&alice_token_new).is_ok());
+        println!("5");
         assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
-        ctx.server.0.delete_auth_token(&alice.id).unwrap();
+        println!("6");
+        ctx.server.0.delete_auth_token(&alice_token.id).unwrap();
+        println!("7");
         assert!(ctx.server.0.check_auth_token(&alice_token_new).is_err());
+        println!("8");
         assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
+        println!("9");
     });
 }
 

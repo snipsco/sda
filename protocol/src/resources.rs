@@ -1,54 +1,4 @@
 use super::*;
-use std::str;
-
-pub trait Identified {
-    type I : Id;
-    fn id(&self) -> &Self::I;
-}
-
-pub trait Id: Sized + str::FromStr {
-    fn stringify(&self) -> String;
-    #[deprecated]
-    fn destringify(&str) -> SdaResult<Self>;
-}
-
-macro_rules! uuid_id {
-    ( #[$doc:meta] $name:ident ) => {
-        #[$doc]
-        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-        pub struct $name(pub Uuid);
-
-        impl $name {
-            pub fn random() -> $name {
-                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
-            }
-        }
-
-        impl Default for $name {
-            fn default() -> $name {
-                $name::random()
-            }
-        }
-
-        impl str::FromStr for $name {
-            type Err=String;
-            fn from_str(s: &str) -> std::result::Result<$name, String> {
-                let uuid = Uuid::parse_str(s).map_err(|_| format!("unparseable uuid {}", s))?;
-                Ok($name(uuid))
-            }
-        }
-
-        impl Id for $name {
-            fn stringify(&self) -> String {
-                self.0.to_string()
-            }
-            fn destringify(s:&str) -> SdaResult<$name> {
-                use std::str::FromStr;
-                Ok($name::from_str(s)?)
-            }
-        }
-    }
-}
 
 uuid_id!{ #[doc="Unique verification key identifier."] VerificationKeyId }
 pub type LabeledVerificationKey = Labeled<VerificationKeyId, VerificationKey>;
@@ -64,17 +14,6 @@ pub struct Agent {
 }
 
 uuid_id!{ #[doc="Unique agent identifier."] AgentId }
-
-macro_rules! identify {
-    ($object:ident, $id:ident) => {
-        impl Identified for $object {
-            type I = $id;
-            fn id(&self) -> &$id {
-                &self.id
-            }
-        }
-    }
-}
 identify!(Agent,AgentId);
 
 /// Extended profile of an agent, providing information intended for increasing trust such as name and social handles.
@@ -85,47 +24,6 @@ pub struct Profile {
     pub twitter_id: Option<String>,
     pub keybase_id: Option<String>,
     pub website: Option<String>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Signed<M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
-{
-    pub signature: Signature,
-    pub signer: AgentId,
-    pub body: M
-}
-
-impl<M> std::ops::Deref for Signed<M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
-{
-    type Target = M;
-    fn deref(&self) -> &M {
-        &self.body
-    }
-}
-
-pub trait Sign {
-    fn canonical(&self) -> SdaResult<Vec<u8>>;
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Labeled<ID,M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
-      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
-{
-    pub id: ID,
-    pub body: M
-}
-
-impl<ID,M> Identified for Labeled<ID,M>
-where M: Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
-      ID: Id + Clone + ::std::fmt::Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
-{
-    type I = ID;
-    fn id(&self) -> &ID {
-        &self.id
-    }
 }
 
 uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
@@ -213,6 +111,9 @@ pub struct ClerkingJob {
     pub encryptions: Vec<Encryption>,
 }
 
+uuid_id!{ #[doc="Unique job identifier."] ClerkingJobId }
+identify!(ClerkingJob, ClerkingJobId);
+
 /// Result of a partial aggregation job performed by a clerk.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClerkingResult {
@@ -220,8 +121,6 @@ pub struct ClerkingResult {
     pub clerk: AgentId,
     pub encryption: Encryption,
 }
-
-uuid_id!{ #[doc="Unique job identifier."] ClerkingJobId }
 
 /// Current status of an aggregation.
 #[derive(Debug, Serialize, Deserialize)]

@@ -10,7 +10,7 @@ impl SdaClient {
     pub fn new_agent(keystore: Arc<Keystore>) -> SdaClientResult<Agent> {
         let crypto = CryptoModule::new(keystore);
         Ok(Agent {
-            id: AgentId::new(),
+            id: AgentId::random(),
             verification_key: crypto.new_key()?,
         })
     }

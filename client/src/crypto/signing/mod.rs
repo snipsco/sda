@@ -34,7 +34,7 @@ impl KeyGeneration<VerificationKeyId> for CryptoModule {
 
         // save
         let keypair = SignatureKeypair { vk: wrapped_vk, sk: wrapped_sk };
-        let id = VerificationKeyId::new();
+        let id = VerificationKeyId::random();
         self.keystore.put(&id, &keypair)?;
 
         Ok(id)

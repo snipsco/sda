@@ -8,7 +8,6 @@
 
 #[macro_use]
 extern crate error_chain;
-#[macro_use]
 extern crate itertools;
 extern crate jfs;
 extern crate serde;
@@ -17,6 +16,10 @@ extern crate serde_derive;
 extern crate uuid;
 
 extern crate sda_protocol;
+#[macro_use]
+extern crate slog;
+#[macro_use]
+extern crate slog_scope;
 
 mod errors;
 mod server;

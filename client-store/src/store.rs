@@ -11,7 +11,7 @@ pub trait Store {
     fn put_aliased<T>(&self, alias: &str, obj: &T) -> SdaClientStoreResult<()>
         where T: ::serde::Serialize + ::serde::Deserialize + Identified
     {
-        let id = obj.id().stringify();
+        let id = obj.id().to_string();
         self.define_alias(alias, &id)?;
         self.put(&id, obj)
     }

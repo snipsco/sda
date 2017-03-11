@@ -54,19 +54,19 @@ macro_rules! wrap {
 
 impl KeyStorage<EncryptionKeyId, EncryptionKeypair> for Filebased {
     fn put(&self, id: &EncryptionKeyId, obj: &EncryptionKeypair) -> SdaClientResult<()> {
-        wrap! { <Self as Store>::put(self, &id.stringify(), obj) }
+        wrap! { <Self as Store>::put(self, &id.to_string(), obj) }
     }
     fn get(&self, id: &EncryptionKeyId) -> SdaClientResult<Option<EncryptionKeypair>> {
-        wrap! { <Self as Store>::get(self, &id.stringify()) }
+        wrap! { <Self as Store>::get(self, &id.to_string()) }
     }
 }
 
 impl KeyStorage<VerificationKeyId, SignatureKeypair> for Filebased {
     fn put(&self, id: &VerificationKeyId, obj: &SignatureKeypair) -> SdaClientResult<()> {
-        wrap! { <Self as Store>::put(self, &id.stringify(), obj) }
+        wrap! { <Self as Store>::put(self, &id.to_string(), obj) }
     }
     fn get(&self, id: &VerificationKeyId) -> SdaClientResult<Option<SignatureKeypair>> {
-        wrap! { <Self as Store>::get(self, &id.stringify()) }
+        wrap! { <Self as Store>::get(self, &id.to_string()) }
     }
 }
 

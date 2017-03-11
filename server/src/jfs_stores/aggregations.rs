@@ -3,11 +3,11 @@ use jfs;
 use std::path;
 use std::str::FromStr;
 
-use sda_protocol::{Id, Identified};
 use sda_protocol::{AgentId, Aggregation, AggregationId, Committee, Encryption, Participation,
                    ParticipationId, Snapshot, SnapshotId};
 
 use SdaServerResult;
+use ::jfs_stores::JfsStoreExt;
 
 use stores::{BaseStore, AggregationsStore};
 
@@ -45,7 +45,7 @@ impl JfsAggregationsStore {
     }
 
     fn aggregation_store(&self, aggregation: &AggregationId) -> SdaServerResult<jfs::Store> {
-        let path = self.participations.join(aggregation.stringify());
+        let path = self.participations.join(aggregation.to_string());
         Ok(jfs::Store::new(path.to_str().ok_or("path to string")?)?)
     }
 }
@@ -73,38 +73,34 @@ impl AggregationsStore for JfsAggregationsStore {
     }
 
     fn create_aggregation(&self, aggregation: &Aggregation) -> SdaServerResult<()> {
-        self.aggregations.save_with_id(aggregation, &aggregation.id().stringify())?;
-        Ok(())
+        self.aggregations.save_ident(aggregation)
     }
 
     fn get_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Aggregation>> {
-        super::get_option(&self.aggregations, &*aggregation.stringify())
+        self.aggregations.get_option(aggregation)
     }
 
     fn delete_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<()> {
-        self.aggregations.delete(&aggregation.stringify())?;
+        self.aggregations.delete(&aggregation.to_string())?;
         Ok(())
     }
 
     fn get_committee(&self, owner: &AggregationId) -> SdaServerResult<Option<Committee>> {
-        super::get_option(&self.committees, &*owner.stringify())
+        self.committees.get_option(owner)
     }
 
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()> {
         // FIXME: no overwriting
-        self.committees.save_with_id(committee, &committee.aggregation.stringify())?;
-        Ok(())
+        self.committees.save_at(committee, &committee.aggregation)
     }
 
     fn create_participation(&self, participation: &Participation) -> SdaServerResult<()> {
         let store = self.aggregation_store(&participation.aggregation)?;
-        store.save_with_id(participation, &participation.id.stringify())?;
-        Ok(())
+        store.save_ident(participation)
     }
 
     fn create_snapshot(&self, snapshot: &Snapshot) -> SdaServerResult<()> {
-        self.snapshots.save_with_id(snapshot, &snapshot.id.stringify())?;
-        Ok(())
+        self.snapshots.save_ident(snapshot)
     }
 
     fn count_participations(&self, aggregation: &AggregationId) -> SdaServerResult<usize> {
@@ -122,8 +118,7 @@ impl AggregationsStore for JfsAggregationsStore {
             .map(|p| Ok(ParticipationId::from_str(&p.0)?))
             .collect();
         let snap = SnapshotContent { participations: list? };
-        self.snapshot_contents.save_with_id(&snap, &snapshot.stringify())?;
-        Ok(())
+        self.snapshot_contents.save_at(&snap, snapshot)
     }
 
     fn list_snapshots(&self, aggregation: &AggregationId) -> SdaServerResult<Vec<SnapshotId>> {
@@ -140,7 +135,7 @@ impl AggregationsStore for JfsAggregationsStore {
                     _aggregation: &AggregationId,
                     snapshot: &SnapshotId)
                     -> SdaServerResult<Option<Snapshot>> {
-        super::get_option(&self.snapshots, &snapshot.stringify())
+        self.snapshots.get_option(snapshot)
     }
 
     fn iter_snapped_participations<'a, 'b>
@@ -151,21 +146,28 @@ impl AggregationsStore for JfsAggregationsStore {
         where 'b: 'a
     {
         let store = self.aggregation_store(aggregation)?;
-        let snap = self.snapshot_contents.get::<SnapshotContent>(&snapshot.stringify())?;
-        Ok(Box::new(snap.participations
-            .into_iter()
-            .map(move |id| Ok(store.get::<Participation>(&id.stringify())?))))
+        let snap = self.snapshot_contents.get::<SnapshotContent>(&snapshot.to_string())?;
+        let mut participations = vec![];
+        for id in snap.participations {
+            let part = store.get_option(&id)?
+                .ok_or_else(|| {
+                    format!("participation id={:?} for agg={:?} not found",
+                            &id,
+                            &aggregation)
+                })?;
+            participations.push(Ok(part));
+        }
+        Ok(Box::new(participations.into_iter()))
     }
 
     fn create_snapshot_mask(&self,
                             snapshot: &SnapshotId,
                             mask: Vec<Encryption>)
                             -> SdaServerResult<()> {
-        self.snapshot_masks.save_with_id(&mask, &snapshot.stringify())?;
-        Ok(())
+        self.snapshot_masks.save_at(&mask, snapshot)
     }
 
     fn get_snapshot_mask(&self, snapshot: &SnapshotId) -> SdaServerResult<Option<Vec<Encryption>>> {
-        super::get_option(&self.snapshot_masks, &snapshot.stringify())
+        self.snapshot_masks.get_option(snapshot)
     }
 }
