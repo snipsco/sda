@@ -10,8 +10,7 @@ authors = [
 itertools = "0.5.9"
 sda-protocol = { path= "../protocol" }
 error-chain = { version = "0.10", default-features=false }
-jfs = { path= "../jfs" }
-#jfs = "0.3"
+jfs = "0.3"
 serde = "0.9"
 serde_derive = "0.9"
 uuid = "0.4"
