@@ -125,7 +125,7 @@ pub fn auth_tokens_crud() {
         ctx.server.0.upsert_auth_token(&alice_token_new).unwrap();
         assert!(ctx.server.0.check_auth_token(&alice_token_new).is_ok());
         assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
-        ctx.server.0.delete_auth_token(&alice.id).unwrap();
+        ctx.server.0.delete_auth_token(&alice_token.id).unwrap();
         assert!(ctx.server.0.check_auth_token(&alice_token_new).is_err());
         assert!(ctx.server.0.check_auth_token(&alice_token).is_err());
     });

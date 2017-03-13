@@ -189,7 +189,7 @@ pub fn participation() {
         }
 
         // close aggregation (by creating snapshot)
-        recipient.close_aggregation(&aggregation.id);
+        recipient.close_aggregation(&aggregation.id).unwrap();
 
         // .. and check status
         let status = ctx.service.get_aggregation_status(&recipient.agent, &aggregation.id).unwrap().unwrap();

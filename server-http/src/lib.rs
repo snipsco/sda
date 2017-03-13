@@ -35,14 +35,17 @@ mod errors {
 
 macro_rules! wrap {
     ($req:expr, $e:expr) => { match $e {
-        Ok(resp) => resp,
+        Ok(resp) => {
+            info!("{} {} ({})", $req.method(), $req.raw_url(), resp.status_code);
+            resp
+        }
         Err(e) => {
             let code = match e {
                 Error(ErrorKind::Sda(SdaErrorKind::InvalidCredentials), _) => 401,
                 Error(ErrorKind::Sda(SdaErrorKind::PermissionDenied), _) => 403,
                 _ => 500,
             };
-            error!("Error: {} {} {} ({})", $req.method(), $req.raw_url(), e, code);
+            error!("{} {} {} ({})", $req.method(), $req.raw_url(), e, code);
             Response::text(format!("{}", e)).with_status_code(code)
         }
     }}
@@ -55,6 +58,7 @@ pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServerService>) -> !
 }
 
 pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
+    debug!("Incoming {} {}", req.method(), req.raw_url());
     wrap! { req, router! { req,
         (GET)  (/ping) => { H(&server).ping(req) },
 
@@ -272,7 +276,7 @@ mod tests {
             }
         };
         let secret = "s0m3_s3cr3t_t0k3n";
-        let authorization_raw = format!("{}:{}", alice.id().stringify(), secret);
+        let authorization_raw = format!("{}:{}", alice.id().to_string(), secret);
         let header = format!("Basic {}",
                              ::data_encoding::base64::encode(authorization_raw.as_bytes()));
         let req = ::rouille::Request::fake_http("GET",

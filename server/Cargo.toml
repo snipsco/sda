@@ -14,3 +14,8 @@ jfs = "0.3"
 serde = "0.9"
 serde_derive = "0.9"
 uuid = "0.4"
+slog = "1.5"
+slog-scope = "0.2"
+
+[dev-dependencies]
+tempdir = "0.3"

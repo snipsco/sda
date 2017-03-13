@@ -115,7 +115,7 @@ impl Participating for SdaClient {
         }
 
         // generate fresh id for this participation
-        let participation_id = ParticipationId::new();
+        let participation_id = ParticipationId::random();
 
         Ok(Participation {
             id: participation_id,
