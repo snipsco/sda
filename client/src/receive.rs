@@ -39,14 +39,17 @@ impl Receive for SdaClient {
         Ok(self.service.create_aggregation(&self.agent, aggregation)?)
     }
 
-    fn begin_aggregation(&self, aggregation: &AggregationId) -> SdaClientResult<()> {
-        let candidates = self.service.suggest_committee(&self.agent, &aggregation)?;
+    fn begin_aggregation(&self, aggregation_id: &AggregationId) -> SdaClientResult<()> {
+        let aggregation = self.service.get_aggregation(&self.agent, aggregation_id)?
+            .ok_or(format!("Unknown aggregation, {:?}", aggregation_id))?;
+        let candidates = self.service.suggest_committee(&self.agent, &aggregation_id)?;
         // select suitable committee, following service suggestion blindly
         let selected_clerks = candidates.iter()
-            .map(|c| (c.id, c.keys[0]) )
+            .take(aggregation.committee_sharing_scheme.output_size())
+            .map(|candidate| (candidate.id, candidate.keys[0]) )
             .collect();
         let committee = Committee {
-            aggregation: aggregation.clone(),
+            aggregation: aggregation_id.clone(),
             clerks_and_keys: selected_clerks,
         };
         Ok(self.service.create_committee(&self.agent, &committee)?)

@@ -165,22 +165,7 @@ pub fn participation() {
         }
 
         // assign committee
-        let candidates = ctx.service.suggest_committee(&recipient.agent, &aggregation.id).unwrap();
-        // assert_eq!(3, candidates.len());
-        let committee = Committee {
-            aggregation: aggregation.id,
-            clerks_and_keys: candidates.iter()
-                .take(3)
-                .map(|candidate| {
-                    (candidate.id, candidate.keys[0])
-                })
-                .collect(),
-        };
-
-        ctx.service.create_committee(&recipient.agent, &committee).unwrap();
-        assert_eq!(ctx.service.get_committee(&recipient.agent, &aggregation.id).unwrap().as_ref(), Some(&committee));
-        ctx.service.create_committee(&recipient.agent, &committee).unwrap();
-        assert_eq!(ctx.service.get_committee(&recipient.agent, &aggregation.id).unwrap().as_ref(), Some(&committee));
+        recipient.begin_aggregation(&aggregation.id).unwrap();
 
         // prepare participants
         let participants_store: Vec<::tempdir::TempDir> = (0..2).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
