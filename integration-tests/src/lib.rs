@@ -31,12 +31,13 @@ static LOGS: sync::Once = sync::ONCE_INIT;
 fn ensure_logs() {
     use slog::DrainExt;
     LOGS.call_once(|| {
-        let root = ::slog::Logger::root(::slog_term::streamer()
-                                            .stderr()
-                                            .use_utc_timestamp()
-                                            .build()
-                                            .fuse(),
-                                        o!());
+        let root = ::slog_term::streamer()
+            .stderr()
+            .use_utc_timestamp()
+            .build()
+            .fuse();
+        let root = ::slog::level_filter(::slog::Level::Warning, root);
+        let root = ::slog::Logger::root(root, o!());
         ::slog_scope::set_global_logger(root);
     });
 }
@@ -46,8 +47,7 @@ pub fn new_agent() -> Agent {
         id: AgentId::default(),
         verification_key: Labeled {
             id: VerificationKeyId::default(),
-            body:
-                VerificationKey::Sodium(byte_arrays::B32::default()),
+            body: VerificationKey::Sodium(byte_arrays::B32::default()),
         },
     }
 }
@@ -88,10 +88,11 @@ pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
-    let server: SdaServerService = sda_server::SdaServerService::new_jfs_server(tempdir.path()).unwrap();
+    let server: SdaServerService = sda_server::SdaServerService::new_jfs_server(tempdir.path())
+        .unwrap();
     let s: Arc<SdaServerService> = Arc::new(server);
     let service: Arc<SdaService> = s.clone() as _;
-//    println!("tempdir: {:?}", tempdir.into_path());
+    //    println!("tempdir: {:?}", tempdir.into_path());
     let tc = TestContext {
         server: s,
         service: service,
@@ -126,7 +127,7 @@ pub fn with_service<F>(f: F)
         });
         let tempdir = ::tempdir::TempDir::new("sda-tests-clients").unwrap();
         let store = ::sda_client_store::Filebased::new(&tempdir).unwrap();
-        let services = ::sda_client_http::SdaHttpClient::new(&*http_address,store).unwrap();
+        let services = ::sda_client_http::SdaHttpClient::new(&*http_address, store).unwrap();
         let tc = TestContext {
             server: ctx.server.clone(),
             service: Arc::new(services),
