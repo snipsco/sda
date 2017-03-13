@@ -145,7 +145,7 @@ pub fn participation() {
             modulus: 13,
             recipient: recipient.agent.id().clone(),
             recipient_key: recipient_key.clone(),
-            masking_scheme: LinearMaskingScheme::None,
+            masking_scheme: LinearMaskingScheme::Full { modulus: 13 },
             committee_sharing_scheme: LinearSecretSharingScheme::Additive {
                 share_count: 3,
                 modulus: 13,
@@ -207,25 +207,5 @@ pub fn participation() {
         // reveal aggregation
         let output = recipient.reveal_aggregation(&aggregation.id).unwrap();
         assert_eq!(vec![2,4,6,8], output.normalise().values);
-
-        //
-        // let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
-        // let clients: Vec<SdaClient> = stores.iter().map(|store| new_client(store, &ctx.service)).collect();
-        //
-        // for client in clients {
-        //     client.upload_agent().unwrap();
-        //
-        //     let key = client.new_encryption_key().unwrap();
-        //     client.upload_encryption_key(&key).unwrap();
-        // }
-
-        // let recipient = clients.as_slice()[0];
-        // let participants = &clients[1..10];
-
-
-
-
-
-        assert!(true);
     });
 }

@@ -5,9 +5,9 @@ use rand::{Rng, OsRng};
 use ::std::iter::repeat;
 
 pub struct AdditiveSecretSharing {
-    pub share_count: usize,
-    pub modulus: i64,
-    pub rng: OsRng,
+    share_count: usize,
+    modulus: i64,
+    rng: OsRng,
 }
 
 impl AdditiveSecretSharing {
@@ -84,7 +84,7 @@ impl SecretReconstructor for AdditiveSecretSharing {
                 result[ix] %= self.modulus;
             }
         }
-        
+
         result
     }
 }

@@ -23,10 +23,11 @@ pub trait SecretUnmaskerConstruction<S> {
 }
 
 pub trait SecretUnmasker {
-    fn unmask(&self, masked_secrets: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret>;
+    fn unmask(&self, values: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret>;
 }
 
 mod none;
+mod full;
 
 impl SecretMaskerConstruction<LinearMaskingScheme> for CryptoModule {
     fn new_secret_masker(&self, scheme: &LinearMaskingScheme) -> SdaClientResult<Box<SecretMasker>> {
@@ -34,7 +35,12 @@ impl SecretMaskerConstruction<LinearMaskingScheme> for CryptoModule {
             LinearMaskingScheme::None => {
                 let masker = none::Masker::new();
                 Ok(Box::new(masker))
-            }
+            },
+
+            LinearMaskingScheme::Full { modulus } => {
+                let masker = full::Masker::new(modulus);
+                Ok(Box::new(masker))
+            },
         }
     }
 }
@@ -45,7 +51,12 @@ impl MaskCombinerConstruction<LinearMaskingScheme> for CryptoModule {
             LinearMaskingScheme::None => {
                 let masker = none::Masker::new();
                 Ok(Box::new(masker))
-            }
+            },
+
+            LinearMaskingScheme::Full { modulus } => {
+                let masker = full::Masker::new(modulus);
+                Ok(Box::new(masker))
+            },
         }
     }
 }
@@ -56,7 +67,12 @@ impl SecretUnmaskerConstruction<LinearMaskingScheme> for CryptoModule {
             LinearMaskingScheme::None => {
                 let masker = none::Masker::new();
                 Ok(Box::new(masker))
-            }
+            },
+
+            LinearMaskingScheme::Full { modulus } => {
+                let masker = full::Masker::new(modulus);
+                Ok(Box::new(masker))
+            },
         }
     }
 }

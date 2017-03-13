@@ -28,8 +28,8 @@ impl MaskCombiner for Masker {
 }
 
 impl SecretUnmasker for Masker {
-    fn unmask(&self, masked_secrets: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret> {
-        assert!(masked_secrets.0.len() == 0);
-        masked_secrets.1.to_vec()
+    fn unmask(&self, values: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret> {
+        assert!(values.0.len() == 0);
+        values.1.to_vec()
     }
 }

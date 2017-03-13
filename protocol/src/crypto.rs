@@ -35,19 +35,26 @@ pub enum VerificationKey {
 /// Supported masking schemes and their parameters.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LinearMaskingScheme {
-    
+
     None,
 
-    // Full { 
-    //     modulus: i64 
-    // },
+    Full {
+        modulus: i64
+    },
+
+    // Seeded {
+    //     modulus: i64,
+    //     seed_bitsize: usize,
+    // }
 
 }
 
 impl LinearMaskingScheme {
     pub fn has_mask(&self) -> bool {
-        match self {
-            &LinearMaskingScheme::None => false,
+        match *self {
+            LinearMaskingScheme::None => false,
+            LinearMaskingScheme::Full {..} => true,
+            // LinearMaskingScheme::Seeded {..} => true,
         }
     }
 }
@@ -156,5 +163,5 @@ impl AdditiveEncryptionScheme {
             // &AdditiveEncryptionScheme::PackedPaillier { component_count, .. } => component_count
         }
     }
-    
+
 }
