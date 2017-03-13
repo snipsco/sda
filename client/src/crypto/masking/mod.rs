@@ -1,5 +1,9 @@
 //! Code for masking.
 
+mod none;
+mod full;
+mod chacha;
+
 use super::*;
 
 pub trait SecretMaskerConstruction<S> {
@@ -26,9 +30,6 @@ pub trait SecretUnmasker {
     fn unmask(&self, values: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret>;
 }
 
-mod none;
-mod full;
-
 impl SecretMaskerConstruction<LinearMaskingScheme> for CryptoModule {
     fn new_secret_masker(&self, scheme: &LinearMaskingScheme) -> SdaClientResult<Box<SecretMasker>> {
         match *scheme {
@@ -39,6 +40,11 @@ impl SecretMaskerConstruction<LinearMaskingScheme> for CryptoModule {
 
             LinearMaskingScheme::Full { modulus } => {
                 let masker = full::Masker::new(modulus);
+                Ok(Box::new(masker))
+            },
+
+            LinearMaskingScheme::ChaCha { modulus, dimension, seed_bitsize } => {
+                let masker = chacha::Masker::new(modulus, dimension, seed_bitsize);
                 Ok(Box::new(masker))
             },
         }
@@ -57,6 +63,11 @@ impl MaskCombinerConstruction<LinearMaskingScheme> for CryptoModule {
                 let masker = full::Masker::new(modulus);
                 Ok(Box::new(masker))
             },
+
+            LinearMaskingScheme::ChaCha { modulus, dimension, seed_bitsize } => {
+                let masker = chacha::Masker::new(modulus, dimension, seed_bitsize);
+                Ok(Box::new(masker))
+            },
         }
     }
 }
@@ -71,6 +82,11 @@ impl SecretUnmaskerConstruction<LinearMaskingScheme> for CryptoModule {
 
             LinearMaskingScheme::Full { modulus } => {
                 let masker = full::Masker::new(modulus);
+                Ok(Box::new(masker))
+            },
+
+            LinearMaskingScheme::ChaCha { modulus, dimension, seed_bitsize } => {
+                let masker = chacha::Masker::new(modulus, dimension, seed_bitsize);
                 Ok(Box::new(masker))
             },
         }

@@ -145,7 +145,9 @@ pub fn participation() {
             modulus: 13,
             recipient: recipient.agent.id().clone(),
             recipient_key: recipient_key.clone(),
-            masking_scheme: LinearMaskingScheme::Full { modulus: 13 },
+            // masking_scheme: LinearMaskingScheme::None,
+            // masking_scheme: LinearMaskingScheme::Full { modulus: 13 },
+            masking_scheme: LinearMaskingScheme::ChaCha { modulus: 13, dimension: 4, seed_bitsize: 128 },
             committee_sharing_scheme: LinearSecretSharingScheme::Additive {
                 share_count: 3,
                 modulus: 13,
@@ -206,6 +208,6 @@ pub fn participation() {
 
         // reveal aggregation
         let output = recipient.reveal_aggregation(&aggregation.id).unwrap();
-        assert_eq!(vec![2,4,6,8], output.normalise().values);
+        assert_eq!(vec![2,4,6,8], output.positive().values);
     });
 }

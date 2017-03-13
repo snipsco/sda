@@ -10,7 +10,7 @@ pub struct RecipientOutput {
 }
 
 impl RecipientOutput {
-    pub fn normalise(&self) -> RecipientOutput {
+    pub fn positive(&self) -> RecipientOutput {
         let positive_values = self.values.iter().map(|&v| if v < 0 { v + self.modulus } else { v }).collect();
         RecipientOutput {
             modulus: self.modulus,

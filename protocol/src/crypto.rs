@@ -42,10 +42,11 @@ pub enum LinearMaskingScheme {
         modulus: i64
     },
 
-    // Seeded {
-    //     modulus: i64,
-    //     seed_bitsize: usize,
-    // }
+    ChaCha {
+        modulus: i64,
+        dimension: usize,
+        seed_bitsize: usize,
+    }
 
 }
 
@@ -54,7 +55,7 @@ impl LinearMaskingScheme {
         match *self {
             LinearMaskingScheme::None => false,
             LinearMaskingScheme::Full {..} => true,
-            // LinearMaskingScheme::Seeded {..} => true,
+            LinearMaskingScheme::ChaCha {..} => true,
         }
     }
 }

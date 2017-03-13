@@ -20,7 +20,6 @@ use std::sync::Arc;
 use sda_server::SdaServerService;
 use sda_protocol::*;
 use sda_client::*;
-use sda_client_store::*;
 
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
