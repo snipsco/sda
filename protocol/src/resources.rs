@@ -37,7 +37,10 @@ pub struct Aggregation {
     pub title: String,
     /// Fixed dimension of input and output vectors.
     pub vector_dimension: usize,
-    // pub modulus: i64,  // TODO move here instead of in the primitives?
+    /// The group in which all operations are performed.
+    ///
+    /// Cryptographic primitives must match with this value.
+    pub modulus: i64,
     /// Recipient of output vector.
     pub recipient: AgentId,
     /// Encryption key to be used for encryptions to the recipient.

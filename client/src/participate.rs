@@ -66,7 +66,7 @@ impl Participating for SdaClient {
 
         // load committee
         let committee: Committee = self.service.get_committee(&self.agent, aggregation_id)?.ok_or("Could not find committee")?;
-
+        
         // mask the secrets
         let mut secret_masker = self.crypto.new_secret_masker(&aggregation.masking_scheme)?;
         let (recipient_mask, committee_masked_secrets) = secret_masker.mask(secrets);

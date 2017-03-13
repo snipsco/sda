@@ -4,7 +4,20 @@ use errors::SdaClientResult;
 
 use sda_protocol::*;
 
-pub struct RecipientOutput(pub Vec<i64>);
+pub struct RecipientOutput {
+    pub modulus: i64,
+    pub values: Vec<i64>,
+}
+
+impl RecipientOutput {
+    pub fn normalise(&self) -> RecipientOutput {
+        let positive_values = self.values.iter().map(|&v| if v < 0 { v + self.modulus } else { v }).collect();
+        RecipientOutput {
+            modulus: self.modulus,
+            values: positive_values,
+        }
+    }
+}
 
 /// Basic tasks needed by a recipient.
 pub trait Receive {
@@ -114,13 +127,11 @@ impl Receive for SdaClient {
                     Ok((clerk_index, shares))
                 })
                 .collect::<SdaClientResult<Vec<(usize, Vec<Share>)>>>()?;
-            println!("output shares {:?}", masked_output_shares);
 
             let secret_reconstructor = self.crypto.new_secret_reconstructor(
                 &aggregation.committee_sharing_scheme)?;
 
             let masked_output = secret_reconstructor.reconstruct(&masked_output_shares);
-            println!("masked output {:?}", masked_output);
             masked_output
         };
 
@@ -129,7 +140,10 @@ impl Receive for SdaClient {
             &aggregation.masking_scheme)?;
 
         let output = secret_unmasker.unmask(&(mask, masked_output));
-        Ok(RecipientOutput(output))
+        Ok(RecipientOutput {
+            modulus: aggregation.modulus,
+            values: output,
+        })
     }
 
 }
