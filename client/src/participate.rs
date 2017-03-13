@@ -69,7 +69,7 @@ impl Participating for SdaClient {
 
         // mask the secrets
         let mut secret_masker = self.crypto.new_secret_masker(&aggregation.masking_scheme)?;
-        let (recipient_mask, committee_masked_secrets) = secret_masker.mask_secrets(secrets);
+        let (recipient_mask, committee_masked_secrets) = secret_masker.mask(secrets);
 
         let recipient_encryption: Option<Encryption> = if recipient_mask.len() == 0 {
             None

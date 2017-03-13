@@ -189,7 +189,7 @@ pub fn participation() {
         }
 
         // close aggregation (by creating snapshot)
-        recipient.close_aggregation(&aggregation.id).unwrap();
+        recipient.end_aggregation(&aggregation.id).unwrap();
 
         // .. and check status
         let status = ctx.service.get_aggregation_status(&recipient.agent, &aggregation.id).unwrap().unwrap();
@@ -214,7 +214,9 @@ pub fn participation() {
         assert_eq!(3, snapshot_status.number_of_clerking_results);
         assert_eq!(true, snapshot_status.result_ready);
 
-        
+        // reveal aggregation
+        let output = recipient.reveal_aggregation(&aggregation.id).unwrap();
+        assert_eq!(vec![1,2,3,4], output.0);
 
         //
         // let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();

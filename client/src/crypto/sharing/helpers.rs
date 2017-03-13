@@ -48,6 +48,8 @@ impl<G: BatchShareGenerator> ShareGenerator for G {
             }
         }
 
+        println!("secrets {:?}", secrets);
+        println!("shares {:?}", shares_grouped_per_recipient);
         shares_grouped_per_recipient
     }
 }
