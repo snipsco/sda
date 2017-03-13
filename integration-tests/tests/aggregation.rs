@@ -13,6 +13,7 @@ fn small_aggregation(recipient: &AgentId, recipient_key: &EncryptionKeyId) -> Ag
         id: AggregationId::default(),
         title: "foo".into(),
         vector_dimension: 4,
+        modulus: 13,
         recipient: *recipient,
         recipient_key: *recipient_key,
         masking_scheme: LinearMaskingScheme::None,
@@ -141,6 +142,7 @@ pub fn participation() {
             id: AggregationId::random(),
             title: "foo".into(),
             vector_dimension: 4,
+            modulus: 13,
             recipient: recipient.agent.id().clone(),
             recipient_key: recipient_key.clone(),
             masking_scheme: LinearMaskingScheme::None,
@@ -164,9 +166,11 @@ pub fn participation() {
 
         // assign committee
         let candidates = ctx.service.suggest_committee(&recipient.agent, &aggregation.id).unwrap();
+        // assert_eq!(3, candidates.len());
         let committee = Committee {
             aggregation: aggregation.id,
             clerks_and_keys: candidates.iter()
+                .take(3)
                 .map(|candidate| {
                     (candidate.id, candidate.keys[0])
                 })
@@ -179,7 +183,7 @@ pub fn participation() {
         assert_eq!(ctx.service.get_committee(&recipient.agent, &aggregation.id).unwrap().as_ref(), Some(&committee));
 
         // prepare participants
-        let participants_store: Vec<::tempdir::TempDir> = (0..1).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        let participants_store: Vec<::tempdir::TempDir> = (0..2).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
         let participants: Vec<SdaClient> = participants_store.iter().map(|store| new_client(store, &ctx.service)).collect();
 
         // participate
@@ -189,7 +193,7 @@ pub fn participation() {
         }
 
         // close aggregation (by creating snapshot)
-        recipient.close_aggregation(&aggregation.id).unwrap();
+        recipient.end_aggregation(&aggregation.id).unwrap();
 
         // .. and check status
         let status = ctx.service.get_aggregation_status(&recipient.agent, &aggregation.id).unwrap().unwrap();
@@ -201,6 +205,7 @@ pub fn participation() {
         assert_eq!(false, snapshot_status.result_ready);
 
         // perform clerking
+        recipient.run_chores(-1).unwrap();
         for clerk in clerks {
             clerk.run_chores(-1).unwrap();
         }
@@ -214,7 +219,9 @@ pub fn participation() {
         assert_eq!(3, snapshot_status.number_of_clerking_results);
         assert_eq!(true, snapshot_status.result_ready);
 
-        
+        // reveal aggregation
+        let output = recipient.reveal_aggregation(&aggregation.id).unwrap();
+        assert_eq!(vec![2,4,6,8], output.normalise().values);
 
         //
         // let stores: Vec<::tempdir::TempDir> = (0..10).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();

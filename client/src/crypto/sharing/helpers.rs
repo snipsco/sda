@@ -47,7 +47,7 @@ impl<G: BatchShareGenerator> ShareGenerator for G {
                 shares_grouped_per_recipient[recipient].push(*share);
             }
         }
-
+        
         shares_grouped_per_recipient
     }
 }

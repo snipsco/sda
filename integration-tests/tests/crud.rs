@@ -142,6 +142,7 @@ pub fn aggregation_crud() {
             id: sda_protocol::AggregationId::default(),
             title: "foo".into(),
             vector_dimension: 4,
+            modulus: 13,
             recipient: alice.id,
             recipient_key: alice_key.id,
             masking_scheme: p::LinearMaskingScheme::None,

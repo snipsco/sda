@@ -44,7 +44,7 @@ impl BatchShareGenerator for AdditiveSecretSharing {
             .collect();
 
         // compute the last share as the secret minus the sum of all other shares
-        let last_share = shares.iter().fold(-secret, |sum, &x| { (sum + x) % self.modulus });
+        let last_share = shares.iter().fold(secret, |sum, &x| { (sum - x) % self.modulus });
         shares.push(last_share);
 
         shares
@@ -71,10 +71,20 @@ impl ShareCombiner for AdditiveSecretSharing {
 
 impl SecretReconstructor for AdditiveSecretSharing {
     fn reconstruct(&self, shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret> {
-        shares.iter()
-            .map(|&(_, ref sharing)|
-                sharing.iter().fold(0, |sum, &x| { (sum + x) % self.modulus })
-            )
-            .collect()
+        let dimension: usize = match shares.get(0) {
+            None => 0,
+            Some(head) => head.1.len()
+        };
+
+        let mut result: Vec<Share> = repeat(0).take(dimension).collect();
+        for &(_, ref share) in shares {
+            assert!(share.len() == dimension);
+            for (ix, value) in share.iter().enumerate() {
+                result[ix] += *value;
+                result[ix] %= self.modulus;
+            }
+        }
+        
+        result
     }
 }

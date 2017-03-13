@@ -7,7 +7,7 @@ pub trait SecretMaskerConstruction<S> {
 }
 
 pub trait SecretMasker {
-    fn mask_secrets(&mut self, values: &[Secret]) -> (Vec<Mask>, Vec<MaskedSecret>);
+    fn mask(&mut self, secrets: &[Secret]) -> (Vec<Mask>, Vec<MaskedSecret>);
 }
 
 pub trait MaskCombinerConstruction<S> {
@@ -16,6 +16,14 @@ pub trait MaskCombinerConstruction<S> {
 
 pub trait MaskCombiner {
     fn combine(&self, masks: &Vec<Vec<Mask>>) -> Vec<Mask>;
+}
+
+pub trait SecretUnmaskerConstruction<S> {
+    fn new_secret_unmasker(&self, scheme: &S) -> SdaClientResult<Box<SecretUnmasker>>;
+}
+
+pub trait SecretUnmasker {
+    fn unmask(&self, masked_secrets: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret>;
 }
 
 mod none;
@@ -33,6 +41,17 @@ impl SecretMaskerConstruction<LinearMaskingScheme> for CryptoModule {
 
 impl MaskCombinerConstruction<LinearMaskingScheme> for CryptoModule {
     fn new_mask_combiner(&self, scheme: &LinearMaskingScheme) -> SdaClientResult<Box<MaskCombiner>> {
+        match *scheme {
+            LinearMaskingScheme::None => {
+                let masker = none::Masker::new();
+                Ok(Box::new(masker))
+            }
+        }
+    }
+}
+
+impl SecretUnmaskerConstruction<LinearMaskingScheme> for CryptoModule {
+    fn new_secret_unmasker(&self, scheme: &LinearMaskingScheme) -> SdaClientResult<Box<SecretUnmasker>> {
         match *scheme {
             LinearMaskingScheme::None => {
                 let masker = none::Masker::new();
