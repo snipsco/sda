@@ -1,5 +1,5 @@
 use super::*;
-use super::helpers::BatchShareGenerator;
+use super::batched::BatchShareGenerator;
 
 use rand::{Rng, OsRng};
 use ::std::iter::repeat;
@@ -30,7 +30,7 @@ impl BatchShareGenerator for AdditiveSecretSharing {
         self.share_count
     }
 
-    fn generate_shares_for_batch(&mut self, batch_input: &[Secret]) -> Vec<Share> {
+    fn generate_for_batch(&mut self, batch_input: &[Secret]) -> Vec<Share> {
         assert_eq!(batch_input.len(), 1);
         let secret = batch_input[0];
 
@@ -52,35 +52,18 @@ impl BatchShareGenerator for AdditiveSecretSharing {
 
 }
 
-impl ShareCombiner for AdditiveSecretSharing {
-    fn combine(&self, shares: &Vec<Vec<Share>>) -> Vec<Share> {
-        let dimension: usize = shares.get(0).map_or(0, Vec::len);
-
-        let mut result: Vec<Share> = repeat(0).take(dimension).collect();
-        for share in shares {
-            assert!(share.len() == dimension);
-            for (ix, value) in share.iter().enumerate() {
-                result[ix] += *value;
-                result[ix] %= self.modulus;
-            }
-        }
-
-        result
-    }
-}
-
 impl SecretReconstructor for AdditiveSecretSharing {
-    fn reconstruct(&self, shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret> {
-        let dimension: usize = match shares.get(0) {
+    fn reconstruct(&self, indexed_shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret> {
+        let dimension: usize = match indexed_shares.get(0) {
             None => 0,
             Some(head) => head.1.len()
         };
 
         let mut result: Vec<Share> = repeat(0).take(dimension).collect();
-        for &(_, ref share) in shares {
-            assert!(share.len() == dimension);
-            for (ix, value) in share.iter().enumerate() {
-                result[ix] += *value;
+        for &(_, ref shares) in indexed_shares {
+            assert!(shares.len() == dimension);
+            for (ix, share) in shares.iter().enumerate() {
+                result[ix] += *share;
                 result[ix] %= self.modulus;
             }
         }

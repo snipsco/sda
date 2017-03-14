@@ -82,7 +82,7 @@ impl SecretUnmasker for Masker {
     fn unmask(&self, values: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret> {
         let ref mask = values.0;
         let ref masked_secrets = values.1;
-        assert!(mask.len() == masked_secrets.len());
+        assert_eq!(mask.len(), masked_secrets.len());
 
         // sustract mask from masked secrets
         let secrets = masked_secrets.iter()

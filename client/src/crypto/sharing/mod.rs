@@ -1,5 +1,10 @@
 //! Code for secret sharing.
 
+mod batched;
+mod combiner;
+mod additive;
+mod packed_shamir;
+
 use super::*;
 
 pub trait ShareGeneratorConstruction<S> {
@@ -8,7 +13,7 @@ pub trait ShareGeneratorConstruction<S> {
 
 pub trait ShareGenerator {
     /// Generate shares for secrets.
-    fn generate_shares(&mut self, secrets: &[Secret]) -> Vec<Vec<Share>>;
+    fn generate(&mut self, secrets: &[Secret]) -> Vec<Vec<Share>>;
 }
 
 pub trait ShareCombinerConstruction<S> {
@@ -20,16 +25,12 @@ pub trait ShareCombiner {
 }
 
 pub trait SecretReconstructorConstruction<S> {
-    fn new_secret_reconstructor(&self, scheme: &S) -> SdaClientResult<Box<SecretReconstructor>>;
+    fn new_secret_reconstructor(&self, scheme: &S, dimension: usize) -> SdaClientResult<Box<SecretReconstructor>>;
 }
 
 pub trait SecretReconstructor {
-    fn reconstruct(&self, shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret>;
+    fn reconstruct(&self, indexed_shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret>;
 }
-
-mod helpers;
-mod additive;
-mod packed_shamir;
 
 impl ShareGeneratorConstruction<LinearSecretSharingScheme> for CryptoModule {
     fn new_share_generator(&self, scheme: &LinearSecretSharingScheme) -> SdaClientResult<Box<ShareGenerator>> {
@@ -41,7 +42,7 @@ impl ShareGeneratorConstruction<LinearSecretSharingScheme> for CryptoModule {
             },
 
             LinearSecretSharingScheme::PackedShamir { prime_modulus, omega_secrets, omega_shares, .. } => {
-                let generator = packed_shamir::Wrapper::new(
+                let generator = packed_shamir::Generator::new(
                     scheme.privacy_threshold(),
                     scheme.output_size(),
                     scheme.input_size(),
@@ -57,28 +58,38 @@ impl ShareCombinerConstruction<LinearSecretSharingScheme> for CryptoModule {
     fn new_share_combiner(&self, scheme: &LinearSecretSharingScheme) -> SdaClientResult<Box<ShareCombiner>> {
         match *scheme {
 
-            LinearSecretSharingScheme::Additive { share_count, modulus } => {
-                let combiner = additive::AdditiveSecretSharing::new(share_count, modulus);
+            LinearSecretSharingScheme::Additive { modulus, .. } => {
+                let combiner = combiner::Combiner::new(modulus);
                 Ok(Box::new(combiner))
             },
 
-            // TODO
-            _ => unimplemented!(),
+            LinearSecretSharingScheme::PackedShamir { prime_modulus, .. } => {
+                let combiner = combiner::Combiner::new(prime_modulus);
+                Ok(Box::new(combiner))
+            },
 
         }
     }
 }
 
 impl SecretReconstructorConstruction<LinearSecretSharingScheme> for CryptoModule {
-    fn new_secret_reconstructor(&self, scheme: &LinearSecretSharingScheme) -> SdaClientResult<Box<SecretReconstructor>> {
+    fn new_secret_reconstructor(&self, scheme: &LinearSecretSharingScheme, dimension: usize) -> SdaClientResult<Box<SecretReconstructor>> {
         match *scheme {
 
             LinearSecretSharingScheme::Additive { share_count, modulus } => {
                 let reconstructor = additive::AdditiveSecretSharing::new(share_count, modulus);
                 Ok(Box::new(reconstructor))
             },
-
-            _ => unimplemented!(),
+            
+            LinearSecretSharingScheme::PackedShamir { prime_modulus, omega_secrets, omega_shares, .. } => {
+                let reconstructor = packed_shamir::Reconstructor::new(
+                    dimension,
+                    scheme.privacy_threshold(),
+                    scheme.output_size(),
+                    scheme.input_size(),
+                    prime_modulus, omega_secrets, omega_shares);
+                Ok(Box::new(reconstructor))
+            },
 
         }
     }

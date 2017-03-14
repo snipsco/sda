@@ -132,7 +132,8 @@ impl Receive for SdaClient {
                 .collect::<SdaClientResult<Vec<(usize, Vec<Share>)>>>()?;
 
             let secret_reconstructor = self.crypto.new_secret_reconstructor(
-                &aggregation.committee_sharing_scheme)?;
+                &aggregation.committee_sharing_scheme,
+                aggregation.vector_dimension)?;
 
             let masked_output = secret_reconstructor.reconstruct(&masked_output_shares);
             masked_output

@@ -142,23 +142,31 @@ pub fn participation() {
             id: AggregationId::random(),
             title: "foo".into(),
             vector_dimension: 4,
-            modulus: 13,
+            modulus: 433,
             recipient: recipient.agent.id().clone(),
             recipient_key: recipient_key.clone(),
             // masking_scheme: LinearMaskingScheme::None,
-            // masking_scheme: LinearMaskingScheme::Full { modulus: 13 },
-            masking_scheme: LinearMaskingScheme::ChaCha { modulus: 13, dimension: 4, seed_bitsize: 128 },
+            masking_scheme: LinearMaskingScheme::Full { modulus: 433 },
+            // masking_scheme: LinearMaskingScheme::ChaCha { modulus: 433, dimension: 4, seed_bitsize: 128 },
             committee_sharing_scheme: LinearSecretSharingScheme::Additive {
                 share_count: 3,
-                modulus: 13,
+                modulus: 433,
             },
+            // committee_sharing_scheme: LinearSecretSharingScheme::PackedShamir {
+            //     secret_count: 3,
+            //     share_count: 8,
+            //     privacy_threshold: 4,
+            //     prime_modulus: 433,
+            //     omega_secrets: 354,
+            //     omega_shares: 150,
+            // },
             recipient_encryption_scheme: AdditiveEncryptionScheme::Sodium,
             committee_encryption_scheme: AdditiveEncryptionScheme::Sodium,
         };
         recipient.upload_aggregation(&aggregation).unwrap();
 
         // prepare clerks
-        let clerks_store: Vec<::tempdir::TempDir> = (0..3).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
+        let clerks_store: Vec<::tempdir::TempDir> = (0..8).map(|_| ::tempdir::TempDir::new("sda-tests-clients-keystores").unwrap()).collect();
         let clerks: Vec<SdaClient> = clerks_store.iter().map(|store| new_client(store, &ctx.service)).collect();
         for clerk in clerks.iter() {
             let clerk_key = clerk.new_encryption_key().unwrap();
