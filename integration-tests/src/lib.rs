@@ -87,8 +87,7 @@ pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
-    let server: SdaServerService = sda_server::SdaServerService::new_jfs_server(tempdir.path())
-        .unwrap();
+    let server: SdaServerService = sda_server::new_jfs_server(tempdir.path()).unwrap();
     let s: Arc<SdaServerService> = Arc::new(server);
     let service: Arc<SdaService> = s.clone() as _;
     //    println!("tempdir: {:?}", tempdir.into_path());
