@@ -6,23 +6,23 @@ use sda_protocol::Identified;
 use sda_protocol::{Agent, AgentId, ClerkCandidate, Profile, SignedEncryptionKey, EncryptionKeyId};
 
 use SdaServerResult;
-use stores::{BaseStore, AgentStore};
+use stores::{BaseStore, AgentsStore};
 use jfs_stores::JfsStoreExt;
 
 use itertools::Itertools;
 
-pub struct JfsAgentStore {
+pub struct JfsAgentsStore {
     agents: jfs::Store,
     profiles: jfs::Store,
     encryption_keys: jfs::Store,
 }
 
-impl JfsAgentStore {
-    pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaServerResult<JfsAgentStore> {
+impl JfsAgentsStore {
+    pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaServerResult<JfsAgentsStore> {
         let agents = prefix.as_ref().join("agents");
         let profiles = prefix.as_ref().join("profiles");
         let encryption_keys = prefix.as_ref().join("encryption_keys");
-        Ok(JfsAgentStore {
+        Ok(JfsAgentsStore {
             agents: jfs::Store::new(agents.to_str().ok_or("pathbuf to string")?)?,
             profiles: jfs::Store::new(profiles.to_str().ok_or("pathbuf to string")?)?,
             encryption_keys: jfs::Store::new(encryption_keys.to_str().ok_or("pathbuf to string")?)?,
@@ -30,13 +30,13 @@ impl JfsAgentStore {
     }
 }
 
-impl BaseStore for JfsAgentStore {
+impl BaseStore for JfsAgentsStore {
     fn ping(&self) -> SdaServerResult<()> {
         Ok(())
     }
 }
 
-impl AgentStore for JfsAgentStore {
+impl AgentsStore for JfsAgentsStore {
     fn create_agent(&self, agent: &Agent) -> SdaServerResult<()> {
         self.agents.save_ident(agent)
     }

@@ -7,11 +7,11 @@ use errors::*;
 
 mod agents;
 mod aggregations;
-mod auth;
+mod auth_tokens;
 mod clerking_jobs;
 
-pub use self::agents::JfsAgentStore;
-pub use self::auth::JfsAuthStore;
+pub use self::agents::JfsAgentsStore;
+pub use self::auth_tokens::JfsAuthTokensStore;
 pub use self::aggregations::JfsAggregationsStore;
 pub use self::clerking_jobs::JfsClerkingJobStore;
 

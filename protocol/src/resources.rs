@@ -1,7 +1,7 @@
 use super::*;
 
 uuid_id!{ #[doc="Unique verification key identifier."] VerificationKeyId }
-pub type LabeledVerificationKey = Labeled<VerificationKeyId, VerificationKey>;
+pub type LabelledVerificationKey = Labelled<VerificationKeyId, VerificationKey>;
 
 /// Basic description of an agent, e.g. participants, clerks, and admins.
 ///
@@ -10,7 +10,7 @@ pub type LabeledVerificationKey = Labeled<VerificationKeyId, VerificationKey>;
 pub struct Agent {
     pub id: AgentId,
     /// Key used for verifying signatures from agent.
-    pub verification_key: LabeledVerificationKey,
+    pub verification_key: LabelledVerificationKey,
 }
 
 uuid_id!{ #[doc="Unique agent identifier."] AgentId }
@@ -28,7 +28,7 @@ pub struct Profile {
 
 uuid_id!{ #[doc="Unique encryption key identifier."] EncryptionKeyId }
 
-pub type SignedEncryptionKey = Signed<Labeled<EncryptionKeyId, EncryptionKey>>;
+pub type SignedEncryptionKey = Signed<Labelled<EncryptionKeyId, EncryptionKey>>;
 
 /// Description of an aggregation.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

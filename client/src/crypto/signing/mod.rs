@@ -42,15 +42,15 @@ impl KeyGeneration<VerificationKeyId> for CryptoModule {
 }
 
 
-impl KeyGeneration<Labeled<VerificationKeyId, VerificationKey>> for CryptoModule {
-    fn new_key(&self) -> SdaClientResult<Labeled<VerificationKeyId, VerificationKey>> {
+impl KeyGeneration<Labelled<VerificationKeyId, VerificationKey>> for CryptoModule {
+    fn new_key(&self) -> SdaClientResult<Labelled<VerificationKeyId, VerificationKey>> {
         // generate key
         let key_id: VerificationKeyId = self.new_key()?;
 
         // export public part, assuming that it is there since we just created it and haven't failed
         let key: VerificationKey = self.export(&key_id)?.unwrap();
 
-        Ok(Labeled {
+        Ok(Labelled {
             id: key_id,
             body: key,
         })
@@ -69,14 +69,14 @@ impl Export<VerificationKeyId, VerificationKey> for CryptoModule {
 }
 
 
-impl SignExport<EncryptionKeyId, Labeled<EncryptionKeyId, EncryptionKey>> for CryptoModule {
-    fn sign_export(&self, signer: &Agent, id: &EncryptionKeyId) -> SdaClientResult<Option<Signed<Labeled<EncryptionKeyId, EncryptionKey>>>> {
+impl SignExport<EncryptionKeyId, Labelled<EncryptionKeyId, EncryptionKey>> for CryptoModule {
+    fn sign_export(&self, signer: &Agent, id: &EncryptionKeyId) -> SdaClientResult<Option<Signed<Labelled<EncryptionKeyId, EncryptionKey>>>> {
         // message
         let encryption_keypair: Option<EncryptionKeypair> = self.keystore.get(id)?;
         let message_to_be_signed = match encryption_keypair {
             None => { return Ok(None) },
             Some(encryption_keypair) => {
-                Labeled {
+                Labelled {
                     id: id.clone(),
                     body: encryption_keypair.ek,
                 }

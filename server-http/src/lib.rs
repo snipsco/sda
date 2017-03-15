@@ -270,7 +270,7 @@ mod tests {
         use sda_protocol::{self, Id, Identified};
         let alice = sda_protocol::Agent {
             id:sda_protocol::AgentId::default(),
-            verification_key:sda_protocol::Labeled {
+            verification_key:sda_protocol::Labelled {
                 id:sda_protocol::VerificationKeyId::default(),
                 body:sda_protocol::VerificationKey::Sodium(sda_protocol::byte_arrays::B32::default()),
             }

@@ -95,7 +95,7 @@ impl<T: ::serde::Serialize> Sign for T {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Labeled<ID,M>
+pub struct Labelled<ID,M>
 where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
       ID: Id + Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
 {
@@ -103,7 +103,7 @@ where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
     pub body: M
 }
 
-impl<ID,M> Identified for Labeled<ID,M>
+impl<ID,M> Identified for Labelled<ID,M>
 where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
       ID: Id + Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
 {

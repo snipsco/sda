@@ -10,12 +10,12 @@ use std::sync;
 use slog::*;
 
 fn tmp_server() -> sda_server::SdaServer {
-    let agents = sda_server::jfs_stores::JfsAgentStore::new("tmp/agents").unwrap();
-    let auth = sda_server::jfs_stores::JfsAuthStore::new("tmp/auths").unwrap();
+    let agents = sda_server::jfs_stores::JfsAgentsStore::new("tmp/agents").unwrap();
+    let auth = sda_server::jfs_stores::JfsAuthTokensStore::new("tmp/auths").unwrap();
     let aggregation = sda_server::jfs_stores::JfsAggregationsStore::new("tmp/aggs").unwrap();
     sda_server::SdaServer {
-        agent_store: Box::new(agents),
-        auth_token_store: Box::new(auth),
+        agents_store: Box::new(agents),
+        auth_tokens_store: Box::new(auth),
         aggregation_store: Box::new(aggregation),
     }
 }

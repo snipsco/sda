@@ -5,9 +5,9 @@ pub trait BaseStore : Sync + Send {
     fn ping(&self) -> SdaServerResult<()>;
 }
 
-pub type AuthToken = Labeled<AgentId, String>;
+pub type AuthToken = Labelled<AgentId, String>;
 
-pub trait AuthStore: BaseStore {
+pub trait AuthTokensStore: BaseStore {
     /// Save an auth token
     fn upsert_auth_token(&self, token:&AuthToken) -> SdaServerResult<()>;
 
@@ -18,7 +18,7 @@ pub trait AuthStore: BaseStore {
     fn delete_auth_token(&self, id:&AgentId) -> SdaServerResult<()>;
 }
 
-pub trait AgentStore: BaseStore {
+pub trait AgentsStore: BaseStore {
     /// Create an agent
     fn create_agent(&self, agent: &Agent) -> SdaServerResult<()>;
 

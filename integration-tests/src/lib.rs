@@ -44,7 +44,7 @@ fn ensure_logs() {
 pub fn new_agent() -> Agent {
     Agent {
         id: AgentId::default(),
-        verification_key: Labeled {
+        verification_key: Labelled {
             id: VerificationKeyId::default(),
             body: VerificationKey::Sodium(byte_arrays::B32::default()),
         },
@@ -54,7 +54,7 @@ pub fn new_agent() -> Agent {
 pub fn new_key_for_agent(alice: &Agent) -> SignedEncryptionKey {
     use byte_arrays::*;
     SignedEncryptionKey {
-        body: Labeled {
+        body: Labelled {
             id: EncryptionKeyId::default(),
             body: EncryptionKey::Sodium(B32::default()),
         },

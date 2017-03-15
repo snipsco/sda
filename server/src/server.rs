@@ -3,8 +3,8 @@ use errors::*;
 use stores::*; // FIXME make all store names plural
 
 pub struct SdaServer {
-    pub agent_store: Box<AgentStore>,
-    pub auth_token_store: Box<AuthStore>,
+    pub agents_store: Box<AgentsStore>,
+    pub auth_tokens_store: Box<AuthTokensStore>,
     pub aggregation_store: Box<AggregationsStore>,
     pub clerking_job_store: Box<ClerkingJobStore>,
 }
@@ -20,34 +20,34 @@ macro_rules! wrap {
 
 impl SdaServer {
     pub fn ping(&self) -> SdaServerResult<Pong> {
-        self.agent_store.ping()?;
+        self.agents_store.ping()?;
         Ok(Pong { running: true })
     }
 
     pub fn create_agent(&self, agent: &Agent) -> SdaServerResult<()> {
-        self.agent_store.create_agent(&agent)
+        self.agents_store.create_agent(&agent)
     }
 
     pub fn get_agent(&self, id: &AgentId) -> SdaServerResult<Option<Agent>> {
-        self.agent_store.get_agent(&id)
+        self.agents_store.get_agent(&id)
     }
 
     pub fn upsert_profile(&self, profile: &Profile) -> SdaServerResult<()> {
-        self.agent_store.upsert_profile(profile)
+        self.agents_store.upsert_profile(profile)
     }
 
     pub fn get_profile(&self, agent: &AgentId) -> SdaServerResult<Option<Profile>> {
-        self.agent_store.get_profile(agent)
+        self.agents_store.get_profile(agent)
     }
 
     pub fn create_encryption_key(&self, key: &SignedEncryptionKey) -> SdaServerResult<()> {
-        self.agent_store.create_encryption_key(key)
+        self.agents_store.create_encryption_key(key)
     }
 
     pub fn get_encryption_key(&self,
                               key: &EncryptionKeyId)
                               -> SdaServerResult<Option<SignedEncryptionKey>> {
-        self.agent_store.get_encryption_key(key)
+        self.agents_store.get_encryption_key(key)
     }
 
     pub fn list_aggregations(&self,
@@ -80,7 +80,7 @@ impl SdaServer {
                              -> SdaServerResult<Vec<ClerkCandidate>> {
         let _aggregation =
             self.aggregation_store.get_aggregation(aggregation)?.ok_or("deleted aggregation")?;
-        self.agent_store.suggest_committee()
+        self.agents_store.suggest_committee()
     }
 
     pub fn create_committee(&self, committee: &Committee) -> SdaServerResult<()> {
@@ -156,15 +156,15 @@ impl SdaServer {
     }
 
     pub fn upsert_auth_token(&self, token: &AuthToken) -> SdaResult<()> {
-        wrap! { self.auth_token_store.upsert_auth_token(token) }
+        wrap! { self.auth_tokens_store.upsert_auth_token(token) }
     }
 
     pub fn check_auth_token(&self, token: &AuthToken) -> SdaResult<Agent> {
-        let db = self.auth_token_store
+        let db = self.auth_tokens_store
             .get_auth_token(token.id())
             .map_err(|e| format!("error in server: {}", e))?;
         if db.as_ref() == Some(token) {
-            Ok(self.agent_store
+            Ok(self.agents_store
                 .get_agent(&token.id)
                 .map_err(|e| format!("error in server: {}", e))?
                 .ok_or("Agent not found")?)
@@ -174,7 +174,7 @@ impl SdaServer {
     }
 
     pub fn delete_auth_token(&self, agent: &AgentId) -> SdaResult<()> {
-        wrap!(self.auth_token_store.delete_auth_token(agent))
+        wrap!(self.auth_tokens_store.delete_auth_token(agent))
     }
 }
 
@@ -184,13 +184,13 @@ impl SdaService for SdaServerService {}
 
 impl SdaServerService {
     pub fn new_jfs_server(dir: &::std::path::Path) -> SdaResult<SdaServerService> {
-        let agents = ::jfs_stores::JfsAgentStore::new(dir.join("agents")).unwrap();
-        let auth = ::jfs_stores::JfsAuthStore::new(dir.join("auths")).unwrap();
+        let agents = ::jfs_stores::JfsAgentsStore::new(dir.join("agents")).unwrap();
+        let auth = ::jfs_stores::JfsAuthTokensStore::new(dir.join("auths")).unwrap();
         let agg = ::jfs_stores::JfsAggregationsStore::new(dir.join("agg")).unwrap();
         let jobs = ::jfs_stores::JfsClerkingJobStore::new(dir.join("jobs")).unwrap();
         Ok(SdaServerService(SdaServer {
-            agent_store: Box::new(agents),
-            auth_token_store: Box::new(auth),
+            agents_store: Box::new(agents),
+            auth_tokens_store: Box::new(auth),
             aggregation_store: Box::new(agg),
             clerking_job_store: Box::new(jobs),
         }))

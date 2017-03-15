@@ -90,7 +90,7 @@ pub fn encryption_key_crud() {
         ctx.server.create_agent(&bob, &bob).unwrap();
 
         let alice_key = sda_protocol::SignedEncryptionKey {
-            body: sda_protocol::Labeled {
+            body: sda_protocol::Labelled {
                 id: sda_protocol::EncryptionKeyId::default(),
                 body: sda_protocol::EncryptionKey::Sodium(B32::default()),
             },
