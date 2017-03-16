@@ -2,8 +2,9 @@
 
 #[macro_use]
 extern crate lazy_static;
-#[cfg(feature="mongodb")]
+#[cfg(feature="mongo")]
 extern crate mongodb;
+extern crate rand;
 extern crate rouille;
 extern crate sda_protocol;
 extern crate sda_server;
@@ -13,7 +14,7 @@ extern crate sda_client_store;
 extern crate sda_client_http;
 #[cfg(feature="http")]
 extern crate sda_server_http;
-#[cfg(feature="mongodb")]
+#[cfg(feature="mongo")]
 extern crate sda_server_store_mongodb;
 #[macro_use]
 extern crate slog;
@@ -32,8 +33,6 @@ use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
 #[allow(dead_code)]
 static GLOBAL_PORT_OFFSET: AtomicUsize = ATOMIC_USIZE_INIT;
-#[allow(dead_code)]
-static GLOBAL_DB_ID: AtomicUsize = ATOMIC_USIZE_INIT;
 static LOGS: sync::Once = sync::ONCE_INIT;
 
 fn ensure_logs() {
@@ -92,7 +91,7 @@ pub struct TestContext {
     pub service: Arc<SdaService>,
 }
 
-#[cfg(not(feature="mongodb"))]
+#[cfg(not(feature="mongo"))]
 pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
@@ -111,18 +110,21 @@ pub fn with_server<F>(f: F)
 lazy_static! {
     static ref MONGODB: mongodb::Client = {
         use mongodb::ThreadedClient;
-        mongodb::Client::connect("localhost", 27017).unwrap()
+        use mongodb::ClientOptions;
+        mongodb::Client::connect_with_options("localhost", 27017, ClientOptions {
+            server_selection_timeout_ms: 250,
+            ..ClientOptions::default()
+        }).unwrap()
     };
 }
 
-#[cfg(feature="mongodb")]
+#[cfg(feature="mongo")]
 pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
-    use std::sync::atomic::Ordering;
+    use mongodb::ThreadedClient;
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
-    let db_offset = GLOBAL_DB_ID.fetch_add(1, Ordering::SeqCst);
-    let db_name = format!("sda-test-{}", db_offset);
+    let db_name = format!("sda-test-{}", rand::random::<u64>());
     let server: SdaServerService = sda_server_store_mongodb::new_mongodb_server(&MONGODB,&*db_name,&tempdir).unwrap();
     let s: Arc<SdaServerService> = Arc::new(server);
     let service: Arc<SdaService> = s.clone() as _;
@@ -131,7 +133,8 @@ pub fn with_server<F>(f: F)
         server: s,
         service: service,
     };
-    f(&tc)
+    f(&tc);
+    MONGODB.drop_database(&*db_name);
 }
 
 

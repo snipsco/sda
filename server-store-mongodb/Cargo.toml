@@ -7,9 +7,11 @@ authors = [
 ]
 
 [dependencies]
+bson = "0.4"
+mongodb = "0.2"
 sda-protocol = { path= "../protocol" }
 sda-server = { path= "../server" }
-mongodb = "0.2"
-bson = "0.4"
+serde = "0.9"
+serde_derive = "0.9"
 slog = "1.5"
 slog-scope = "0.2"

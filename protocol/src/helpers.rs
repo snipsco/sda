@@ -8,12 +8,12 @@ pub trait Identified {
     fn id(&self) -> &Self::I;
 }
 
-pub trait Id: Sized + ::std::str::FromStr<Err=String> + ToString {}
+pub trait Id: Sized + ::std::str::FromStr<Err=String> + ToString + Serialize + Deserialize {}
 
 macro_rules! uuid_id {
     ( #[$doc:meta] $name:ident ) => {
         #[$doc]
-        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
         pub struct $name(pub Uuid);
 
         impl $name {
@@ -43,6 +43,38 @@ macro_rules! uuid_id {
         }
 
         impl Id for $name {}
+
+        impl ::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where S: ::serde::Serializer
+            {
+                serializer.serialize_str(&*self.to_string())
+            }
+        }
+
+        impl ::serde::Deserialize for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where D: ::serde::Deserializer
+            {
+                struct Visitor;
+                impl ::serde::de::Visitor for Visitor {
+                    type Value = $name;
+
+                    fn expecting(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                        formatter.write_str("an hex hyphenated uuid")
+                    }
+
+                    fn visit_str<E>(self, v: &str) -> ::std::result::Result<Self::Value, E>
+                        where E: ::serde::de::Error
+                    {
+                        use std::str::FromStr;
+                        $name::from_str(v).map_err(|s| ::serde::de::Error::custom(s))
+                    }
+
+                }
+                deserializer.deserialize_str(Visitor)
+            }
+        }
     }
 }
 
@@ -113,3 +145,8 @@ where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
     }
 }
 
+pub fn label<ID,M>(id: &ID, body:&M) -> Labelled<ID,M>
+where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
+      ID: Id + Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize {
+          Labelled { id: id.clone(), body: body.clone() }
+      }

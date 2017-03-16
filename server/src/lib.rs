@@ -21,7 +21,7 @@ extern crate slog;
 #[macro_use]
 extern crate slog_scope;
 
-mod errors;
+pub mod errors;
 mod server;
 mod snapshot;
 

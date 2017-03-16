@@ -9,6 +9,7 @@ authors = [
 [dependencies]
 lazy_static="0.2"
 mongodb={ version="0.2", optional=true}
+rand = "0.3"
 rouille = "1.0.1"
 tempdir = "0.3.5"
 sda-protocol = { path= "../protocol" }
