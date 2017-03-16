@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use mongodb::coll::Collection;
 use sda_protocol::*;
 use sda_server::stores;
@@ -72,6 +71,10 @@ impl stores::AgentsStore for MongoAgentsStore {
     }
 
     fn suggest_committee(&self) -> SdaServerResult<Vec<ClerkCandidate>> {
-        unimplemented!()
+        m!(self.0.find(None, None))?.map(|ad| -> SdaServerResult<ClerkCandidate> {
+            let ad = m!(ad)?;
+            let ad:AgentDocument = from_doc(ad)?;
+            Ok(ClerkCandidate { id: ad._id, keys:ad.keys.iter().map(|it| it.id).collect() })
+        }).collect()
     }
 }
