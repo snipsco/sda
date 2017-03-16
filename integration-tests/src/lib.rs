@@ -108,6 +108,7 @@ pub fn with_server<F>(f: F)
 }
 
 lazy_static! {
+    #[cfg(feature="mongo")]
     static ref MONGODB: mongodb::Client = {
         use mongodb::ThreadedClient;
         use mongodb::ClientOptions;
