@@ -8,7 +8,7 @@ use CollectionExt;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct AgentDocument {
-    _id: AgentId,
+    id: AgentId,
     agent: Agent,
     profile: Option<Profile>,
     #[serde(default)]
@@ -20,14 +20,15 @@ pub struct MongoAgentsStore(Collection);
 impl MongoAgentsStore {
     pub fn new(db: &::mongodb::db::Database) -> SdaServerResult<MongoAgentsStore> {
         use mongodb::db::ThreadedDatabase;
-        Ok(MongoAgentsStore(db.collection("agents")))
+        let collection = db.collection("agents");
+        collection.ensure_index(d!("id" => 1), true)?;
+        Ok(MongoAgentsStore(collection))
     }
 }
 
 impl stores::BaseStore for MongoAgentsStore {
     fn ping(&self) -> SdaServerResult<()> {
-        m!(self.0.count(None, None))?;
-        Ok(())
+        self.0.ping()
     }
 }
 
@@ -74,7 +75,7 @@ impl stores::AgentsStore for MongoAgentsStore {
         m!(self.0.find(None, None))?.map(|ad| -> SdaServerResult<ClerkCandidate> {
             let ad = m!(ad)?;
             let ad:AgentDocument = from_doc(ad)?;
-            Ok(ClerkCandidate { id: ad._id, keys:ad.keys.iter().map(|it| it.id).collect() })
+            Ok(ClerkCandidate { id: ad.id, keys:ad.keys.iter().map(|it| it.id).collect() })
         }).collect()
     }
 }

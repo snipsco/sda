@@ -24,7 +24,7 @@ macro_rules! m {
 }
 
 macro_rules! d {
-    () => {{ $crate::Document::new() }};
+    () => {{ ::bson::Document::new() }};
     ( $($key:expr => $val:expr),* ) => {{
         let mut document = ::bson::Document::new();
 
@@ -53,6 +53,7 @@ pub fn from_doc<T: Deserialize>(doc: ::bson::Document) -> SdaServerResult<T> {
 }
 
 mod agents;
+mod aggregations;
 
 pub fn new_mongodb_server<P: AsRef<::std::path::Path>>(client: &mongodb::Client,
                                                        db: &str,
@@ -63,7 +64,7 @@ pub fn new_mongodb_server<P: AsRef<::std::path::Path>>(client: &mongodb::Client,
     let db = client.db(db);
     let agents = agents::MongoAgentsStore::new(&db).unwrap();
     let auth = sda_server::jfs_stores::JfsAuthTokensStore::new(dir.join("auths")).unwrap();
-    let agg = sda_server::jfs_stores::JfsAggregationsStore::new(dir.join("agg")).unwrap();
+    let agg = aggregations::MongoAggregationsStore::new(&db).unwrap();
     let jobs = sda_server::jfs_stores::JfsClerkingJobStore::new(dir.join("jobs")).unwrap();
     Ok(SdaServerService(SdaServer {
         agents_store: Box::new(agents),
@@ -74,6 +75,9 @@ pub fn new_mongodb_server<P: AsRef<::std::path::Path>>(client: &mongodb::Client,
 }
 
 trait CollectionExt {
+    fn ping(&self) -> SdaServerResult<()>;
+    fn ensure_index(&self, spec: bson::Document, unique:bool) -> SdaServerResult<()>;
+    fn create<T:Serialize>(&self, t:&T) -> SdaServerResult<()>;
     fn get_option<T:Deserialize>(&self, selector: bson::Document) -> SdaServerResult<Option<T>>;
     fn get_option_by_id<T:Deserialize, ID: Id>(&self, id: &ID) -> SdaServerResult<Option<T>>;
     fn modisert_by_id<ID: Id>(&self, id: &ID, update: bson::Document) -> SdaServerResult<()>;
@@ -81,6 +85,26 @@ trait CollectionExt {
 }
 
 impl CollectionExt for mongodb::coll::Collection {
+
+    fn ping(&self) -> SdaServerResult<()> {
+        m!(self.count(None, None))?;
+        Ok(())
+    }
+
+    fn ensure_index(&self, spec: bson::Document, unique:bool) -> SdaServerResult<()> {
+        use mongodb::coll::options::IndexOptions;
+        m!(self.create_index(spec, Some(IndexOptions {
+            unique: Some(unique),
+            background: Some(true),
+            .. IndexOptions::default()
+        })))?;
+        Ok(())
+    }
+
+    fn create<T:Serialize>(&self, t:&T) -> SdaServerResult<()> {
+        m!(self.insert_one(to_doc(t)?, None))?;
+        Ok(())
+    }
 
     fn get_option<T:Deserialize>(&self, selector: bson::Document) -> SdaServerResult<Option<T>> {
         let option = m!(self.find_one(Some(selector), None))?;
@@ -92,11 +116,11 @@ impl CollectionExt for mongodb::coll::Collection {
     }
 
     fn get_option_by_id<T:Deserialize, ID: Id>(&self, id: &ID) -> SdaServerResult<Option<T>> {
-        self.get_option(d!("_id"=>m!(bson::to_bson(&id.to_string()))?))
+        self.get_option(d!("id"=>m!(bson::to_bson(&id.to_string()))?))
     }
 
     fn modisert_by_id<ID: Id>(&self, id: &ID, update: bson::Document) -> SdaServerResult<()> {
-        let selector = d! { "_id" => m!(bson::to_bson(id))? };
+        let selector = d! { "id" => m!(bson::to_bson(id))? };
         m!(self.update_one(selector,
                              update,
                              Some(::mongodb::coll::options::UpdateOptions {
@@ -107,7 +131,7 @@ impl CollectionExt for mongodb::coll::Collection {
     }
 
     fn modify_by_id<ID: Id>(&self, id: &ID, update: bson::Document) -> SdaServerResult<()> {
-        let selector = d! { "_id" => m!(bson::to_bson(id))? };
+        let selector = d! { "id" => m!(bson::to_bson(id))? };
         m!(self.update_one(selector, update, None))?;
         Ok(())
     }
