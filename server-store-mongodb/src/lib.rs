@@ -18,7 +18,7 @@ macro_rules! m {
         match $e {
             Ok(ok) => Ok(ok),
             Err(e) =>
-                Err(SdaServerError::from(format!("Mongodb Error: {}", e)))
+                Err(SdaServerError::from(format!("Mongodb Error: {:?}", e)))
         }
     }
 }
@@ -74,26 +74,27 @@ pub fn new_mongodb_server<P: AsRef<::std::path::Path>>(client: &mongodb::Client,
     }))
 }
 
-trait CollectionExt {
-    fn ping(&self) -> SdaServerResult<()>;
-    fn ensure_index(&self, spec: bson::Document, unique:bool) -> SdaServerResult<()>;
-    fn create<T:Serialize>(&self, t:&T) -> SdaServerResult<()>;
-    fn get_option<T:Deserialize>(&self, selector: bson::Document) -> SdaServerResult<Option<T>>;
-    fn get_option_by_id<T:Deserialize, ID: Id>(&self, id: &ID) -> SdaServerResult<Option<T>>;
-    fn modisert_by_id<ID: Id>(&self, id: &ID, update: bson::Document) -> SdaServerResult<()>;
-    fn modify_by_id<ID: Id>(&self, id: &ID, update: bson::Document) -> SdaServerResult<()>;
+struct Dao<ID:Id, T:Serialize+Deserialize> {
+    coll: mongodb::coll::Collection,
+    _phantom: ::std::marker::PhantomData<(ID,T)>
 }
 
-impl CollectionExt for mongodb::coll::Collection {
+impl<ID:Id, T:Serialize+Deserialize> Dao<ID,T> {
+
+    fn new(coll: mongodb::coll::Collection) -> Dao<ID,T> {
+        Dao {
+            coll: coll, _phantom: ::std::marker::PhantomData,
+        }
+    }
 
     fn ping(&self) -> SdaServerResult<()> {
-        m!(self.count(None, None))?;
+        m!(self.coll.count(None, None))?;
         Ok(())
     }
 
     fn ensure_index(&self, spec: bson::Document, unique:bool) -> SdaServerResult<()> {
         use mongodb::coll::options::IndexOptions;
-        m!(self.create_index(spec, Some(IndexOptions {
+        m!(self.coll.create_index(spec, Some(IndexOptions {
             unique: Some(unique),
             background: Some(true),
             .. IndexOptions::default()
@@ -101,13 +102,13 @@ impl CollectionExt for mongodb::coll::Collection {
         Ok(())
     }
 
-    fn create<T:Serialize>(&self, t:&T) -> SdaServerResult<()> {
-        m!(self.insert_one(to_doc(t)?, None))?;
+    fn create(&self, t:&T) -> SdaServerResult<()> {
+        m!(self.coll.insert_one(to_doc(t)?, None))?;
         Ok(())
     }
 
-    fn get_option<T:Deserialize>(&self, selector: bson::Document) -> SdaServerResult<Option<T>> {
-        let option = m!(self.find_one(Some(selector), None))?;
+    fn get(&self, selector: bson::Document) -> SdaServerResult<Option<T>> {
+        let option = m!(self.coll.find_one(Some(selector), None))?;
         if let Some(it) = option {
             Ok(Some(from_doc::<T>(it)?))
         } else {
@@ -115,13 +116,17 @@ impl CollectionExt for mongodb::coll::Collection {
         }
     }
 
-    fn get_option_by_id<T:Deserialize, ID: Id>(&self, id: &ID) -> SdaServerResult<Option<T>> {
-        self.get_option(d!("id"=>m!(bson::to_bson(&id.to_string()))?))
+    fn get_by_id(&self, id: &ID) -> SdaServerResult<Option<T>> {
+        self.get(d!("id"=>m!(bson::to_bson(&id.to_string()))?))
     }
 
-    fn modisert_by_id<ID: Id>(&self, id: &ID, update: bson::Document) -> SdaServerResult<()> {
+    fn find(&self, selector: bson::Document) -> SdaServerResult<DaoCursor<T>> {
+        Ok(DaoCursor { cursor: m!(self.coll.find(Some(selector), None))?, _phantom: ::std::marker::PhantomData })
+    }
+
+    fn modisert_by_id(&self, id: &ID, update: bson::Document) -> SdaServerResult<()> {
         let selector = d! { "id" => m!(bson::to_bson(id))? };
-        m!(self.update_one(selector,
+        m!(self.coll.update_one(selector,
                              update,
                              Some(::mongodb::coll::options::UpdateOptions {
                                  upsert: Some(true),
@@ -130,9 +135,21 @@ impl CollectionExt for mongodb::coll::Collection {
         Ok(())
     }
 
-    fn modify_by_id<ID: Id>(&self, id: &ID, update: bson::Document) -> SdaServerResult<()> {
+    fn modify_by_id(&self, id: &ID, update: bson::Document) -> SdaServerResult<()> {
         let selector = d! { "id" => m!(bson::to_bson(id))? };
-        m!(self.update_one(selector, update, None))?;
+        m!(self.coll.update_one(selector, update, None))?;
         Ok(())
+    }
+}
+
+struct DaoCursor<T:Deserialize> {
+    cursor: mongodb::cursor::Cursor,
+    _phantom: ::std::marker::PhantomData<T>,
+}
+
+impl<T:Deserialize> Iterator for DaoCursor<T> {
+    type Item = SdaServerResult<T>;
+    fn next(&mut self) -> Option<SdaServerResult<T>> {
+        self.cursor.next().map(|res| m!(res).and_then(|doc| from_doc(doc)))
     }
 }

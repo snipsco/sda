@@ -2,9 +2,7 @@ use mongodb::coll::Collection;
 use sda_protocol::*;
 use sda_server::stores;
 use sda_server::errors::*;
-use {to_bson, to_doc, from_doc};
-
-use CollectionExt;
+use {to_bson, to_doc, from_doc, Dao};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct AgentDocument {
@@ -15,14 +13,14 @@ struct AgentDocument {
     keys: Vec<Labelled<EncryptionKeyId, SignedEncryptionKey>>
 }
 
-pub struct MongoAgentsStore(Collection);
+pub struct MongoAgentsStore(Dao<AgentId, AgentDocument>);
 
 impl MongoAgentsStore {
     pub fn new(db: &::mongodb::db::Database) -> SdaServerResult<MongoAgentsStore> {
         use mongodb::db::ThreadedDatabase;
-        let collection = db.collection("agents");
-        collection.ensure_index(d!("id" => 1), true)?;
-        Ok(MongoAgentsStore(collection))
+        let dao = Dao::new(db.collection("agents"));
+        dao.ensure_index(d!("id" => 1), true)?;
+        Ok(MongoAgentsStore(dao))
     }
 }
 
@@ -39,7 +37,7 @@ impl stores::AgentsStore for MongoAgentsStore {
 
     fn get_agent(&self, id: &AgentId) -> SdaServerResult<Option<Agent>> {
         self.0
-            .get_option_by_id::<AgentDocument, _>(id)
+            .get_by_id(id)
             .map(|opt| opt.map(|ad| ad.agent))
     }
 
@@ -50,7 +48,7 @@ impl stores::AgentsStore for MongoAgentsStore {
 
     fn get_profile(&self, owner: &AgentId) -> SdaServerResult<Option<Profile>> {
         self.0
-            .get_option_by_id::<AgentDocument, _>(owner)
+            .get_by_id(owner)
             .map(|opt| opt.and_then(|ad| ad.profile))
     }
 
@@ -65,14 +63,14 @@ impl stores::AgentsStore for MongoAgentsStore {
                           key: &EncryptionKeyId)
                           -> SdaServerResult<Option<SignedEncryptionKey>> {
         let selector = d!("keys.id" => to_bson(key)?);
-        self.0.get_option::<AgentDocument>(selector).map(|opt|
+        self.0.get(selector).map(|opt|
             opt.and_then(|ad| ad.keys.into_iter().find(|k| k.id == *key))
             .map(|k| k.body)
         )
     }
 
     fn suggest_committee(&self) -> SdaServerResult<Vec<ClerkCandidate>> {
-        m!(self.0.find(None, None))?.map(|ad| -> SdaServerResult<ClerkCandidate> {
+        m!(self.0.coll.find(None, None))?.map(|ad| -> SdaServerResult<ClerkCandidate> {
             let ad = m!(ad)?;
             let ad:AgentDocument = from_doc(ad)?;
             Ok(ClerkCandidate { id: ad.id, keys:ad.keys.iter().map(|it| it.id).collect() })

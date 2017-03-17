@@ -76,7 +76,7 @@ pub struct Committee {
 }
 
 /// Description of a participant's input to an aggregation.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Participation {
     /// Unique identifier of participation.
     ///
@@ -93,7 +93,7 @@ identify!(Participation, ParticipationId);
 
 /// Capture existing participations in an agggregation in order to create a
 /// consistent set of clerkable shares.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Snapshot {
     pub id: SnapshotId,
     pub aggregation: AggregationId,

@@ -3,7 +3,7 @@
 
 
 /// Encryption (or ciphertext).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Encryption {
     Sodium(Vec<u8>)
 }
