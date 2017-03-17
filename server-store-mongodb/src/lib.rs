@@ -54,6 +54,7 @@ pub fn from_doc<T: Deserialize>(doc: ::bson::Document) -> SdaServerResult<T> {
 
 mod agents;
 mod aggregations;
+mod auth_tokens;
 
 pub fn new_mongodb_server<P: AsRef<::std::path::Path>>(client: &mongodb::Client,
                                                        db: &str,
@@ -63,7 +64,7 @@ pub fn new_mongodb_server<P: AsRef<::std::path::Path>>(client: &mongodb::Client,
     let dir = dir.as_ref();
     let db = client.db(db);
     let agents = agents::MongoAgentsStore::new(&db).unwrap();
-    let auth = sda_server::jfs_stores::JfsAuthTokensStore::new(dir.join("auths")).unwrap();
+    let auth = auth_tokens::MongoAuthTokensStore::new(&db).unwrap();
     let agg = aggregations::MongoAggregationsStore::new(&db).unwrap();
     let jobs = sda_server::jfs_stores::JfsClerkingJobStore::new(dir.join("jobs")).unwrap();
     Ok(SdaServerService(SdaServer {
