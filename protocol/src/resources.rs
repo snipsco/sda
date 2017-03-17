@@ -105,7 +105,7 @@ identify!(Snapshot, SnapshotId);
 /// Partial aggregation job to be performed by a clerk.
 ///
 /// Includes all inputs needed.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq,  Serialize, Deserialize)]
 pub struct ClerkingJob {
     pub id: ClerkingJobId,
     pub clerk: AgentId,
@@ -118,7 +118,7 @@ uuid_id!{ #[doc="Unique job identifier."] ClerkingJobId }
 identify!(ClerkingJob, ClerkingJobId);
 
 /// Result of a partial aggregation job performed by a clerk.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ClerkingResult {
     pub job: ClerkingJobId,
     pub clerk: AgentId,

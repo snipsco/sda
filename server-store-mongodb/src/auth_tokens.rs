@@ -1,8 +1,7 @@
-use mongodb::coll::Collection;
 use sda_protocol::*;
 use sda_server::stores;
 use sda_server::errors::*;
-use {to_bson, to_doc, from_doc, Dao};
+use {to_bson, to_doc, Dao};
 
 use sda_server::stores::AuthToken;
 

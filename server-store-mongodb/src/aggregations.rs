@@ -1,8 +1,7 @@
-use mongodb::coll::Collection;
 use sda_protocol::*;
 use sda_server::stores;
 use sda_server::errors::*;
-use {to_bson, to_doc, from_doc, Dao};
+use {to_bson, to_doc, Dao};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct AggregationDocument {
@@ -116,14 +115,17 @@ impl stores::AggregationsStore for MongoAggregationsStore {
     }
 
     fn get_snapshot(&self,
-                    aggregation: &AggregationId,
+                    _aggregation: &AggregationId,
                     snapshot: &SnapshotId)
                     -> SdaServerResult<Option<Snapshot>> {
         self.snapshots.get_by_id(snapshot).map(|opt| opt.map(|s| s.snapshot))
     }
 
     fn count_participations(&self, aggregation: &AggregationId) -> SdaServerResult<usize> {
-        m!(self.participations.coll.count(Some(d!("participation.aggregation" => to_bson(aggregation)?)), None))
+        m!(self.participations
+                .coll
+                .count(Some(d!("participation.aggregation" => to_bson(aggregation)?)),
+                       None))
             .map(|i| i as _)
     }
 
@@ -141,7 +143,7 @@ impl stores::AggregationsStore for MongoAggregationsStore {
 
     fn iter_snapped_participations<'a, 'b>
         (&'b self,
-         aggregation: &AggregationId,
+         _aggregation: &AggregationId,
          snapshot: &SnapshotId)
          -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Participation>> + 'a>>
         where 'b: 'a

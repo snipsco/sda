@@ -127,9 +127,8 @@ pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
     use mongodb::ThreadedClient;
-    let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
     let db_name = format!("sda-test-{}", rand::random::<u64>());
-    let server: SdaServerService = sda_server_store_mongodb::new_mongodb_server(&mgo::MONGODB,&*db_name,&tempdir).unwrap();
+    let server: SdaServerService = sda_server_store_mongodb::new_mongodb_server(&mgo::MONGODB,&*db_name).unwrap();
     let s: Arc<SdaServerService> = Arc::new(server);
     let service: Arc<SdaService> = s.clone() as _;
     //    println!("tempdir: {:?}", tempdir.into_path());
