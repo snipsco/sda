@@ -163,9 +163,9 @@ impl stores::AggregationsStore for MongoAggregationsStore {
 
     fn iter_snapshot_clerk_jobs_data<'a, 'b>
         (&'b self,
-         aggregation: &AggregationId,
+         _aggregation: &AggregationId,
          snapshot: &SnapshotId,
-         clerks_number: usize)
+         _clerks_number: usize)
          -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Vec<Encryption>>> + 'a>>
         where 'b: 'a
     {
@@ -188,7 +188,7 @@ impl stores::AggregationsStore for MongoAggregationsStore {
             let doc = m!(doc)?;
             let shares = doc.get("shares").ok_or("invalid aggregation result")?;
             let shares:Vec<(AgentId,Encryption)> = from_bson(shares.to_owned())?;
-            Ok(shares.into_iter().map(|(id,enc)| enc).collect())
+            Ok(shares.into_iter().map(|(_id,enc)| enc).collect())
         });
         Ok(Box::new(shares))
 
@@ -202,8 +202,6 @@ impl stores::AggregationsStore for MongoAggregationsStore {
     }
 
     fn get_snapshot_mask(&self, snapshot: &SnapshotId) -> SdaServerResult<Option<Vec<Encryption>>> {
-        let r = self.snapshots.get_by_id(snapshot).map(|opt| opt.and_then(|s| s.mask));
-        println!("GET MASK: {:?}", r);
-        r
+        self.snapshots.get_by_id(snapshot).map(|opt| opt.and_then(|s| s.mask))
     }
 }
