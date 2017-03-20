@@ -40,6 +40,10 @@ pub fn to_bson<T: Serialize>(t: &T) -> SdaServerResult<::bson::Bson> {
     bson::to_bson(t).map_err(|e| format!("Error converting to bson: {}", e).into())
 }
 
+pub fn from_bson<T: Deserialize>(bson: ::bson::Bson) -> SdaServerResult<T> {
+    bson::from_bson(bson).map_err(|e| format!("Error converting from bson: {}", e).into())
+}
+
 pub fn to_doc<T: Serialize>(t: &T) -> SdaServerResult<::bson::Document> {
     match m!(::bson::to_bson(t))? {
         ::bson::Bson::Document(d) => Ok(d),

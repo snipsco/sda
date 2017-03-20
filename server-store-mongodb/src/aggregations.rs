@@ -1,7 +1,7 @@
 use sda_protocol::*;
 use sda_server::stores;
 use sda_server::errors::*;
-use {to_bson, to_doc, Dao};
+use {to_bson, to_doc, Dao, from_bson};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct AggregationDocument {
@@ -151,6 +151,47 @@ impl stores::AggregationsStore for MongoAggregationsStore {
         Ok(Box::new(self.participations
             .find(d!("snapshots" => to_bson(snapshot)?))?
             .map(|res| res.map(|pd| pd.participation))))
+    }
+
+    fn count_participations_snapshot(&self,
+                                     _aggregation: &AggregationId,
+                                     snapshot: &SnapshotId)
+                                     -> SdaServerResult<usize> {
+        m!(self.participations.coll.count(Some(d!("snapshots" => to_bson(snapshot)?)), None))
+            .map(|i| i as _)
+    }
+
+    fn iter_snapshot_clerk_jobs_data<'a, 'b>
+        (&'b self,
+         aggregation: &AggregationId,
+         snapshot: &SnapshotId,
+         clerks_number: usize)
+         -> SdaServerResult<Box<Iterator<Item = SdaServerResult<Vec<Encryption>>> + 'a>>
+        where 'b: 'a
+    {
+        use mongodb::coll::options::AggregateOptions;
+        use mongodb::cursor::Cursor;
+        let cursor:Cursor = m!(self.participations.coll
+                .aggregate(vec!(
+                        d!("$match" => d!("snapshots" => to_bson(snapshot)?)),
+                        d!("$unwind" =>
+                           d!("path" => "$participation.clerk_encryptions", "includeArrayIndex" => "clerk_id")),
+                        d!("$group" => d!("_id" => "$clerk_id", "shares" => d!("$push" => "$participation.clerk_encryptions"))),
+                        d!("$sort" => d!("_id" => 1))
+                        ),
+                    Some(AggregateOptions {
+                        allow_disk_use: Some(true),
+                        use_cursor: Some(true),
+                        .. AggregateOptions::default()
+                    })))?;
+        let shares = cursor.map(|doc| -> SdaServerResult<Vec<Encryption>> {
+            let doc = m!(doc)?;
+            let shares = doc.get("shares").ok_or("invalid aggregation result")?;
+            let shares:Vec<(AgentId,Encryption)> = from_bson(shares.to_owned())?;
+            Ok(shares.into_iter().map(|(id,enc)| enc).collect())
+        });
+        Ok(Box::new(shares))
+
     }
 
     fn create_snapshot_mask(&self,
