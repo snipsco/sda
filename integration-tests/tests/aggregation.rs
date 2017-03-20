@@ -57,7 +57,7 @@ pub fn full_mocked_loop() {
                 recipient_encryption: None,
                 clerk_encryptions: clerks.iter()
                     .enumerate()
-                    .map(|(ci, c)| (c.id, Encryption::Sodium(vec![ci as u8, pi as u8])))
+                    .map(|(ci, c)| (c.id, Encryption::Sodium(Binary(vec![ci as u8, pi as u8]))))
                     .collect(),
             };
             ctx.service.create_participation(&p.0, &participation).unwrap();
@@ -89,13 +89,13 @@ pub fn full_mocked_loop() {
             assert_eq!(snapshot.id, job.snapshot);
             for enc in job.encryptions.iter() {
                 let &Encryption::Sodium(ref data) = enc;
-                assert_eq!(ci as u8, data[0]);
+                assert_eq!(ci as u8, data.0[0]);
             }
 
             ctx.service.create_clerking_result(&agent.0, &ClerkingResult {
                 job: job.id,
                 clerk: c.id.clone(),
-                encryption: Encryption::Sodium(vec![ci as u8])
+                encryption: Encryption::Sodium(Binary(vec![ci as u8]))
             }).unwrap();
 
         }
@@ -121,7 +121,7 @@ pub fn full_mocked_loop() {
         for (ci, c) in clerks.iter().enumerate() {
             let agent = agents.iter().find(|a| a.0.id == c.id).unwrap();
             let Encryption::Sodium(ref enc) = final_result.clerk_encryptions.iter().find(|enc| enc.clerk == agent.0.id).unwrap().encryption;
-            assert_eq!(enc, &vec!(ci as u8));
+            assert_eq!(enc, &Binary(vec!(ci as u8)));
         }
     });
 }
