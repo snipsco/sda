@@ -93,7 +93,7 @@ pub struct TestContext {
 
 #[cfg(not(feature="mongo"))]
 pub fn with_server<F>(f: F)
-    where F: Fn(&TestContext) -> ()
+    where F: FnOnce(&TestContext) -> ()
 {
     let tempdir = ::tempdir::TempDir::new("sda-tests-servers").unwrap();
     let server: SdaServerService = sda_server::new_jfs_server(tempdir.path()).unwrap();
@@ -124,7 +124,7 @@ mod mgo {
 
 #[cfg(feature="mongo")]
 pub fn with_server<F>(f: F)
-    where F: Fn(&TestContext) -> ()
+    where F: FnOnce(&TestContext) -> ()
 {
     use mongodb::ThreadedClient;
     let db_name = format!("sda-test-{}", rand::random::<u64>());
@@ -143,7 +143,7 @@ pub fn with_server<F>(f: F)
 
 #[cfg(feature="http")]
 pub fn with_service<F>(f: F)
-    where F: Fn(&TestContext) -> ()
+    where F: FnOnce(&TestContext) -> ()
 {
     use std::sync::atomic::Ordering;
     ensure_logs();
@@ -181,7 +181,7 @@ pub fn with_service<F>(f: F)
 
 #[cfg(not(feature="http"))]
 pub fn with_service<F>(f: F)
-    where F: Fn(&TestContext) -> ()
+    where F: FnOnce(&TestContext) -> ()
 {
     ensure_logs();
     with_server(f)
