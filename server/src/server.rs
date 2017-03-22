@@ -6,7 +6,7 @@ pub struct SdaServer {
     pub agents_store: Box<AgentsStore>,
     pub auth_tokens_store: Box<AuthTokensStore>,
     pub aggregation_store: Box<AggregationsStore>,
-    pub clerking_job_store: Box<ClerkingJobStore>,
+    pub clerking_job_store: Box<ClerkingJobsStore>,
 }
 
 macro_rules! wrap {

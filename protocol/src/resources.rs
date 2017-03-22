@@ -76,7 +76,7 @@ pub struct Committee {
 }
 
 /// Description of a participant's input to an aggregation.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Participation {
     /// Unique identifier of participation.
     ///
@@ -93,7 +93,7 @@ identify!(Participation, ParticipationId);
 
 /// Capture existing participations in an agggregation in order to create a
 /// consistent set of clerkable shares.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Snapshot {
     pub id: SnapshotId,
     pub aggregation: AggregationId,
@@ -105,7 +105,7 @@ identify!(Snapshot, SnapshotId);
 /// Partial aggregation job to be performed by a clerk.
 ///
 /// Includes all inputs needed.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq,  Serialize, Deserialize)]
 pub struct ClerkingJob {
     pub id: ClerkingJobId,
     pub clerk: AgentId,
@@ -118,7 +118,7 @@ uuid_id!{ #[doc="Unique job identifier."] ClerkingJobId }
 identify!(ClerkingJob, ClerkingJobId);
 
 /// Result of a partial aggregation job performed by a clerk.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ClerkingResult {
     pub job: ClerkingJobId,
     pub clerk: AgentId,

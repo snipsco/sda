@@ -21,7 +21,7 @@ extern crate slog;
 #[macro_use]
 extern crate slog_scope;
 
-mod errors;
+pub mod errors;
 mod server;
 mod snapshot;
 
@@ -35,7 +35,7 @@ pub fn new_jfs_server<P: AsRef<::std::path::Path>>(dir: P) -> sda_protocol::SdaR
     let agents = ::jfs_stores::JfsAgentsStore::new(dir.as_ref().join("agents")).unwrap();
     let auth = ::jfs_stores::JfsAuthTokensStore::new(dir.as_ref().join("auths")).unwrap();
     let agg = ::jfs_stores::JfsAggregationsStore::new(dir.as_ref().join("agg")).unwrap();
-    let jobs = ::jfs_stores::JfsClerkingJobStore::new(dir.as_ref().join("jobs")).unwrap();
+    let jobs = ::jfs_stores::JfsClerkingJobsStore::new(dir.as_ref().join("jobs")).unwrap();
     Ok(SdaServerService(SdaServer {
         agents_store: Box::new(agents),
         auth_tokens_store: Box::new(auth),

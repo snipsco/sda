@@ -13,7 +13,7 @@ mod clerking_jobs;
 pub use self::agents::JfsAgentsStore;
 pub use self::auth_tokens::JfsAuthTokensStore;
 pub use self::aggregations::JfsAggregationsStore;
-pub use self::clerking_jobs::JfsClerkingJobStore;
+pub use self::clerking_jobs::JfsClerkingJobsStore;
 
 trait JfsStoreExt {
     fn get_option_for_str<T, S>(&self, id: S) -> SdaServerResult<Option<T>>

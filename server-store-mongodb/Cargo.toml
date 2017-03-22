@@ -1,5 +1,5 @@
 [package]
-name = "sdad"
+name = "sda-server-store-mongodb"
 version = "0.1.0"
 authors = [
     "Mathieu Poumeyrol <kali@zoy.org>", 
@@ -7,14 +7,11 @@ authors = [
 ]
 
 [dependencies]
-clap="2.20"
+bson = "0.4"
+mongodb = "0.2"
 sda-protocol = { path= "../protocol" }
 sda-server = { path= "../server" }
-sda-server-store-mongodb = { path= "../server-store-mongodb", optional=true }
-sda-server-http = { path= "../server-http" }
+serde = "0.9"
+serde_derive = "0.9"
 slog = "1.5"
 slog-scope = "0.2"
-slog-term = "1.3.5"
-
-[features]
-mongodb = ["sda-server-store-mongodb"]

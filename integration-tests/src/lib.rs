@@ -1,4 +1,10 @@
 #![allow(dead_code)]
+
+#[macro_use]
+extern crate lazy_static;
+#[cfg(feature="mongo")]
+extern crate mongodb;
+extern crate rand;
 extern crate rouille;
 extern crate sda_protocol;
 extern crate sda_server;
@@ -8,6 +14,8 @@ extern crate sda_client_store;
 extern crate sda_client_http;
 #[cfg(feature="http")]
 extern crate sda_server_http;
+#[cfg(feature="mongo")]
+extern crate sda_server_store_mongodb;
 #[macro_use]
 extern crate slog;
 extern crate slog_scope;
@@ -83,6 +91,7 @@ pub struct TestContext {
     pub service: Arc<SdaService>,
 }
 
+#[cfg(not(feature="mongo"))]
 pub fn with_server<F>(f: F)
     where F: Fn(&TestContext) -> ()
 {
@@ -97,6 +106,40 @@ pub fn with_server<F>(f: F)
     };
     f(&tc)
 }
+
+
+#[cfg(feature="mongo")]
+mod mgo {
+    lazy_static! {
+        pub static ref MONGODB: ::mongodb::Client = {
+            use mongodb::ThreadedClient;
+            use mongodb::ClientOptions;
+            ::mongodb::Client::connect_with_options("localhost", 27017, ClientOptions {
+                server_selection_timeout_ms: 250,
+                ..ClientOptions::default()
+            }).unwrap()
+        };
+    }
+}
+
+#[cfg(feature="mongo")]
+pub fn with_server<F>(f: F)
+    where F: Fn(&TestContext) -> ()
+{
+    use mongodb::ThreadedClient;
+    let db_name = format!("sda-test-{}", rand::random::<u64>());
+    let server: SdaServerService = sda_server_store_mongodb::new_mongodb_server(&mgo::MONGODB,&*db_name).unwrap();
+    let s: Arc<SdaServerService> = Arc::new(server);
+    let service: Arc<SdaService> = s.clone() as _;
+    //    println!("tempdir: {:?}", tempdir.into_path());
+    let tc = TestContext {
+        server: s,
+        service: service,
+    };
+    f(&tc);
+    mgo::MONGODB.drop_database(&*db_name).unwrap();
+}
+
 
 #[cfg(feature="http")]
 pub fn with_service<F>(f: F)

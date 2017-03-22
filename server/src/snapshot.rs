@@ -26,6 +26,9 @@ pub fn snapshot(server: &SdaServer, snapshot: &Snapshot) -> SdaServerResult<()> 
             })?;
     }
 
+    debug!("Create snapshot");
+    server.aggregation_store.create_snapshot(&snapshot)?;
+
     if aggregation.masking_scheme.has_mask() {
         debug!("Creating masking data");
         let recipient_encryptions: Vec<Encryption> = server.aggregation_store
@@ -38,9 +41,6 @@ pub fn snapshot(server: &SdaServer, snapshot: &Snapshot) -> SdaServerResult<()> 
             .collect::<SdaServerResult<Vec<Encryption>>>()?;
         server.aggregation_store.create_snapshot_mask(&snapshot.id, recipient_encryptions)?;
     }
-
-    debug!("Create snapshot");
-    server.aggregation_store.create_snapshot(&snapshot)?;
 
     debug!("Done snapshot");
     Ok(())

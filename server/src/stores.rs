@@ -105,7 +105,7 @@ pub trait AggregationsStore: BaseStore {
     fn get_snapshot_mask(&self, snapshot:&SnapshotId) -> SdaServerResult<Option<Vec<Encryption>>>;
 }
 
-pub trait ClerkingJobStore: BaseStore {
+pub trait ClerkingJobsStore: BaseStore {
     fn enqueue_clerking_job(&self, job:&ClerkingJob) -> SdaServerResult<()>;
 
     fn poll_clerking_job(&self, clerk:&AgentId) -> SdaServerResult<Option<ClerkingJob>>;

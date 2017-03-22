@@ -1,11 +1,12 @@
 
 //! Parameters for the cryptographic primitives supported by the system.
 
+use helpers::Binary;
 
 /// Encryption (or ciphertext).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Encryption {
-    Sodium(Vec<u8>)
+    Sodium(Binary)
 }
 
 /// Encryption key (aka public key).

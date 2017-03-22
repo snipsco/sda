@@ -43,7 +43,7 @@ impl ShareEncryptor for Encryptor {
         }
         // encrypt
         let raw_data = sodiumoxide::crypto::sealedbox::seal(&*encoded_shares, &self.pk);
-        Ok(Encryption::Sodium(raw_data))
+        Ok(Encryption::Sodium(Binary(raw_data)))
     }
 }
 
@@ -82,7 +82,7 @@ impl ShareDecryptor for Decryptor {
             &Encryption::Sodium(ref raw) => raw,
         };
         // decrypt
-        let raw_data = match sodiumoxide::crypto::sealedbox::open(&encryption[..], &self.pk, &self.sk) {
+        let raw_data = match sodiumoxide::crypto::sealedbox::open(&encryption.0[..], &self.pk, &self.sk) {
             Ok(raw_data) => raw_data,
             Err(()) => Err("Sodium decryption failure")?
         };

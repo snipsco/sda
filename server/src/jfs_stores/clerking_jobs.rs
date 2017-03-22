@@ -5,16 +5,16 @@ use std::path;
 use sda_protocol::Id;
 use sda_protocol::{AgentId, ClerkingJob, ClerkingJobId, ClerkingResult, SnapshotId};
 
-use stores::{BaseStore, ClerkingJobStore};
+use stores::{BaseStore, ClerkingJobsStore};
 use jfs_stores::JfsStoreExt;
 
 use SdaServerResult;
 
-pub struct JfsClerkingJobStore(path::PathBuf);
+pub struct JfsClerkingJobsStore(path::PathBuf);
 
-impl JfsClerkingJobStore {
-    pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaServerResult<JfsClerkingJobStore> {
-        Ok(JfsClerkingJobStore(prefix.as_ref().to_path_buf()))
+impl JfsClerkingJobsStore {
+    pub fn new<P: AsRef<path::Path>>(prefix: P) -> SdaServerResult<JfsClerkingJobsStore> {
+        Ok(JfsClerkingJobsStore(prefix.as_ref().to_path_buf()))
     }
 
     fn store<I: Id>(&self, prefix: &str, id: &I) -> SdaServerResult<jfs::Store> {
@@ -26,13 +26,13 @@ impl JfsClerkingJobStore {
     }
 }
 
-impl BaseStore for JfsClerkingJobStore {
+impl BaseStore for JfsClerkingJobsStore {
     fn ping(&self) -> SdaServerResult<()> {
         Ok(())
     }
 }
 
-impl ClerkingJobStore for JfsClerkingJobStore {
+impl ClerkingJobsStore for JfsClerkingJobsStore {
     fn enqueue_clerking_job(&self, job: &ClerkingJob) -> SdaServerResult<()> {
         self.store("queue", &job.clerk)?.save_ident(job)
     }
