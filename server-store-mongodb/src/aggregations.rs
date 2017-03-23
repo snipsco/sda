@@ -187,8 +187,8 @@ impl stores::AggregationsStore for MongoAggregationsStore {
         let shares = cursor.map(|doc| -> SdaServerResult<Vec<Encryption>> {
             let doc = m!(doc)?;
             let shares = doc.get("shares").ok_or("invalid aggregation result")?;
-            let shares:Vec<(AgentId,Encryption)> = from_bson(shares.to_owned())?;
-            Ok(shares.into_iter().map(|(_id,enc)| enc).collect())
+            let shares: Vec<(AgentId, Encryption)> = from_bson(shares.to_owned())?;
+            Ok(shares.into_iter().map(|(_id, enc)| enc).collect())
         });
         Ok(Box::new(shares))
 

@@ -61,6 +61,13 @@ mod aggregations;
 mod auth_tokens;
 mod clerking_jobs;
 
+pub fn new_mongodb_server_for_url(url: &str, db: &str) -> SdaResult<SdaServerService> {
+    use mongodb::ThreadedClient;
+    let client = mongodb::Client::with_uri(url)
+        .map_err(|e| format!("could not build mongodb client for: {} ({:?})", url, e))?;
+    new_mongodb_server(&client, db)
+}
+
 pub fn new_mongodb_server(client: &mongodb::Client, db: &str) -> SdaResult<SdaServerService> {
     use mongodb::ThreadedClient;
     let db = client.db(db);
