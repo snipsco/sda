@@ -15,21 +15,17 @@ extern crate sda_protocol;
 
 mod errors;
 mod crypto;
-mod trust;
 mod profile;
 mod participate;
 mod clerk;
 mod receive;
-// mod cache;
 
 pub use errors::{SdaClientResult, SdaClientError};
 pub use crypto::{Keystore, KeyStorage, EncryptionKeypair, SignatureKeypair};
 pub use profile::{Maintenance};
 pub use participate::{Participating, ParticipantInput};
 pub use clerk::Clerking;
-pub use receive::Receive;
-
-// pub use cache::CachedService;
+pub use receive::Receiving;
 
 use sda_protocol::*;
 use crypto::CryptoModule;
@@ -43,7 +39,6 @@ pub struct SdaClient {
     pub agent: Agent,
     crypto: CryptoModule,
     service: Arc<SdaService>,
-    trust: trust::Pessimistic,
 }
 
 impl SdaClient {
@@ -53,7 +48,6 @@ impl SdaClient {
             agent: agent,
             crypto: CryptoModule::new(keystore),
             service: service,
-            trust: trust::Pessimistic,
         }
     }
 }

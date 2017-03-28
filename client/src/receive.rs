@@ -20,7 +20,7 @@ impl RecipientOutput {
 }
 
 /// Basic tasks needed by a recipient.
-pub trait Receive {
+pub trait Receiving {
 
     fn upload_aggregation(&self, aggregation: &Aggregation) -> SdaClientResult<()>;
 
@@ -33,7 +33,7 @@ pub trait Receive {
 
 }
 
-impl Receive for SdaClient {
+impl Receiving for SdaClient {
 
     fn upload_aggregation(&self, aggregation: &Aggregation) -> SdaClientResult<()> {
         Ok(self.service.create_aggregation(&self.agent, aggregation)?)

@@ -3,7 +3,6 @@
 use super::*;
 
 use rand::{Rng, OsRng};
-use ::std::iter::repeat;
 
 pub struct Masker {
     modulus: i64,
@@ -14,7 +13,7 @@ impl Masker {
     pub fn new(modulus: i64) -> Masker {
         Masker {
             modulus: modulus,
-            rng: OsRng::new().unwrap(), // TODO not nice
+            rng: OsRng::new().expect("Unable to get randomness source"),
         }
     }
 }
@@ -39,9 +38,9 @@ impl MaskCombiner for Masker {
     fn combine(&self, masks: &Vec<Vec<Mask>>) -> Vec<Mask> {
         let dimension: usize = masks.get(0).map_or(0, Vec::len);
 
-        let mut result: Vec<Share> = repeat(0).take(dimension).collect();
+        let mut result: Vec<Share> = vec![0; dimension];
         for mask in masks {
-            assert!(mask.len() == dimension);
+            assert_eq!(mask.len(), dimension);
             for (ix, value) in mask.iter().enumerate() {
                 result[ix] += *value;
                 result[ix] %= self.modulus;
@@ -56,7 +55,7 @@ impl SecretUnmasker for Masker {
     fn unmask(&self, values: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret> {
         let ref masks = values.0;
         let ref masked_secrets = values.1;
-        assert!(masks.len() == masked_secrets.len());
+        assert_eq!(masks.len(), masked_secrets.len());
 
         let secrets = masked_secrets.iter()
             .zip(masks)

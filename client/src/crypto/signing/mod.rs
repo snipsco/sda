@@ -48,7 +48,7 @@ impl KeyGeneration<Labelled<VerificationKeyId, VerificationKey>> for CryptoModul
         let key_id: VerificationKeyId = self.new_key()?;
 
         // export public part, assuming that it is there since we just created it and haven't failed
-        let key: VerificationKey = self.export(&key_id)?.unwrap();
+        let key: VerificationKey = self.export(&key_id)?.expect("Recently created key not found");
 
         Ok(Labelled {
             id: key_id,
@@ -87,7 +87,7 @@ impl SignExport<EncryptionKeyId, Labelled<EncryptionKeyId, EncryptionKey>> for C
         let signature = match signature_keypair {
             None => { return Ok(None) },
             Some(SignatureKeypair{ sk: SigningKey::Sodium(raw_sk), .. }) => {
-                let sk = sodiumoxide::crypto::sign::SecretKey::from_slice(&*raw_sk).unwrap();
+                let sk = sodiumoxide::crypto::sign::SecretKey(*raw_sk);
                 let msg = &message_to_be_signed.canonical()?;
                 let signature = sodiumoxide::crypto::sign::sign_detached(msg, &sk);
                 Signature::Sodium(signature.0.into())
@@ -108,7 +108,7 @@ impl<M> SignatureVerification<Signed<M>> for Agent
 {
     fn signature_is_valid(&self, signed: &Signed<M>) -> SdaClientResult<bool> {
 
-        // TODO remember result to avoid running verification more than once
+        // FIXME remember result to avoid running verification more than once
 
         if signed.signer != self.id {
             Err("Agent differs from claimed signer")?

@@ -1,5 +1,4 @@
 use super::*;
-use ::std::iter::repeat;
 
 pub struct Combiner {
     modulus: i64,
@@ -17,9 +16,9 @@ impl ShareCombiner for Combiner {
     fn combine(&self, shares: &Vec<Vec<Share>>) -> Vec<Share> {
         let dimension: usize = shares.get(0).map_or(0, Vec::len);
 
-        let mut result: Vec<Share> = repeat(0).take(dimension).collect();
+        let mut result: Vec<Share> = vec![0; dimension];
         for share in shares {
-            assert!(share.len() == dimension);
+            assert_eq!(share.len(), dimension);
             for (ix, value) in share.iter().enumerate() {
                 result[ix] += *value;
                 result[ix] %= self.modulus;

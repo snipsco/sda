@@ -18,16 +18,14 @@ impl Encryptor {
         //  - documentation hints it's okay to do so more than once but we'll play it safe
         SODIUM_INITIALIZED.call_once(|| { sodiumoxide::init(); });
 
-        match ek {
-
-            &EncryptionKey::Sodium(raw_ek) => {
+        match *ek {
+            EncryptionKey::Sodium(raw_ek) => {
                 let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
                 Ok(Encryptor {
-                    pk: pk,
+                    pk: pk
                 })
-            },
-
+            }
         }
     }
 }
@@ -57,21 +55,16 @@ impl Decryptor {
     pub fn new(id: &EncryptionKeyId, keystore: &Arc<Keystore>) -> SdaClientResult<Decryptor> {
         let keypair = keystore.get(id)?.ok_or("Could not load keypair for decryption")?;
         match keypair {
-
             EncryptionKeypair { ek: EncryptionKey::Sodium(raw_ek), dk: DecryptionKey::Sodium(raw_dk) } => {
-
                 let pk = sodiumoxide::crypto::box_::PublicKey::from_slice(&*raw_ek)
                     .ok_or("Failed to parse Sodium public key")?;
-
                 let sk = sodiumoxide::crypto::box_::SecretKey::from_slice(&*raw_dk)
                     .ok_or("Failed to parse Sodium secret key")?;
-
                 Ok(Decryptor {
                     pk: pk,
                     sk: sk,
                 })
             }
-
         }
     }
 }

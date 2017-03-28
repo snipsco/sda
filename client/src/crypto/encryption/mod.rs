@@ -1,5 +1,7 @@
 //! Code for encryption.
 
+mod sodium;
+
 use super::*;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,6 +16,7 @@ pub struct EncryptionKeypair {
 }
 
 pub trait EncryptorConstruction<S> {
+    /// Create a new encryptor for the specificed encryption key and scheme.
     fn new_share_encryptor(&self, ek: &EncryptionKey, scheme: &S) -> SdaClientResult<Box<ShareEncryptor>>;
 }
 
@@ -23,6 +26,7 @@ pub trait ShareEncryptor {
 }
 
 pub trait DecryptorConstruction<ID, S> {
+    /// Create a new decryptor for the specified keypair and scheme.
     fn new_share_decryptor(&self, id: &ID, scheme: &S) -> SdaClientResult<Box<ShareDecryptor>>;
 }
 
@@ -30,8 +34,6 @@ pub trait ShareDecryptor {
     /// Decrypt shares.
     fn decrypt(&self, encryption: &Encryption) -> SdaClientResult<Vec<Share>>;
 }
-
-mod sodium;
 
 impl EncryptorConstruction<AdditiveEncryptionScheme> for CryptoModule {
     fn new_share_encryptor(&self, ek: &EncryptionKey, scheme: &AdditiveEncryptionScheme) -> SdaClientResult<Box<ShareEncryptor>> {

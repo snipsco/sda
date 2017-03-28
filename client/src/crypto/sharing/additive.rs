@@ -2,7 +2,6 @@ use super::*;
 use super::batched::BatchShareGenerator;
 
 use rand::{Rng, OsRng};
-use ::std::iter::repeat;
 
 pub struct AdditiveSecretSharing {
     share_count: usize,
@@ -15,7 +14,7 @@ impl AdditiveSecretSharing {
         AdditiveSecretSharing {
             share_count: share_count,
             modulus: modulus,
-            rng: OsRng::new().unwrap(), // TODO not nice
+            rng: OsRng::new().expect("Unable to get randomness source"),
         }
     }
 }
@@ -59,9 +58,9 @@ impl SecretReconstructor for AdditiveSecretSharing {
             Some(head) => head.1.len()
         };
 
-        let mut result: Vec<Share> = repeat(0).take(dimension).collect();
+        let mut result: Vec<Share> = vec![0; dimension];
         for &(_, ref shares) in indexed_shares {
-            assert!(shares.len() == dimension);
+            assert_eq!(shares.len(), dimension);
             for (ix, share) in shares.iter().enumerate() {
                 result[ix] += *share;
                 result[ix] %= self.modulus;

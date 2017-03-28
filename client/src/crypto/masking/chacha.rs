@@ -3,12 +3,10 @@
 use super::*;
 
 use rand::{Rng, OsRng, SeedableRng, ChaChaRng};
-use ::std::iter::repeat;
 
 pub struct Masker {
     modulus: i64,
     dimension: usize,
-
     /// Note: the PRG will use at most 256 bits according to the standard documentation.
     seed_bitsize: usize,
 }
@@ -28,7 +26,7 @@ impl SecretMasker for Masker {
         assert_eq!(self.dimension, secrets.len());
 
         // generate new seed using OsRng
-        let mut seed_generator = OsRng::new().unwrap(); // TODO not nice
+        let mut seed_generator = OsRng::new().expect("Unable to get randomness source");
         let seed_wordsize: usize = (self.seed_bitsize + 31) / 32; // ceil(x/32)
         let seed: Vec<u32> = (0..seed_wordsize)
             .map(|_| seed_generator.next_u32())
@@ -57,7 +55,7 @@ impl SecretMasker for Masker {
 
 impl MaskCombiner for Masker {
     fn combine(&self, seeds_as_i64: &Vec<Vec<Mask>>) -> Vec<Mask> {
-        let mut result: Vec<Share> = repeat(0).take(self.dimension).collect();
+        let mut result: Vec<Share> = vec![0; self.dimension];
 
         for seed_as_i64 in seeds_as_i64 {
             // convert seed from `Vec<Mask>`

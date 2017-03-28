@@ -9,10 +9,6 @@ use sda_protocol::*;
 /// Basic tasks needed by a clerk.
 pub trait Clerking {
 
-    /// `force` means contacting the service even if the client believes its already registered.
-    /// Return value indicates whether this was the first time the service saw this clerk.
-    fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool>;
-
     /// Execute clerking process once: download, process, and upload the next job pending on the service, if any.
     fn clerk_once(&self) -> SdaClientResult<bool>;
 
@@ -24,11 +20,6 @@ pub trait Clerking {
 }
 
 impl Clerking for SdaClient {
-
-    fn register_as_clerk(&self, force: bool) -> SdaClientResult<bool> {
-        // TODO for now everyone's a clerk
-        Ok(false)
-    }
 
     fn clerk_once(&self) -> SdaClientResult<bool> {
         let job = self.service.get_clerking_job(&self.agent, &self.agent.id)?;
@@ -44,19 +35,24 @@ impl Clerking for SdaClient {
         }
     }
 
-    fn run_chores(&self, mut max_iterations: isize) -> SdaClientResult<()> {
-        // register if we haven't done so already
-        self.register_as_clerk(false)?;
+    fn run_chores(&self, max_iterations: isize) -> SdaClientResult<()> {
         // repeatedly process jobs
-        loop {
-            if max_iterations == 0 {
-                return Ok(())
+        if max_iterations < 0 {
+            // loop until there's no more work
+            loop {
+                if !self.clerk_once()? {
+                    break
+                }
             }
-            if !self.clerk_once()? {
-                return Ok(())
+        } else {
+            // loop a maximum number of times
+            for _ in 0..max_iterations {
+                if !self.clerk_once()? {
+                    break
+                }
             }
-            max_iterations -= 1;
         }
+        return Ok(())
     }
 
 }
@@ -65,13 +61,13 @@ impl SdaClient {
 
     fn process_clerking_job(&self, job: &ClerkingJob) -> SdaClientResult<ClerkingResult> {
 
-        let aggregation = self.service.get_aggregation(&self.agent, &job.aggregation)?.ok_or("Unknown aggregation")?;
-        let committee = self.service.get_committee(&self.agent, &job.aggregation)?.ok_or("Unknown committee")?;
+        let aggregation = self.service.get_aggregation(&self.agent, &job.aggregation)?
+            .ok_or("Unknown aggregation")?;
+        
+        let committee = self.service.get_committee(&self.agent, &job.aggregation)?
+            .ok_or("Unknown committee")?;
 
-        // TODO what is the right policy for whether we want to help with this aggregation or not?
-        //  - based on aggregation and recipient?
-
-        // TODO there is some waste in the following split between decrypting and combining
+        // FIXME there is some waste in the following split between decrypting and combining
         //  - this could be improved by e.g. allowing an accumulating combiner
 
         // determine which one of our encryption keys were used (in turn giving the decryption key we need to use)
@@ -90,8 +86,10 @@ impl SdaClient {
 
         // fetch recipient's encryption key and verify signature
         let recipient_id = &aggregation.recipient;
-        let recipient_signed_encryption_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?.ok_or("Unknown encryption key")?;
-        let recipient = self.service.get_agent(&self.agent, recipient_id)?.ok_or("Unknown recipient")?;
+        let recipient = self.service.get_agent(&self.agent, recipient_id)?
+            .ok_or("Unknown recipient")?;
+        let recipient_signed_encryption_key = self.service.get_encryption_key(&self.agent, &aggregation.recipient_key)?
+            .ok_or("Unknown recipient encryption key")?;
         if !recipient.signature_is_valid(&recipient_signed_encryption_key)? {
             Err("Signature verification failed for recipient key")?
         }

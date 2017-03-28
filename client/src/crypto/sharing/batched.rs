@@ -76,7 +76,7 @@ impl<G: BatchSecretReconstructor> SecretReconstructor for G {
         let batch_output_size = self.batch_output_size();
         let number_of_batches = (self.output_size() + batch_output_size - 1) / batch_output_size; // ceiling
         
-        let mut batch_shares: Vec<Share> = repeat(0).take(batch_input_size).collect();
+        let mut batch_shares: Vec<Share> = vec![0; batch_input_size];
         let mut secrets: Vec<Secret> = Vec::with_capacity(number_of_batches * batch_output_size);
         
         for batch_index in 0..number_of_batches {

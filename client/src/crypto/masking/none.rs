@@ -20,16 +20,14 @@ impl SecretMasker for Masker {
 
 impl MaskCombiner for Masker {
     fn combine(&self, masks: &Vec<Vec<Mask>>) -> Vec<Mask> {
-        for mask in masks {
-            assert!(mask.len() == 0);
-        }
+        assert!(masks.iter().all(|mask| mask.len() == 0));
         vec![]
     }
 }
 
 impl SecretUnmasker for Masker {
     fn unmask(&self, values: &(Vec<Mask>, Vec<MaskedSecret>)) -> Vec<Secret> {
-        assert!(values.0.len() == 0);
+        assert_eq!(values.0.len(), 0);
         values.1.to_vec()
     }
 }
