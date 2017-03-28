@@ -135,7 +135,7 @@ impl Receiving for SdaClient {
                 &aggregation.committee_sharing_scheme,
                 aggregation.vector_dimension)?;
 
-            let masked_output = secret_reconstructor.reconstruct(&masked_output_shares);
+            let masked_output = secret_reconstructor.reconstruct(&masked_output_shares)?;
             masked_output
         };
 

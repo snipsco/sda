@@ -13,18 +13,18 @@ impl Combiner {
 }
 
 impl ShareCombiner for Combiner {
-    fn combine(&self, shares: &Vec<Vec<Share>>) -> Vec<Share> {
+    fn combine(&self, shares: &Vec<Vec<Share>>) -> SdaClientResult<Vec<Share>> {
         let dimension: usize = shares.get(0).map_or(0, Vec::len);
 
         let mut result: Vec<Share> = vec![0; dimension];
         for share in shares {
-            assert_eq!(share.len(), dimension);
+            if share.len() != dimension { Err("Wrong dimension")? }
             for (ix, value) in share.iter().enumerate() {
                 result[ix] += *value;
                 result[ix] %= self.modulus;
             }
         }
 
-        result
+        Ok(result)
     }
 }

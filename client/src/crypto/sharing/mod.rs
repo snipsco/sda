@@ -13,7 +13,7 @@ pub trait ShareGeneratorConstruction<S> {
 
 pub trait ShareGenerator {
     /// Generate shares for secrets.
-    fn generate(&mut self, secrets: &[Secret]) -> Vec<Vec<Share>>;
+    fn generate(&mut self, secrets: &[Secret]) -> SdaClientResult<Vec<Vec<Share>>>;
 }
 
 pub trait ShareCombinerConstruction<S> {
@@ -21,7 +21,7 @@ pub trait ShareCombinerConstruction<S> {
 }
 
 pub trait ShareCombiner {
-    fn combine(&self, shares: &Vec<Vec<Share>>) -> Vec<Share>;
+    fn combine(&self, shares: &Vec<Vec<Share>>) -> SdaClientResult<Vec<Share>>;
 }
 
 pub trait SecretReconstructorConstruction<S> {
@@ -29,7 +29,7 @@ pub trait SecretReconstructorConstruction<S> {
 }
 
 pub trait SecretReconstructor {
-    fn reconstruct(&self, indexed_shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret>;
+    fn reconstruct(&self, indexed_shares: &Vec<(usize, Vec<Share>)>) -> SdaClientResult<Vec<Secret>>;
 }
 
 impl ShareGeneratorConstruction<LinearSecretSharingScheme> for CryptoModule {

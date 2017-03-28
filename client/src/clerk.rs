@@ -82,7 +82,7 @@ impl SdaClient {
 
         // sum up shares
         let share_combiner = self.crypto.new_share_combiner(&aggregation.committee_sharing_scheme)?;
-        let fully_combined_shares: Vec<Share> = share_combiner.combine(&partially_combined_shares);
+        let fully_combined_shares: Vec<Share> = share_combiner.combine(&partially_combined_shares)?;
 
         // fetch recipient's encryption key and verify signature
         let recipient_id = &aggregation.recipient;

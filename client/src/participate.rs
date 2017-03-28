@@ -71,7 +71,7 @@ impl Participating for SdaClient {
 
         // share the committee's masked secrets: each inner vector corresponds to the shares of a single clerk
         let mut share_generator = self.crypto.new_share_generator(&aggregation.committee_sharing_scheme)?;
-        let committee_shares_per_clerk: Vec<Vec<Share>> = share_generator.generate(&committee_masked_secrets);
+        let committee_shares_per_clerk: Vec<Vec<Share>> = share_generator.generate(&committee_masked_secrets)?;
 
         // encryptions for the participation; we'll fill this one up as we go along
         let mut clerk_encryptions: Vec<(AgentId, Encryption)> = vec![];

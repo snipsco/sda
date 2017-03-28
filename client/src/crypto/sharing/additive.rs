@@ -29,8 +29,9 @@ impl BatchShareGenerator for AdditiveSecretSharing {
         self.share_count
     }
 
-    fn generate_for_batch(&mut self, batch_input: &[Secret]) -> Vec<Share> {
-        assert_eq!(batch_input.len(), 1);
+    fn generate_for_batch(&mut self, batch_input: &[Secret]) -> SdaClientResult<Vec<Share>> {
+        if batch_input.len() != self.batch_input_size() { Err("Batch input wrong length")? }
+        
         let secret = batch_input[0];
 
         // NOTE
@@ -46,13 +47,13 @@ impl BatchShareGenerator for AdditiveSecretSharing {
         let last_share = shares.iter().fold(secret, |sum, &x| { (sum - x) % self.modulus });
         shares.push(last_share);
 
-        shares
+        Ok(shares)
     }
 
 }
 
 impl SecretReconstructor for AdditiveSecretSharing {
-    fn reconstruct(&self, indexed_shares: &Vec<(usize, Vec<Share>)>) -> Vec<Secret> {
+    fn reconstruct(&self, indexed_shares: &Vec<(usize, Vec<Share>)>) -> SdaClientResult<Vec<Secret>> {
         let dimension: usize = match indexed_shares.get(0) {
             None => 0,
             Some(head) => head.1.len()
@@ -60,13 +61,13 @@ impl SecretReconstructor for AdditiveSecretSharing {
 
         let mut result: Vec<Share> = vec![0; dimension];
         for &(_, ref shares) in indexed_shares {
-            assert_eq!(shares.len(), dimension);
+            if shares.len() != dimension { Err("Mismatching dimension")? }
             for (ix, share) in shares.iter().enumerate() {
                 result[ix] += *share;
                 result[ix] %= self.modulus;
             }
         }
 
-        result
+        Ok(result)
     }
 }

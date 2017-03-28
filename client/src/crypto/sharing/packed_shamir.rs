@@ -37,8 +37,9 @@ impl BatchShareGenerator for Generator {
         self.batch_output_size
     }
 
-    fn generate_for_batch(&mut self, batch_input: &[Secret]) -> Vec<Share> {
-        self.pss_instance.share(batch_input)
+    fn generate_for_batch(&mut self, batch_input: &[Secret]) -> SdaClientResult<Vec<Share>> {
+        if batch_input.len() != self.batch_input_size() { Err("Sharing failed for packed secret sharing scheme")? }
+        Ok(self.pss_instance.share(batch_input))
     }
 
 }
@@ -69,8 +70,10 @@ impl Reconstructor {
 
 impl BatchSecretReconstructor for Reconstructor {
     
-    fn reconstruct_for_batch(&self, indices: &[usize], batch_shares: &[Secret]) -> Vec<Share> {
-        self.pss_instance.reconstruct(indices, batch_shares)
+    fn reconstruct_for_batch(&self, indices: &[usize], batch_shares: &[Secret]) -> SdaClientResult<Vec<Share>> {
+        if batch_shares.len() != indices.len() { Err("Inputs must have same length")? }
+        if batch_shares.len() < self.pss_instance.reconstruct_limit() { Err("Not enough shares to reconstruct")? }
+        Ok(self.pss_instance.reconstruct(indices, batch_shares))
     }
 
     fn batch_output_size(&self) -> usize {
