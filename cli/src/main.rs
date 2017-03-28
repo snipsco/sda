@@ -26,21 +26,10 @@ use std::path::PathBuf;
 use errors::*;
 
 fn main() {
-    let root = slog::Logger::root(slog_term::streamer().stderr().use_utc_timestamp().build().fuse(), o!());
-    slog_scope::set_global_logger(root);
-
-    if let Err(e) = run() {
-        debug!("{:?}", e);
-        error!("{}", e);
-        std::process::exit(1);
-    }
-}
-
-fn run() -> SdaCliResult<()> {
-
     let matches = clap_app!(sda =>
         (@arg server: -s --server +takes_value "Server root")
-        (@arg identity: -i --identity +takes_value "Storage directory for identity, including keys")
+        (@arg verbose: -v --verbose +multiple "verbose logging")
+        (@arg identity: -i --identity +takes_value "Storage directory for identity, including keys (defaults to .sda)")
         (@subcommand ping =>)
         (@subcommand agent =>
             (@subcommand show =>)
@@ -52,7 +41,24 @@ fn run() -> SdaCliResult<()> {
                 (@subcommand create =>)
             )
         )
+        (@subcommand clerk =>)
     ).get_matches();
+
+    let root = slog_term::streamer().stderr().use_utc_timestamp().build().fuse();
+    let root = level_filter(Level::from_usize(4 + matches.occurrences_of("verbose") as usize)
+                                .unwrap_or(Level::Warning),
+                            root);
+    let root = Logger::root(root, o!());
+    slog_scope::set_global_logger(root);
+
+    if let Err(e) = run(&matches) {
+        debug!("{:?}", e);
+        error!("{}", e);
+        std::process::exit(1);
+    }
+}
+
+fn run(matches: &clap::ArgMatches) -> SdaCliResult<()> {
 
     let service = {
         let server_root = {
@@ -151,6 +157,17 @@ fn run() -> SdaCliResult<()> {
             }
 
         },
+
+        ("clerk", Some(_matches)) => {
+            let agent = agent.ok_or("Agent is needed. Maybe run \"sda agent create\" ?")?;
+            service.ping()?;
+            let client = SdaClient::new(agent, keystore, Arc::new(service));
+            loop {
+                debug!("Polling for clerking job");
+                client.run_chores(-1)?;
+                ::std::thread::sleep(::std::time::Duration::from_secs(5*60));
+            }
+        }
 
         (cmd, _) => Err(format!("Unknown command {}", cmd))?
     }
