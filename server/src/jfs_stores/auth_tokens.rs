@@ -29,7 +29,7 @@ impl BaseStore for JfsAuthTokensStore {
 
 impl AuthTokensStore for JfsAuthTokensStore {
     fn upsert_auth_token(&self, token: &AuthToken) -> SdaServerResult<()> {
-        self.auth_tokens.save_ident(token)
+        self.auth_tokens.upsert(token)
     }
 
     fn get_auth_token(&self, id: &AgentId) -> SdaServerResult<Option<AuthToken>> {
@@ -47,9 +47,8 @@ mod test {
     extern crate tempdir;
     use sda_protocol::AgentId;
     use sda_protocol::Identified;
-    use stores::{BaseStore, AuthTokensStore, AuthToken};
+    use stores::{AuthTokensStore, AuthToken};
     use super::JfsAuthTokensStore;
-    use jfs_stores::JfsStoreExt;
 
     #[test]
     fn delete() {

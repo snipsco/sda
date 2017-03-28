@@ -38,7 +38,7 @@ impl BaseStore for JfsAgentsStore {
 
 impl AgentsStore for JfsAgentsStore {
     fn create_agent(&self, agent: &Agent) -> SdaServerResult<()> {
-        self.agents.save_ident(agent)
+        self.agents.create(agent)
     }
 
     fn get_agent(&self, id: &AgentId) -> SdaServerResult<Option<Agent>> {
@@ -46,7 +46,7 @@ impl AgentsStore for JfsAgentsStore {
     }
 
     fn upsert_profile(&self, profile: &Profile) -> SdaServerResult<()> {
-        self.profiles.save_at(profile, &profile.owner)
+        self.profiles.upsert_with_id(profile, &profile.owner)
     }
 
     fn get_profile(&self, owner: &AgentId) -> SdaServerResult<Option<Profile>> {
@@ -54,7 +54,7 @@ impl AgentsStore for JfsAgentsStore {
     }
 
     fn create_encryption_key(&self, key: &SignedEncryptionKey) -> SdaServerResult<()> {
-        self.encryption_keys.save_ident(key)
+        self.encryption_keys.create(key)
     }
 
     fn get_encryption_key(&self,

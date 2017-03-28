@@ -11,7 +11,7 @@ use ::jfs_stores::JfsStoreExt;
 
 use stores::{BaseStore, AggregationsStore};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct SnapshotContent {
     participations: Vec<ParticipationId>,
 }
@@ -73,7 +73,7 @@ impl AggregationsStore for JfsAggregationsStore {
     }
 
     fn create_aggregation(&self, aggregation: &Aggregation) -> SdaServerResult<()> {
-        self.aggregations.save_ident(aggregation)
+        self.aggregations.create(aggregation)
     }
 
     fn get_aggregation(&self, aggregation: &AggregationId) -> SdaServerResult<Option<Aggregation>> {
@@ -90,17 +90,16 @@ impl AggregationsStore for JfsAggregationsStore {
     }
 
     fn create_committee(&self, committee: &Committee) -> SdaServerResult<()> {
-        // FIXME: no overwriting
-        self.committees.save_at(committee, &committee.aggregation)
+        self.committees.create_with_id(committee, &committee.aggregation)
     }
 
     fn create_participation(&self, participation: &Participation) -> SdaServerResult<()> {
         let store = self.aggregation_store(&participation.aggregation)?;
-        store.save_ident(participation)
+        store.create(participation)
     }
 
     fn create_snapshot(&self, snapshot: &Snapshot) -> SdaServerResult<()> {
-        self.snapshots.save_ident(snapshot)
+        self.snapshots.create(snapshot)
     }
 
     fn count_participations(&self, aggregation: &AggregationId) -> SdaServerResult<usize> {
@@ -118,7 +117,7 @@ impl AggregationsStore for JfsAggregationsStore {
             .map(|p| Ok(ParticipationId::from_str(&p.0)?))
             .collect();
         let snap = SnapshotContent { participations: list? };
-        self.snapshot_contents.save_at(&snap, snapshot)
+        self.snapshot_contents.create_with_id(&snap, snapshot)
     }
 
     fn list_snapshots(&self, aggregation: &AggregationId) -> SdaServerResult<Vec<SnapshotId>> {
@@ -164,7 +163,7 @@ impl AggregationsStore for JfsAggregationsStore {
                             snapshot: &SnapshotId,
                             mask: Vec<Encryption>)
                             -> SdaServerResult<()> {
-        self.snapshot_masks.save_at(&mask, snapshot)
+        self.snapshot_masks.create_with_id(&mask, snapshot)
     }
 
     fn get_snapshot_mask(&self, snapshot: &SnapshotId) -> SdaServerResult<Option<Vec<Encryption>>> {

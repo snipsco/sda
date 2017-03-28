@@ -34,7 +34,7 @@ impl BaseStore for JfsClerkingJobsStore {
 
 impl ClerkingJobsStore for JfsClerkingJobsStore {
     fn enqueue_clerking_job(&self, job: &ClerkingJob) -> SdaServerResult<()> {
-        self.store("queue", &job.clerk)?.save_ident(job)
+        self.store("queue", &job.clerk)?.create(job)
     }
 
     fn poll_clerking_job(&self, clerk: &AgentId) -> SdaServerResult<Option<ClerkingJob>> {
@@ -52,8 +52,8 @@ impl ClerkingJobsStore for JfsClerkingJobsStore {
         let job: ClerkingJob = self.store("queue", &result.clerk)?
             .get_option(&result.job)?
             .ok_or("Job not found")?;
-        self.store("results", &job.snapshot)?.save_at(result, &result.job)?;
-        self.store("done", &result.clerk)?.save_at(&job, &result.job)?;
+        self.store("results", &job.snapshot)?.upsert_with_id(result, &result.job)?;
+        self.store("done", &result.clerk)?.upsert_with_id(&job, &result.job)?;
         self.store("queue", &result.clerk)?.delete(&*result.job.to_string())?;
         Ok(())
     }
