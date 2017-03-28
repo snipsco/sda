@@ -21,7 +21,7 @@ macro_rules! uuid_id {
 
         impl $name {
             pub fn random() -> $name {
-                $name(Uuid::new(::uuid::UuidVersion::Random).unwrap())
+                $name(Uuid::new(::uuid::UuidVersion::Random).expect("No randomness source"))
             }
         }
 

@@ -71,10 +71,10 @@ pub fn new_mongodb_server_for_url(url: &str, db: &str) -> SdaResult<SdaServerSer
 pub fn new_mongodb_server(client: &mongodb::Client, db: &str) -> SdaResult<SdaServerService> {
     use mongodb::ThreadedClient;
     let db = client.db(db);
-    let agents = agents::MongoAgentsStore::new(&db).unwrap();
-    let auth = auth_tokens::MongoAuthTokensStore::new(&db).unwrap();
-    let agg = aggregations::MongoAggregationsStore::new(&db).unwrap();
-    let jobs = clerking_jobs::MongoClerkingJobsStore::new(&db).unwrap();
+    let agents = agents::MongoAgentsStore::new(&db).map_err(|e| format!("Error connecting to mongodb: {:?}", e))?;
+    let auth = auth_tokens::MongoAuthTokensStore::new(&db).map_err(|e| format!("Error connecting to mongodb: {:?}", e))?;
+    let agg = aggregations::MongoAggregationsStore::new(&db).map_err(|e| format!("Error connecting to mongodb: {:?}", e))?;
+    let jobs = clerking_jobs::MongoClerkingJobsStore::new(&db).map_err(|e| format!("Error connecting to mongodb: {:?}", e))?;
     Ok(SdaServerService(SdaServer {
         agents_store: Box::new(agents),
         auth_tokens_store: Box::new(auth),
