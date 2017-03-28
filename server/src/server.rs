@@ -1,6 +1,6 @@
 use sda_protocol::*;
 use errors::*;
-use stores::*; // FIXME make all store names plural
+use stores::*;
 
 pub struct SdaServer {
     pub agents_store: Box<AgentsStore>,
