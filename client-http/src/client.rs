@@ -60,7 +60,7 @@ impl<S: TokenStore> SdaHttpClient<S> {
                 } else {
                     Ok(None)
                 }
-            },
+            }
 
             StatusCode::NotFound
             => {
@@ -69,7 +69,7 @@ impl<S: TokenStore> SdaHttpClient<S> {
                 } else {
                     Err("HTTP/REST route not found")?
                 }
-            },
+            }
 
             StatusCode::Unauthorized => { Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::InvalidCredentials).into()) }
             StatusCode::Forbidden => { Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::PermissionDenied).into()) }

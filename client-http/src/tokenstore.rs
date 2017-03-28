@@ -10,7 +10,7 @@ impl<S: Store> TokenStore for S {
         match self.get("auth_token")? {
             Some(existing) => Ok(existing),
             None => {
-                let mut rng = OsRng::new().unwrap();
+                let mut rng = OsRng::new().map_err(|_| "Could not get randomness source")?;
                 let new_token = rng
                     .gen_ascii_chars()
                     .take(32)
