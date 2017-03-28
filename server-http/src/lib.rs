@@ -89,8 +89,7 @@ pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
 
         (POST)  (/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
 
-        // FIXME. I don't like these. snapshot (and maybe jobs) should travel
-        // first class 
+        // FIXME. should we revisit these 3 ? the urls feel a bit awkward
         (GET)   (/aggregations/any/jobs) => { H(&server).get_clerking_job(req) },
         (POST)  (/aggregations/implied/jobs/{id}/result) => { H(&server).create_clerking_result(&id, req) },
 
