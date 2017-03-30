@@ -20,7 +20,7 @@ node('jenkins-slave-rust') {
         parallel(
             'server': { sh "cd server; cargo build && cargo test" },
             'sdad': { sh "cd server-cli; cargo build" },
-            'integration': { sh "cd integration-tests; cargo test && cargo test --features http" }
+            'integration': { sh "cd integration-tests; cargo test && cargo test --features http" },
             'clis': { sh "./docs/simple-cli-example.sh" }
         )
     }
