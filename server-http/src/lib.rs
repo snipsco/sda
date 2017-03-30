@@ -1,3 +1,72 @@
+//! # SDA REST server library
+//!
+//! This create is the server side HTTP binding for SDA.  It is a library that
+//! exposes the SDA service (provided by the `sda_server`) crate as a REST
+//! interface.
+//!
+//! `sda_client_http` crate provides the reverse feature, reconstructing a SDA
+//! service API on top of an HTTP client.
+//!
+//! `sda_server_cli` crate can be used to run a server from the command line
+//! without writting the embedding code.
+//!
+//! ## Protocol methods mapping
+//!
+//! The HTTP endpoints translate as closely as possible to methods of the
+//! `sda_protocol::methods`. The bodies are encoded in json, using `serde`
+//! Serialization as setup in `sda_protocol::resources`
+//!
+//! ```
+//! (GET)  (/ping) => SdaBaseService::ping
+//! 
+//! (GET)  (/agents/{AgentId}) => SdaAgentService::get_agent
+//! (POST) (/agents/me) => SdaAgentService::create_agent
+//! 
+//! (GET)  (/agents/{AgentId}/profile) => SdaAgentService::get_profile
+//! (POST) (/agents/me/profile) => SdaAgentService::upsert_profile
+//! 
+//! (GET)   (/agents/any/keys/{EncryptionKeyId}) =>
+//!                         SdaAgentService::get_encryption_key
+//! (POST)  (/agents/me/keys) => SdaAgentService::create_encryption_key
+//! 
+//! (POST)  (/aggregations) => SdaRecipientService::create_aggregation
+//! (GET)   (/aggregations) => SdaAggregationService::list_aggregations
+//! (GET)   (/aggregations/{AggregationId}) =>
+//!                         SdaAggregationService::get_aggregation
+//! (DELETE)(/aggregations/{AggregationId}) =>
+//!                         SdaRecipientService::delete_aggregation
+//! 
+//! (GET)   (/aggregations/{AggregationId}/committee/suggestions) =>
+//!                         SdaRecipientService::suggest_committee
+//! (POST)  (/aggregations/implied/committee) =>
+//!                         SdaRecipientService::create_committee
+//! (GET)   (/aggregations/{AggregationId}/committee)
+//!                         SdaAggregationService::get_committee
+//! 
+//! (POST)  (/aggregations/participations) =>
+//!                         SdaParticipationService::create_participation
+//! (GET)   (/aggregations/{AggregationId}/status) =>
+//!                         SdaRecipientService::get_aggregation_status
+//! 
+//! (POST)  (/aggregations/implied/snapshot) =>
+//!                         SdaRecipientService::create_committee
+//! 
+//! (GET)   (/aggregations/any/jobs) => SdaClerkingService::get_clerking_job
+//! (POST)  (/aggregations/implied/jobs/{id}/result) =>
+//!                         SdaClerkingService::create_clerking_result
+//! 
+//! (GET)   (/aggregations/{AggregationId}/snapshots/{SnapshotId}/result) =>
+//!                         SdaRecipientService::get_snapshot_result
+//! ```
+//!
+//! ## Authentication
+//!
+//! Authentication relies on the use of then Authenticate header in Basic mode.
+//! The username is the caller agent id, the password used at the time of the
+//! initial creation is recorded by the server and must then be reused for all
+//! subsequent requests.
+//!
+
 extern crate data_encoding;
 #[macro_use]
 extern crate error_chain;
@@ -52,13 +121,17 @@ macro_rules! wrap {
     }}
 }
 
+/// Run the SDA Rest wrapper.
 pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServerService>) -> !
     where A: ToSocketAddrs
 {
     rouille::start_server(addr, move |r| handle(&server, r))
 }
 
-pub fn handle(server: &sda_server::SdaServerService, req:&Request) -> Response {
+/// Non blocking `rouille` handler to be used in a loop.
+///
+/// This is useful for integration tests, not meant to be used as the main API.
+pub fn handle(server: &sda_server::SdaServerService, req: &Request) -> Response {
     debug!("Incoming {} {}", req.method(), req.raw_url());
     wrap! { req, router! { req,
         (GET)  (/ping) => { H(&server).ping(req) },
@@ -118,7 +191,7 @@ impl<'a> H<'a> {
 
     fn create_agent(&self, req: &Request) -> Result<Response> {
         let auth = auth_token(&req)?;
-        let agent:Agent = read_json(&req)?;
+        let agent: Agent = read_json(&req)?;
         if agent.id != auth.id {
             return Ok(client_error("inconsistent agent ids"));
         }
@@ -165,7 +238,10 @@ impl<'a> H<'a> {
         } else {
             None
         };
-        send_json_option(Some(self.0.list_aggregations(&self.caller(req)?, filter.as_ref().map(|s| &**s), recipient.as_ref())?))
+        send_json_option(Some(self.0
+            .list_aggregations(&self.caller(req)?,
+                               filter.as_ref().map(|s| &**s),
+                               recipient.as_ref())?))
     }
 
     fn delete_aggregation(&self, id: &AggregationId, req: &Request) -> Result<Response> {
@@ -186,7 +262,7 @@ impl<'a> H<'a> {
         send_json_option(self.0.get_committee(&self.caller(req)?, id)?)
     }
 
-    fn create_participation(&self, req:&Request) -> Result<Response> {
+    fn create_participation(&self, req: &Request) -> Result<Response> {
         self.0.create_participation(&self.caller(req)?, &read_json(&req)?)?;
         send_empty_201()
     }
@@ -205,12 +281,16 @@ impl<'a> H<'a> {
         send_json_option(self.0.get_clerking_job(&caller, &caller.id)?)
     }
 
-    fn create_clerking_result(&self, _id: &ClerkingJobId, req:&Request) -> Result<Response> {
+    fn create_clerking_result(&self, _id: &ClerkingJobId, req: &Request) -> Result<Response> {
         self.0.create_clerking_result(&self.caller(req)?, &read_json(&req)?)?;
         send_empty_201()
     }
 
-    fn get_snapshot_result(&self, aggregation: &AggregationId, snapshot: &SnapshotId, req: &Request) -> Result<Response> {
+    fn get_snapshot_result(&self,
+                           aggregation: &AggregationId,
+                           snapshot: &SnapshotId,
+                           req: &Request)
+                           -> Result<Response> {
         send_json_option(self.0.get_snapshot_result(&self.caller(req)?, aggregation, snapshot)?)
     }
 }
@@ -258,7 +338,7 @@ fn send_json<T: ::serde::Serialize>(t: T) -> Result<Response> {
 fn send_json_option<T: ::serde::Serialize>(t: Option<T>) -> Result<Response> {
     match t {
         None => Ok(Response::empty_404().with_additional_header("Resource-not-found", "true")),
-        Some(t) => Ok(Response::from_data("application/json", serde_json::to_string(&t)?))
+        Some(t) => Ok(Response::from_data("application/json", serde_json::to_string(&t)?)),
     }
 }
 
@@ -269,11 +349,12 @@ mod tests {
     fn test_auth_token() {
         use sda_protocol::{self, Id, Identified};
         let alice = sda_protocol::Agent {
-            id:sda_protocol::AgentId::default(),
-            verification_key:sda_protocol::Labelled {
-                id:sda_protocol::VerificationKeyId::default(),
-                body:sda_protocol::VerificationKey::Sodium(sda_protocol::byte_arrays::B32::default()),
-            }
+            id: sda_protocol::AgentId::default(),
+            verification_key: sda_protocol::Labelled {
+                id: sda_protocol::VerificationKeyId::default(),
+                body:
+                    sda_protocol::VerificationKey::Sodium(sda_protocol::byte_arrays::B32::default()),
+            },
         };
         let secret = "s0m3_s3cr3t_t0k3n";
         let authorization_raw = format!("{}:{}", alice.id().to_string(), secret);
