@@ -1,11 +1,15 @@
-
 //! Methods of the SDA services.
 
 use super::*;
 
+/// Return message given by the `ping` service call.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Pong { pub running: bool }
+pub struct Pong { 
+    /// Indication of whether the service believes everything to running correctly.
+    pub running: bool 
+}
 
+/// Combined SDA services.
 pub trait SdaService :
     Send
     + Sync
@@ -23,15 +27,14 @@ pub trait SdaBaseService : Sync + Send {
     fn ping(&self) -> SdaResult<Pong>;
 }
 
-/// Methods used mainly for discovering and maintaining agents and their
-/// identities.
+/// Methods used mainly for discovering and maintaining agents and their identities.
 pub trait SdaAgentService : SdaBaseService {
 
     /// Create an agent.
     fn create_agent(&self, caller: &Agent, agent: &Agent) -> SdaResult<()>;
 
     /// Retrieve the agent description.
-    fn get_agent(&self, caller: &Agent, owner: &AgentId) -> SdaResult<Option<Agent>>;
+    fn get_agent(&self, caller: &Agent, agent: &AgentId) -> SdaResult<Option<Agent>>;
 
     /// Register the given public profile; updates any existing profile.
     fn upsert_profile(&self, caller: &Agent, profile: &Profile) -> SdaResult<()>;
@@ -90,9 +93,8 @@ pub trait SdaRecipientService : SdaBaseService {
     /// Delete all information (including results) regarding an aggregation.
     fn delete_aggregation(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<()>;
 
-    /// Propose suitable members for a committee, taking into account the
-    /// aggregation constraints.
-    /// TODO allow additional criteria, as max number, liveliness, etc.
+    /// Propose suitable members for a committee, taking into account the aggregation constraints.
+    // TODO allow additional criteria, as max number, liveliness, etc.
     fn suggest_committee(&self, caller: &Agent, aggregation: &AggregationId) -> SdaResult<Vec<ClerkCandidate>>;
 
     /// Set the committee for an aggregation.
@@ -104,7 +106,7 @@ pub trait SdaRecipientService : SdaBaseService {
     /// Create a snapshot for an aggregation.
     fn create_snapshot(&self, caller: &Agent, snapshot: &Snapshot) -> SdaResult<()>;
 
-    /// retrieve results of an aggregation.
+    /// Retrieve results of an aggregation.
     fn get_snapshot_result(&self, caller: &Agent, aggregation: &AggregationId, snapshot: &SnapshotId) -> SdaResult<Option<SnapshotResult>>;
 
 }

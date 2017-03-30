@@ -6,30 +6,35 @@ use helpers::Binary;
 /// Encryption (or ciphertext).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Encryption {
+    /// Standard sodium encryption (Curve25519, XSalsa20, Poly1305).
     Sodium(Binary)
 }
 
 /// Encryption key (aka public key).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum EncryptionKey {
+    /// Standard sodium encryption key (Curve25519, XSalsa20, Poly1305).
     Sodium(::byte_arrays::B32)
 }
 
 /// Signature.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Signature {
+    /// Standard sodium signature (Ed25519).
     Sodium(::byte_arrays::B64)
 }
 
 /// Signing key for signatures.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SigningKey {
+    /// Standard sodium signature key (Ed25519).
     Sodium(::byte_arrays::B64)
 }
 
 /// Verification key for signatures.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum VerificationKey {
+    /// Standard sodium verifacation key (Ed25519).
     Sodium(::byte_arrays::B32)
 }
 
@@ -37,12 +42,19 @@ pub enum VerificationKey {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LinearMaskingScheme {
 
+    /// No masking, i.e. secrets are shared direction to the clerks.
     None,
 
+    /// Secure masking, using fresh randomness from the underlying operation system for each secret.
     Full {
         modulus: i64
     },
 
+    /// Secure masking, using a small random seed to derive masks (`rand::chacha::ChaChaRng`).
+    ///
+    /// Compared to `LinearMaskingScheme::Full` this reduces the amount of mask data to be uploaded
+    /// and downloaded by respectively participants and recipients. On the other hand, more computation
+    /// has to be performed since seeds must be expanded on both participant and recipient side.
     ChaCha {
         modulus: i64,
         dimension: usize,
@@ -52,6 +64,7 @@ pub enum LinearMaskingScheme {
 }
 
 impl LinearMaskingScheme {
+    /// Derived property indicating whether or not this scheme results in masks being generated or not.
     pub fn has_mask(&self) -> bool {
         match *self {
             LinearMaskingScheme::None => false,
@@ -65,6 +78,7 @@ impl LinearMaskingScheme {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LinearSecretSharingScheme {
 
+    /// Computionally efficient basic scheme.
     Additive {
         /// Number of shares to generate for each secret.
         share_count: usize,
@@ -81,6 +95,7 @@ pub enum LinearSecretSharingScheme {
     //     prime_modulus: i64,
     // },
 
+    /// Packed Shamir scheme allowing for work to be distributed across many clerks.
     PackedShamir {
         /// Dimension of secrets, i.e. number of components in vector.
         secret_count: usize,
@@ -101,6 +116,7 @@ pub enum LinearSecretSharingScheme {
 /// Derived properties of the secret sharing schemes.
 impl LinearSecretSharingScheme {
 
+    /// Number of secrets shared together.
     pub fn input_size(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive {..} => 1,
@@ -109,7 +125,7 @@ impl LinearSecretSharingScheme {
         }
     }
 
-    /// Number of members in the commitee, number of shares.
+    /// Number of shares output by the scheme, which must match the number of clerks in the aggregation's committee.
     pub fn output_size(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive { share_count, .. } => share_count,
@@ -118,6 +134,7 @@ impl LinearSecretSharingScheme {
         }
     }
 
+    /// Upper bound for the number of clerks that must collaborate with the server before privacy is leaked.
     pub fn privacy_threshold(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive { share_count, .. } => share_count - 1,
@@ -126,6 +143,7 @@ impl LinearSecretSharingScheme {
         }
     }
 
+    /// Lower bound for the number of clerks needed to correctly reconstruct.
     pub fn reconstruction_threshold(&self) -> usize {
         match *self {
             LinearSecretSharingScheme::Additive { share_count, .. } => share_count,
@@ -140,6 +158,7 @@ impl LinearSecretSharingScheme {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum AdditiveEncryptionScheme {
 
+    /// Standard sodium encryption (Curve25519, XSalsa20, Poly1305).
     Sodium,
 
     // PackedPaillier {

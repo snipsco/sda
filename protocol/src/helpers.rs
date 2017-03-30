@@ -1,17 +1,20 @@
+//! Various helper traits, structs, methods, and macros.
+
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 use super::*;
 
+/// Trait for objects with associated unique identifiers.
 pub trait Identified {
     type I: Id;
     fn id(&self) -> &Self::I;
 }
 
+/// Trait for unique identifiers.
 pub trait Id
     : Sized + ::std::str::FromStr<Err = String> + ToString + Serialize + Deserialize
-    {
-}
+{}
 
 macro_rules! uuid_id {
     ( #[$doc:meta] $name:ident ) => {
@@ -20,6 +23,7 @@ macro_rules! uuid_id {
         pub struct $name(pub Uuid);
 
         impl $name {
+            /// Create new random id.
             pub fn random() -> $name {
                 $name(Uuid::new(::uuid::UuidVersion::Random).expect("No randomness source"))
             }
@@ -92,6 +96,7 @@ macro_rules! identify {
     }
 }
 
+/// Abstract object for signed message together with the signature and claimed signer.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Signed<M>
     where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize
@@ -121,7 +126,12 @@ impl<ID, M> Identified for Signed<M>
     }
 }
 
+/// Abstract trait for objects that may be signed.
 pub trait Sign {
+    /// Generate a canonical representation of the object.
+    ///
+    /// This will be the main object under consideration during signing and verification, and as 
+    /// such it determines which fields are actually signed.
     fn canonical(&self) -> SdaResult<Vec<u8>>;
 }
 
@@ -131,6 +141,7 @@ impl<T: ::serde::Serialize> Sign for T {
     }
 }
 
+/// Abstract object for messages labelled by some form of identifier.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Labelled<ID, M>
     where M: Clone + Debug + PartialEq + ::serde::Serialize + ::serde::Deserialize,
@@ -160,6 +171,7 @@ pub fn label<ID, M>(id: &ID, body: &M) -> Labelled<ID, M>
     }
 }
 
+/// Blob of binary data.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binary(pub Vec<u8>);
 

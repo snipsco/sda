@@ -1,3 +1,4 @@
+//! Typed binary arrays of specific sizes.
 
 macro_rules! B {
     ($name:ident, $size:expr) => {
