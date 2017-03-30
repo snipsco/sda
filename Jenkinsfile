@@ -19,9 +19,9 @@ node('jenkins-slave-rust') {
     stage('Build and test Rust SDA') {
         parallel(
             'server': { sh "cd server; cargo build && cargo test" },
-            'cli': { sh "cd cli; cargo build" },
             'sdad': { sh "cd server-cli; cargo build" },
             'integration': { sh "cd integration-tests; cargo test && cargo test --features http" }
+            'clis': { sh "./docs/simple-cli-example.sh" }
         )
     }
 
