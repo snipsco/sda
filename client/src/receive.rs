@@ -20,16 +20,21 @@ impl RecipientOutput {
     }
 }
 
-/// Basic tasks needed by a recipient.
+/// Basic tasks typically performed by a recipient.
 pub trait Receiving {
 
+    /// Upload aggregation to service.
     fn upload_aggregation(&self, aggregation: &Aggregation) -> SdaClientResult<()>;
 
-    /// Assign any committee to the aggregation if none already.
+    /// Opens the aggregation for participations.
+    ///
+    /// Assigns a service chosen committee to the aggregation if none if elected already.
     fn begin_aggregation(&self, aggregation: &AggregationId) -> SdaClientResult<()>;
 
+    /// Closes the aggregation for participations.
     fn end_aggregation(&self, aggregation: &AggregationId) -> SdaClientResult<()>;
 
+    /// Downloads result from service and decrypts it.
     fn reveal_aggregation(&self, aggregation: &AggregationId) -> SdaClientResult<RecipientOutput>;
 
 }

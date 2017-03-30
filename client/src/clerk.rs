@@ -6,15 +6,16 @@ use errors::SdaClientResult;
 
 use sda_protocol::*;
 
-/// Basic tasks needed by a clerk.
+/// Basic tasks typically performed by a clerk.
 pub trait Clerking {
 
     /// Execute clerking process once: download, process, and upload the next job pending on the service, if any.
     fn clerk_once(&self) -> SdaClientResult<bool>;
 
-    /// Execute routine clerking chores, including registering if not done so already.
+    /// This is the typical method clerks should use. Execute routine chores, including registration and clerking.
     ///
-    /// Note that a negative `max_iterations` will continue the clerking process until there are no more jobs.
+    /// Note that a negative `max_iterations` will continue the clerking process until the service 
+    /// reports that there are no more jobs.
     fn run_chores(&self, max_iterations: isize) -> SdaClientResult<()>;
 
 }

@@ -9,6 +9,7 @@ pub enum DecryptionKey {
     Sodium(::sda_protocol::byte_arrays::B32)
 }
 
+/// Description of an encryption keypair.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncryptionKeypair {
     pub ek: EncryptionKey,

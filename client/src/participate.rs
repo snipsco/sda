@@ -6,9 +6,10 @@ use errors::SdaClientResult;
 
 use sda_protocol::*;
 
-pub struct ParticipantInput(pub Vec<i64>);
+/// Typed input to be turned into a participation.
+pub struct ParticipantInput(pub Vec<Secret>);
 
-/// Basic tasks needed by a participant.
+/// Basic tasks typically performed by a participant.
 pub trait Participating {
 
     /// Create a new participation to the given aggregation.
@@ -20,6 +21,7 @@ pub trait Participating {
     /// Upload participation to the service.
     fn upload_participation(&self, input: &Participation) -> SdaClientResult<()>;
 
+    /// Helper method combining `new_participation` and `upload_participation`.
     fn participate(&self, input: Vec<i64>, aggregation: &AggregationId) -> SdaClientResult<()>;
 
 }

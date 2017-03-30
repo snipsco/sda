@@ -39,11 +39,13 @@ pub trait KeyGeneration<K> {
     fn new_key(&self) -> SdaClientResult<K>;
 }
 
+/// Trait for accessing keys stored in keystore.
 pub trait KeyStorage<ID, K> {
     fn put(&self, id: &ID, key: &K) -> SdaClientResult<()>;
     fn get(&self, id: &ID) -> SdaClientResult<Option<K>>;
 }
 
+/// Requirements for any keystore used by the client.
 pub trait Keystore :
     KeyStorage<EncryptionKeyId, EncryptionKeypair>
     + KeyStorage<VerificationKeyId, SignatureKeypair>

@@ -1,4 +1,5 @@
-//! This crate provides the basic functionality needed by clerks and participants for interacting with an SDA service.
+//! This crate provides the basic functionality and abstract logic typically needed by participants,
+//! clerks, and recipients for interacting with an SDA service.
 
 #[macro_use]
 extern crate error_chain;
@@ -36,14 +37,16 @@ use std::sync::Arc;
 ///
 /// For instance used by participants to provide input to aggregations and by clerks to perform their clerking tasks.
 pub struct SdaClient {
+    /// Agent to be used when e.g. identifying with the service.
     pub agent: Agent,
     crypto: CryptoModule,
     service: Arc<SdaService>,
 }
 
 impl SdaClient {
+    /// Create a new client.
     pub fn new(agent: Agent, keystore: Arc<Keystore>, service: Arc<SdaService>) -> SdaClient
-     {
+    {
         SdaClient {
             agent: agent,
             crypto: CryptoModule::new(keystore),

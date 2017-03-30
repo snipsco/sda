@@ -17,7 +17,7 @@ pub trait SignatureVerification<O> {
     fn signature_is_valid(&self, object: &O) -> SdaClientResult<bool>;
 }
 
-
+/// Description of a signature keypair.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SignatureKeypair {
     pub vk: VerificationKey,
