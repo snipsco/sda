@@ -4,6 +4,7 @@ use errors::SdaClientResult;
 
 use sda_protocol::*;
 
+#[derive(Debug)]
 pub struct RecipientOutput {
     pub modulus: i64,
     pub values: Vec<i64>,

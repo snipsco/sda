@@ -43,6 +43,7 @@ macro_rules! wrap {
             let code = match e {
                 Error(ErrorKind::Sda(SdaErrorKind::InvalidCredentials), _) => 401,
                 Error(ErrorKind::Sda(SdaErrorKind::PermissionDenied), _) => 403,
+                Error(ErrorKind::Sda(SdaErrorKind::Invalid(_)), _) => 400,
                 _ => 500,
             };
             error!("{} {} {} ({})", $req.method(), $req.raw_url(), e, code);

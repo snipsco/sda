@@ -30,6 +30,9 @@ mod errors {
             InvalidCredentials {
                 description("invalid credentials")
             }
+            Invalid(s:String) {
+                description(s)
+            }
         }
         foreign_links {
             SerdeJson(::serde_json::Error);

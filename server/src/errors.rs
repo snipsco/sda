@@ -4,10 +4,6 @@ error_chain!{
     }
     foreign_links {
         Io(::std::io::Error);
-    }
-    errors {
-        InvalidCredentials {
-            description("invalid credentials")
-        }
+        Sda(::sda_protocol::SdaError);
     }
 }

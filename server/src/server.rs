@@ -13,6 +13,7 @@ macro_rules! wrap {
     ($e:expr) => {
         match $e {
             Ok(ok) => Ok(ok),
+            Err(SdaServerError(SdaServerErrorKind::Sda(e), _)) => Err(e.into()),
             Err(err) => Err(format!("error in server: {}", err).into()),
         }
     }
@@ -79,11 +80,20 @@ impl SdaServer {
                              aggregation: &AggregationId)
                              -> SdaServerResult<Vec<ClerkCandidate>> {
         let _aggregation =
-            self.aggregation_store.get_aggregation(aggregation)?.ok_or("deleted aggregation")?;
+            self.aggregation_store.get_aggregation(aggregation)?.ok_or("aggregation not found")?;
         self.agents_store.suggest_committee()
     }
 
     pub fn create_committee(&self, committee: &Committee) -> SdaServerResult<()> {
+        let agg =
+            self.aggregation_store.get_aggregation(&committee.aggregation)?.ok_or("aggregation not found")?;
+        if agg.committee_sharing_scheme.output_size() != committee.clerks_and_keys.len() {
+            Err(SdaError::from(
+                    SdaErrorKind::Invalid(format!("Expected {} clerks in the committee, found {} instead",
+                    agg.committee_sharing_scheme.output_size(),
+                    committee.clerks_and_keys.len())))
+                )?
+        };
         self.aggregation_store.create_committee(committee)
     }
 
@@ -144,7 +154,9 @@ impl SdaServer {
         let results = self.clerking_job_store
             .list_results(snapshot)?
             .iter()
-            .map(|id| Ok(self.clerking_job_store.get_result(snapshot, id)?.ok_or("inconsistent storage")?))
+            .map(|id| {
+                Ok(self.clerking_job_store.get_result(snapshot, id)?.ok_or("inconsistent storage")?)
+            })
             .collect::<SdaServerResult<Vec<ClerkingResult>>>()?;
         Ok(Some(SnapshotResult {
             snapshot: snapshot.clone(),

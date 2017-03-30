@@ -73,6 +73,12 @@ impl<S: TokenStore> SdaHttpClient<S> {
 
             StatusCode::Unauthorized => { Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::InvalidCredentials).into()) }
             StatusCode::Forbidden => { Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::PermissionDenied).into()) }
+            StatusCode::BadRequest => {
+                use std::io::Read;
+                let mut s = String::new();
+                let _ = response.read_to_string(&mut s);
+                Err(SdaHttpClientErrorKind::Sda(SdaErrorKind::Invalid(s)).into())
+            }
 
             _ => {
                 use std::io::Read;
