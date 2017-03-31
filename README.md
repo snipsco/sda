@@ -1,16 +1,23 @@
+# Overview
+
 ## Purpose
 
-SDA is Snips framework for Secure Distributed Aggregation. It implements a
-simple and efficient Multi Player Computation scheme allowing to compute
-aggregations (sums for now) of data from several participants while keeping
-them private.
+SDA is a framework used at Snips for Secure Distributed Aggregation. It
+implements a simple and efficient [multi-party computation protocol](https://en.wikipedia.org/wiki/Secure_multi-party_computation) for
+computing aggregations (sums for now) of data from several participants while
+keeping all inputs private.
+
+In exchange for computing only a certain class of functions, the system has been
+optimised to run on relatively weak and sporadic devices such as mobile phones.
+In particular, one aim of SDA is to combine locally trained machine learning
+models from mobile phones into a global model, and doing so privately.
 
 ## Walkthrough
 
 A runnable version of this scenario [docs/simple-cli-example.sh](can be found
 here).
 
-SDA relies on interaction between _agents_ helped by a _server_.
+SDA relies on interaction between several _agents_ helped by a single _server_.
 
 ### Server
 
@@ -22,7 +29,7 @@ cargo build
 cargo run -- --jfs tmp/simple-data/server httpd
 ```
 
-This start a SDA server that will listen for localhost on port 8888, and use
+This starts a SDA server that will listen for localhost on port 8888, and use
 json files in the directory to store its state. `--help` will show options
 to move data around or change the listening socket. For production setup
 a MongoDB alternative storage is offered.
@@ -30,14 +37,18 @@ a MongoDB alternative storage is offered.
 ### Agents
 
 Next we need a _recipient_. This is the person or organisation that is setting
-up the aggregation specification and will receive the final aggregated result.
+up the aggregation specification and who will receive the final aggregated
+result.
 
-We will use the command line client here to show the interaction between
-agents.
+As well as the recipient, we will create three possible _clerks_: these three
+agents, by providing the server with a public encryption key, become candidates
+to take part in distributed computations. Private data is never at risk of being
+exposed to any clerk, and the protocol has furthermore been designed to minimise
+their work load. 
 
-As well as recipient, we will create three possible _clerks_: these three
-agents, by providing the server with a public encryption key, become
-candidates to take part in distributed computations. The -i allows us to
+For this walkthrough we will use the [command line client](/cli) to show the
+interactions of agents, but there is also a [client library](/client) for
+incorporating SDA in other applications. In the following, the -i allows us to
 specify different identity storages to simulate several agents on the same
 computer.
 
@@ -52,7 +63,7 @@ do
 done
 ```
 
-We will also create three _participants_ in the process: they will offer their
+We will also create three _participants_ in the process: they will offer the
 data to be aggregated, without making it public to the server or any other
 agent in the operation.
 
@@ -80,7 +91,7 @@ We need a bit of shell plumbing to grab the recipient key for now, but the
 gist of these command is to create an aggregation (with a provided id), and a
 name. It will aggregate participations of 10 numbers, taken from a 
 (semi-exclusive) 0..433 interval. We also specify the key we want the final 
-result to be encrypted in and the number of ways (3) we want to split the
+result to be encrypted under and the number of ways (3) we want to split the
 participants secrets.
 
 The "begin" command will actually pick a committee of 3 clerks (among the
@@ -88,7 +99,7 @@ clerks and recipient) and thus "open" the aggregation for participation.
 
 ### Participation
 
-At this point each participants can send its contribution to be aggregated.
+At this point each participant can send its contribution to be aggregated.
 
 ```
 sda -i tmp/simple-data/agent/part-1 participate $AGGID 0 1 2 3 4 5 6 7 8 9
@@ -96,13 +107,18 @@ sda -i tmp/simple-data/agent/part-2 participate $AGGID 0 0 0 0 0 0 0 0 0 0
 sda -i tmp/simple-data/agent/part-3 participate $AGGID 0 1 0 1 0 1 0 1 0 1
 ```
 
-The secret participations are splitted in three, each part encrypted with
-one of the picked clerks and sent to the server. To read a participant vector,
-one would need to decrypt the shares using keys secretly hold by three agents.
+These secret inputs are split between the elected clerks, each part encrypted
+with the corresponding key, and sent to the server. Splitting the participations
+are done using [secret sharing](https://en.wikipedia.org/wiki/Secret_sharing) so
+that no group of agents below a specified _privacy threshold_ can recover the
+inputs from the shares. Likewise, any outsider such as the server cannot recover
+the inputs since to do so one would need to decrypt the shares using secret keys
+known only by the clerks.
 
 ### Clerking
 
-The recipient can close the participation to move it to the next stage:
+When the recipient determines that enough participations have been made, the
+aggregation can be closed to move it to the next stage:
 
 ```
 sda -i tmp/simple-data/agent/recipient aggregations end $AGGID
@@ -119,19 +135,20 @@ done
 ```
 
 Without the `--once` parameter, the command would behave as a long running
-process that checks the server queue periodically and perform whatever
-task the server has in store.
+process that checks the server queue periodically and perform whatever task the
+server has in store.
 
-Here it will just check once. Three out of the four potential clerks have
-actual clerking jobs, the remaining one none.
+Here it will just check once. Three out of the four potential clerks have actual
+clerking jobs, the remaining one none.
 
-Each clerk actually aggregates its part of the Multi Player Computation
-process, and then send back its share of the result to the server,
-encrypted with the recipient key.
+Each clerk actually aggregates its part of the multi-party computation protocol,
+and then sends back its share of the result to the server, encrypted under the
+recipient's key.
 
 ### Final reveal
 
-The recipient can reconstruct the final result from the clerks results:
+The recipient can reconstruct the final aggregated output from the results of
+the clerks:
 
 ```
 sda -i tmp/simple-data/agent/recipient aggregations reveal $AGGID
@@ -141,20 +158,20 @@ In our case, it should read: `0 2 2 4 4 6 6 8 8 10`.
 
 ## Doing more, with APIs
 
-The command line only expose a subset of the API, at least for now. It is not
-meant to be the primary mode of interaction with sda. The Rust API to the
-client, or the Rest API to the server allow more flexibility:
+The command line client only expose a subset of the API, at least for now. It is
+not meant to be the primary mode of interacting with an SDA service. The Rust
+API to the client, or the REST API to the server allow more flexibility:
 
 * tweaking the sharing scheme: the Packed Shamir Scheme provides resilience
     over clerks failure, as well as reducing message size.
 * using a masking scheme to protect participants privacy against a collusion
     between clerks
-* using Paillier Cryptosystem to scale up the system to any number of
-    participants
-* allowing candidates Clerks to link their profile to some external
+* using the [Paillier cryptosystem](https://en.wikipedia.org/wiki/Paillier_cryptosystem) 
+  to scale up the system to any number of participants
+* allowing candidate clerks to link their profile to some external
     authenticating system to improve participants trust in the system
-* allow recipient to actually chose Clerks that should get in the committee for
-    its aggregation
+* allow recipient to actually chose the clerks that should get in the committee
+    for its aggregation
 
 ## Structure
 
@@ -165,13 +182,13 @@ client, or the Rest API to the server allow more flexibility:
 
 ### Server and network
 
-- [server-http](/server-http) is the Rest interface for the server
-- [client-http](/client-http) is the matching Rest proxy
+- [server-http](/server-http) is the REST interface for the server
+- [client-http](/client-http) is the matching REST proxy
 - [server-store-mongodb](/server-store-server) is the MongoDB production storage for the server
 
 Various combination for these crates can be tested with [integration-tests](/integration-tests).
 
-# Command lines interface
+# Command line interface
 
 - [cli](/cli) is the agent command line interface. The executable name is `sda`.
 - [server-cli](/server-cli) binds all of the server pieces together in a command line interface called `sdad`.
