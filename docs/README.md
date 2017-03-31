@@ -10,4 +10,4 @@
 
 - [server-http](server-http/sda_server_http/index.html) is the REST interface for the server
 - [client-http](client-http/sda_client_http/index.html) is the matching REST proxy
-- [server-store-mongodb](server-store-server-mongodb/sda_server_store_mongodb/index.html) is the MongoDB production storage for the server
+- [server-store-mongodb](server-store-mongodb/sda_server_store_mongodb/index.html) is the MongoDB production storage for the server
