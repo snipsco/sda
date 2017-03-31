@@ -1,0 +1,3 @@
+var searchIndex = {};
+searchIndex["sda_tests"] = {"doc":"","items":[[3,"TestContext","sda_tests","",null,null],[12,"server","","",0,null],[12,"service","","",0,null],[5,"new_agent","","",null,{"inputs":[],"output":{"name":"agent"}}],[5,"new_key_for_agent","","",null,{"inputs":[{"name":"agent"}],"output":{"name":"signedencryptionkey"}}],[5,"new_full_agent","","",null,null],[5,"new_client","","",null,{"inputs":[{"name":"tempdir"},{"name":"arc"}],"output":{"name":"sdaclient"}}],[5,"with_server","","",null,{"inputs":[{"name":"f"}],"output":null}],[5,"with_service","","",null,{"inputs":[{"name":"f"}],"output":null}]],"paths":[[3,"TestContext"]]};
+initSearch(searchIndex);

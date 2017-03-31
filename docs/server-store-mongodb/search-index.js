@@ -1,0 +1,3 @@
+var searchIndex = {};
+searchIndex["sda_server_store_mongodb"] = {"doc":"","items":[[5,"to_bson","sda_server_store_mongodb","",null,{"inputs":[{"name":"t"}],"output":{"name":"sdaserverresult"}}],[5,"from_bson","","",null,{"inputs":[{"name":"bson"}],"output":{"name":"sdaserverresult"}}],[5,"to_doc","","",null,{"inputs":[{"name":"t"}],"output":{"name":"sdaserverresult"}}],[5,"from_doc","","",null,{"inputs":[{"name":"document"}],"output":{"name":"sdaserverresult"}}],[5,"new_mongodb_server_for_url","","",null,{"inputs":[{"name":"str"},{"name":"str"}],"output":{"name":"sdaresult"}}],[5,"new_mongodb_server","","",null,{"inputs":[{"name":"client"},{"name":"str"}],"output":{"name":"sdaresult"}}]],"paths":[]};
+initSearch(searchIndex);

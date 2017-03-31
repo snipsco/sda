@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Filebased",""],["SdaClientStoreError","The Error type."]],"trait":[["Store",""]],"type":[["SdaClientStoreResult","Convenient wrapper around `std::Result`."]]});

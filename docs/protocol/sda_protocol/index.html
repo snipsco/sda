@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `sda_protocol` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, sda_protocol">
+
+    <title>sda_protocol - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'sda_protocol', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>sda_protocol</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/sda_protocol/lib.rs.html#2-57' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This crate describes the common interface of SDA, including the resources,
+methods, and message format exposed by an SDA service.</p>
+
+<p>As such it is lightweight crate referenced by most of the other (Rust) crates.</p>
+
+<p>It takes a resource-oriented REST approach whenever possible, 
+influenced by the <a href="https://cloud.google.com/apis/design/">Google API Design Guide</a>.</p>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>pub use <a class="mod" href="../sda_protocol/helpers/index.html" title="mod sda_protocol::helpers">helpers</a>::*;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="byte_arrays/index.html"
+                                  title='mod sda_protocol::byte_arrays'>byte_arrays</a></td>
+                           <td class='docblock-short'>
+                                <p>Typed binary arrays of specific sizes.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="helpers/index.html"
+                                  title='mod sda_protocol::helpers'>helpers</a></td>
+                           <td class='docblock-short'>
+                                <p>Various helper traits, structs, methods, and macros.</p>
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Agent.html"
+                                  title='struct sda_protocol::Agent'>Agent</a></td>
+                           <td class='docblock-short'>
+                                <p>Fundamental description of agents in the system, i.e. participants, clerks, recipients, and admins.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.AgentId.html"
+                                  title='struct sda_protocol::AgentId'>AgentId</a></td>
+                           <td class='docblock-short'>
+                                <p>Unique agent identifier.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Aggregation.html"
+                                  title='struct sda_protocol::Aggregation'>Aggregation</a></td>
+                           <td class='docblock-short'>
+                                <p>Description of an aggregation.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.AggregationId.html"
+                                  title='struct sda_protocol::AggregationId'>AggregationId</a></td>
+                           <td class='docblock-short'>
+                                <p>Unique aggregation identifier.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.AggregationStatus.html"
+                                  title='struct sda_protocol::AggregationStatus'>AggregationStatus</a></td>
+                           <td class='docblock-short'>
+                                <p>Current status of an aggregation.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.ClerkCandidate.html"
+                                  title='struct sda_protocol::ClerkCandidate'>ClerkCandidate</a></td>
+                           <td class='docblock-short'>
+                                <p>Suggested clerk for a given aggregation.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.ClerkingJob.html"
+                                  title='struct sda_protocol::ClerkingJob'>ClerkingJob</a></td>
+                           <td class='docblock-short'>
+                                <p>Partial aggregation job to be performed by a clerk.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.ClerkingJobId.html"
+                                  title='struct sda_protocol::ClerkingJobId'>ClerkingJobId</a></td>
+                           <td class='docblock-short'>
+                                <p>Unique job identifier.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.ClerkingResult.html"
+                                  title='struct sda_protocol::ClerkingResult'>ClerkingResult</a></td>
+                           <td class='docblock-short'>
+                                <p>Result of a partial aggregation job performed by a clerk.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Committee.html"
+                                  title='struct sda_protocol::Committee'>Committee</a></td>
+                           <td class='docblock-short'>
+                                <p>Description of committee elected for an aggregation.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.EncryptionKeyId.html"
+                                  title='struct sda_protocol::EncryptionKeyId'>EncryptionKeyId</a></td>
+                           <td class='docblock-short'>
+                                <p>Unique encryption key identifier.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Participation.html"
+                                  title='struct sda_protocol::Participation'>Participation</a></td>
+                           <td class='docblock-short'>
+                                <p>Description of a participant&#39;s input to an aggregation.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.ParticipationId.html"
+                                  title='struct sda_protocol::ParticipationId'>ParticipationId</a></td>
+                           <td class='docblock-short'>
+                                <p>Unique participation identifier.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Pong.html"
+                                  title='struct sda_protocol::Pong'>Pong</a></td>
+                           <td class='docblock-short'>
+                                <p>Return message given by the <code>ping</code> service call.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Profile.html"
+                                  title='struct sda_protocol::Profile'>Profile</a></td>
+                           <td class='docblock-short'>
+                                <p>Extended profile of an agent, providing information intended for increasing trust such as name and social handles.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.SdaError.html"
+                                  title='struct sda_protocol::SdaError'>SdaError</a></td>
+                           <td class='docblock-short'>
+                                <p>The Error type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Snapshot.html"
+                                  title='struct sda_protocol::Snapshot'>Snapshot</a></td>
+                           <td class='docblock-short'>
+                                <p>Captures a subset of the current participations to an agggregation in order to
+create a consistent set of clerkable shares.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.SnapshotId.html"
+                                  title='struct sda_protocol::SnapshotId'>SnapshotId</a></td>
+                           <td class='docblock-short'>
+                                <p>Unique snapshot identifier.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.SnapshotResult.html"
+                                  title='struct sda_protocol::SnapshotResult'>SnapshotResult</a></td>
+                           <td class='docblock-short'>
+                                <p>Result of an aggregation snapshot, including output, ready for reconstruction.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.SnapshotStatus.html"
+                                  title='struct sda_protocol::SnapshotStatus'>SnapshotStatus</a></td>
+                           <td class='docblock-short'>
+                                <p>Current status of a snapshot.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.VerificationKeyId.html"
+                                  title='struct sda_protocol::VerificationKeyId'>VerificationKeyId</a></td>
+                           <td class='docblock-short'>
+                                <p>Unique verification key identifier.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.AdditiveEncryptionScheme.html"
+                                  title='enum sda_protocol::AdditiveEncryptionScheme'>AdditiveEncryptionScheme</a></td>
+                           <td class='docblock-short'>
+                                <p>Supported additive encryption schemes and their parameters.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.Encryption.html"
+                                  title='enum sda_protocol::Encryption'>Encryption</a></td>
+                           <td class='docblock-short'>
+                                <p>Encryption (or ciphertext).</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.EncryptionKey.html"
+                                  title='enum sda_protocol::EncryptionKey'>EncryptionKey</a></td>
+                           <td class='docblock-short'>
+                                <p>Encryption key (aka public key).</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.LinearMaskingScheme.html"
+                                  title='enum sda_protocol::LinearMaskingScheme'>LinearMaskingScheme</a></td>
+                           <td class='docblock-short'>
+                                <p>Supported masking schemes and their parameters.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.LinearSecretSharingScheme.html"
+                                  title='enum sda_protocol::LinearSecretSharingScheme'>LinearSecretSharingScheme</a></td>
+                           <td class='docblock-short'>
+                                <p>Supported secret sharing schemes and their parameters.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.SdaErrorKind.html"
+                                  title='enum sda_protocol::SdaErrorKind'>SdaErrorKind</a></td>
+                           <td class='docblock-short'>
+                                <p>The kind of an error.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.Signature.html"
+                                  title='enum sda_protocol::Signature'>Signature</a></td>
+                           <td class='docblock-short'>
+                                <p>Signature.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.SigningKey.html"
+                                  title='enum sda_protocol::SigningKey'>SigningKey</a></td>
+                           <td class='docblock-short'>
+                                <p>Signing key for signatures.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.VerificationKey.html"
+                                  title='enum sda_protocol::VerificationKey'>VerificationKey</a></td>
+                           <td class='docblock-short'>
+                                <p>Verification key for signatures.</p>
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaAgentService.html"
+                                  title='trait sda_protocol::SdaAgentService'>SdaAgentService</a></td>
+                           <td class='docblock-short'>
+                                <p>Methods used mainly for discovering and maintaining agents and their identities.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaAggregationService.html"
+                                  title='trait sda_protocol::SdaAggregationService'>SdaAggregationService</a></td>
+                           <td class='docblock-short'>
+                                <p>Methods used mainly for discovering aggregation objects.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaBaseService.html"
+                                  title='trait sda_protocol::SdaBaseService'>SdaBaseService</a></td>
+                           <td class='docblock-short'>
+                                <p>Basic methods for all SDA services.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaClerkingService.html"
+                                  title='trait sda_protocol::SdaClerkingService'>SdaClerkingService</a></td>
+                           <td class='docblock-short'>
+                                <p>Methods used for clerking in particular.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaParticipationService.html"
+                                  title='trait sda_protocol::SdaParticipationService'>SdaParticipationService</a></td>
+                           <td class='docblock-short'>
+                                <p>Methods used for participation in particular.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaRecipientService.html"
+                                  title='trait sda_protocol::SdaRecipientService'>SdaRecipientService</a></td>
+                           <td class='docblock-short'>
+                                <p>Methods used by the recipient in particular.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaResultExt.html"
+                                  title='trait sda_protocol::SdaResultExt'>SdaResultExt</a></td>
+                           <td class='docblock-short'>
+                                <p>Additional methods for <code>Result</code>, for easy interaction with this crate.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SdaService.html"
+                                  title='trait sda_protocol::SdaService'>SdaService</a></td>
+                           <td class='docblock-short'>
+                                <p>Combined SDA services.</p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.LabelledVerificationKey.html"
+                                  title='type sda_protocol::LabelledVerificationKey'>LabelledVerificationKey</a></td>
+                           <td class='docblock-short'>
+                                <p>Verification key and its associated id.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.SdaResult.html"
+                                  title='type sda_protocol::SdaResult'>SdaResult</a></td>
+                           <td class='docblock-short'>
+                                <p>Convenient wrapper around <code>std::Result</code>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.SignedEncryptionKey.html"
+                                  title='type sda_protocol::SignedEncryptionKey'>SignedEncryptionKey</a></td>
+                           <td class='docblock-short'>
+                                <p>Encryption key with its associated, signed by the owner of the corresponding keypair.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "sda_protocol";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

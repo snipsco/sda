@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `AgentsStore` trait in crate `sda_server`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, AgentsStore">
+
+    <title>sda_server::stores::AgentsStore - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>sda_server</a>::<wbr><a href='index.html'>stores</a></p><script>window.sidebarCurrent = {name: 'AgentsStore', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content trait">
+<h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>sda_server</a>::<wbr><a href='index.html'>stores</a>::<wbr><a class="trait" href=''>AgentsStore</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/sda_server/stores.rs.html#21-45' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait AgentsStore: <a class="trait" href="../../sda_server/stores/trait.BaseStore.html" title="trait sda_server::stores::BaseStore">BaseStore</a> {
+    fn <a href='#tymethod.create_agent' class='fnname'>create_agent</a>(&amp;self, agent: &amp;Agent) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;;
+    fn <a href='#tymethod.get_agent' class='fnname'>get_agent</a>(&amp;self, id: &amp;AgentId) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Agent&gt;&gt;;
+    fn <a href='#tymethod.upsert_profile' class='fnname'>upsert_profile</a>(&amp;self, profile: &amp;Profile) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;;
+    fn <a href='#tymethod.get_profile' class='fnname'>get_profile</a>(&amp;self, owner: &amp;AgentId) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Profile&gt;&gt;;
+    fn <a href='#tymethod.create_encryption_key' class='fnname'>create_encryption_key</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key: &amp;SignedEncryptionKey)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;;
+    fn <a href='#tymethod.get_encryption_key' class='fnname'>get_encryption_key</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key: &amp;EncryptionKeyId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;SignedEncryptionKey&gt;&gt;;
+    fn <a href='#tymethod.suggest_committee' class='fnname'>suggest_committee</a>(&amp;self) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html" title="struct collections::vec::Vec">Vec</a>&lt;ClerkCandidate&gt;&gt;;
+}</pre>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.create_agent' class='method'><span id='create_agent.v' class='invisible'><code>fn <a href='#tymethod.create_agent' class='fnname'>create_agent</a>(&amp;self, agent: &amp;Agent) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h3><div class='docblock'><p>Create an agent</p>
+</div><h3 id='tymethod.get_agent' class='method'><span id='get_agent.v' class='invisible'><code>fn <a href='#tymethod.get_agent' class='fnname'>get_agent</a>(&amp;self, id: &amp;AgentId) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Agent&gt;&gt;</code></span></h3><div class='docblock'><p>Retrieve the agent description.</p>
+</div><h3 id='tymethod.upsert_profile' class='method'><span id='upsert_profile.v' class='invisible'><code>fn <a href='#tymethod.upsert_profile' class='fnname'>upsert_profile</a>(&amp;self, profile: &amp;Profile) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h3><div class='docblock'><p>Register the given public profile; updates any existing profile.</p>
+</div><h3 id='tymethod.get_profile' class='method'><span id='get_profile.v' class='invisible'><code>fn <a href='#tymethod.get_profile' class='fnname'>get_profile</a>(&amp;self, owner: &amp;AgentId) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Profile&gt;&gt;</code></span></h3><div class='docblock'><p>Retrieve the associated public profile.</p>
+</div><h3 id='tymethod.create_encryption_key' class='method'><span id='create_encryption_key.v' class='invisible'><code>fn <a href='#tymethod.create_encryption_key' class='fnname'>create_encryption_key</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key: &amp;SignedEncryptionKey)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h3><div class='docblock'><p>Register new encryption key for agent.</p>
+</div><h3 id='tymethod.get_encryption_key' class='method'><span id='get_encryption_key.v' class='invisible'><code>fn <a href='#tymethod.get_encryption_key' class='fnname'>get_encryption_key</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key: &amp;EncryptionKeyId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;SignedEncryptionKey&gt;&gt;</code></span></h3><div class='docblock'><p>Retrieve agent encryption key.</p>
+</div><h3 id='tymethod.suggest_committee' class='method'><span id='suggest_committee.v' class='invisible'><code>fn <a href='#tymethod.suggest_committee' class='fnname'>suggest_committee</a>(&amp;self) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html" title="struct collections::vec::Vec">Vec</a>&lt;ClerkCandidate&gt;&gt;</code></span></h3><div class='docblock'><p>FIXME: very temporary interface. As logic needs to be adapted to each store
+capabilities, no real need to abstract this in server, but we do need to
+give more information about what is needed (supported keys, liveliness,
+number, ...)</p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl AgentsStore for <a class="struct" href="../../sda_server/jfs_stores/struct.JfsAgentsStore.html" title="struct sda_server::jfs_stores::JfsAgentsStore">JfsAgentsStore</a></code></li>
+</ul><script type="text/javascript" async
+                         src="../../implementors/sda_server/stores/trait.AgentsStore.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "sda_server";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

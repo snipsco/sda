@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `sda_server_http` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, sda_server_http">
+
+    <title>sda_server_http - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'sda_server_http', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>sda_server_http</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/sda_server_http/lib.rs.html#1-375' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'>
+<h1 id='sda-rest-server-library' class='section-header'><a href='#sda-rest-server-library'>SDA REST server library</a></h1>
+<p>This create is the server side HTTP binding for SDA.  It is a library that
+exposes the SDA service (provided by the <code>sda_server</code>) crate as a REST
+interface.</p>
+
+<p><code>sda_client_http</code> crate provides the reverse feature, reconstructing a SDA
+service API on top of an HTTP client.</p>
+
+<p><code>sda_server_cli</code> crate can be used to run a server from the command line
+without writting the embedding code.</p>
+
+<h2 id='protocol-methods-mapping' class='section-header'><a href='#protocol-methods-mapping'>Protocol methods mapping</a></h2>
+<p>The HTTP endpoints translate as closely as possible to methods of the
+<code>sda_protocol::methods</code>. The bodies are encoded in json, using <code>serde</code>
+Serialization as setup in <code>sda_protocol::resources</code></p>
+
+<pre class='rust rust-example-rendered'>
+(<span class='ident'>GET</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>ping</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaBaseService</span>::<span class='ident'>ping</span>
+ 
+(<span class='ident'>GET</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>agents</span><span class='op'>/</span>{<span class='ident'>AgentId</span>}) <span class='op'>=&gt;</span> <span class='ident'>SdaAgentService</span>::<span class='ident'>get_agent</span>
+(<span class='ident'>POST</span>) (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>agents</span><span class='op'>/</span><span class='ident'>me</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaAgentService</span>::<span class='ident'>create_agent</span>
+ 
+(<span class='ident'>GET</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>agents</span><span class='op'>/</span>{<span class='ident'>AgentId</span>}<span class='op'>/</span><span class='ident'>profile</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaAgentService</span>::<span class='ident'>get_profile</span>
+(<span class='ident'>POST</span>) (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>agents</span><span class='op'>/</span><span class='ident'>me</span><span class='op'>/</span><span class='ident'>profile</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaAgentService</span>::<span class='ident'>upsert_profile</span>
+ 
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>agents</span><span class='op'>/</span><span class='ident'>any</span><span class='op'>/</span><span class='ident'>keys</span><span class='op'>/</span>{<span class='ident'>EncryptionKeyId</span>}) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaAgentService</span>::<span class='ident'>get_encryption_key</span>
+(<span class='ident'>POST</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>agents</span><span class='op'>/</span><span class='ident'>me</span><span class='op'>/</span><span class='ident'>keys</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaAgentService</span>::<span class='ident'>create_encryption_key</span>
+ 
+(<span class='ident'>POST</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaRecipientService</span>::<span class='ident'>create_aggregation</span>
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaAggregationService</span>::<span class='ident'>list_aggregations</span>
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span>{<span class='ident'>AggregationId</span>}) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaAggregationService</span>::<span class='ident'>get_aggregation</span>
+(<span class='ident'>DELETE</span>)(<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span>{<span class='ident'>AggregationId</span>}) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaRecipientService</span>::<span class='ident'>delete_aggregation</span>
+ 
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span>{<span class='ident'>AggregationId</span>}<span class='op'>/</span><span class='ident'>committee</span><span class='op'>/</span><span class='ident'>suggestions</span>) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaRecipientService</span>::<span class='ident'>suggest_committee</span>
+(<span class='ident'>POST</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span><span class='ident'>implied</span><span class='op'>/</span><span class='ident'>committee</span>) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaRecipientService</span>::<span class='ident'>create_committee</span>
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span>{<span class='ident'>AggregationId</span>}<span class='op'>/</span><span class='ident'>committee</span>)
+                        <span class='ident'>SdaAggregationService</span>::<span class='ident'>get_committee</span>
+ 
+(<span class='ident'>POST</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span><span class='ident'>participations</span>) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaParticipationService</span>::<span class='ident'>create_participation</span>
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span>{<span class='ident'>AggregationId</span>}<span class='op'>/</span><span class='ident'>status</span>) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaRecipientService</span>::<span class='ident'>get_aggregation_status</span>
+ 
+(<span class='ident'>POST</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span><span class='ident'>implied</span><span class='op'>/</span><span class='ident'>snapshot</span>) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaRecipientService</span>::<span class='ident'>create_committee</span>
+ 
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span><span class='ident'>any</span><span class='op'>/</span><span class='ident'>jobs</span>) <span class='op'>=&gt;</span> <span class='ident'>SdaClerkingService</span>::<span class='ident'>get_clerking_job</span>
+(<span class='ident'>POST</span>)  (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span><span class='ident'>implied</span><span class='op'>/</span><span class='ident'>jobs</span><span class='op'>/</span>{<span class='ident'>id</span>}<span class='op'>/</span><span class='ident'>result</span>) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaClerkingService</span>::<span class='ident'>create_clerking_result</span>
+ 
+(<span class='ident'>GET</span>)   (<span class='op'>/</span><span class='ident'>v1</span><span class='op'>/</span><span class='ident'>aggregations</span><span class='op'>/</span>{<span class='ident'>AggregationId</span>}<span class='op'>/</span><span class='ident'>snapshots</span><span class='op'>/</span>{<span class='ident'>SnapshotId</span>}<span class='op'>/</span><span class='ident'>result</span>) <span class='op'>=&gt;</span>
+                        <span class='ident'>SdaRecipientService</span>::<span class='ident'>get_snapshot_result</span></pre>
+
+<h2 id='authentication' class='section-header'><a href='#authentication'>Authentication</a></h2>
+<p>Authentication relies on the use of then Authenticate header in Basic mode.
+The username is the caller agent id, the password used at the time of the
+initial creation is recorded by the server and must then be reused for all
+subsequent requests.</p>
+</div><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.handle.html'
+                                  title='sda_server_http::handle'>handle</a></td>
+                           <td class='docblock-short'>
+                                <p>Non blocking <code>rouille</code> handler to be used in a loop.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.listen.html'
+                                  title='sda_server_http::listen'>listen</a></td>
+                           <td class='docblock-short'>
+                                <p>Run the SDA Rest wrapper.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "sda_server_http";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

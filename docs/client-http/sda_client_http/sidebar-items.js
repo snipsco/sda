@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SdaHttpClient",""],["SdaHttpClientError","The Error type."]]});

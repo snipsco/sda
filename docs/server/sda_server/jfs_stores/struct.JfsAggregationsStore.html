@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `JfsAggregationsStore` struct in crate `sda_server`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, JfsAggregationsStore">
+
+    <title>sda_server::jfs_stores::JfsAggregationsStore - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>sda_server</a>::<wbr><a href='index.html'>jfs_stores</a></p><script>window.sidebarCurrent = {name: 'JfsAggregationsStore', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>sda_server</a>::<wbr><a href='index.html'>jfs_stores</a>::<wbr><a class="struct" href=''>JfsAggregationsStore</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/sda_server/jfs_stores/aggregations.rs.html#19-26' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct JfsAggregationsStore { /* fields omitted */ }</pre><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class="struct" href="../../sda_server/jfs_stores/struct.JfsAggregationsStore.html" title="struct sda_server::jfs_stores::JfsAggregationsStore">JfsAggregationsStore</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sda_server/jfs_stores/aggregations.rs.html#28-51' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;P:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html" title="struct std::path::Path">Path</a>&gt;&gt;(prefix: P) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="../../sda_server/jfs_stores/struct.JfsAggregationsStore.html" title="struct sda_server::jfs_stores::JfsAggregationsStore">JfsAggregationsStore</a>&gt;</code></span></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="../../sda_server/stores/trait.BaseStore.html" title="trait sda_server::stores::BaseStore">BaseStore</a> for <a class="struct" href="../../sda_server/jfs_stores/struct.JfsAggregationsStore.html" title="struct sda_server::jfs_stores::JfsAggregationsStore">JfsAggregationsStore</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sda_server/jfs_stores/aggregations.rs.html#53-57' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.ping' class="method"><span id='ping.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.BaseStore.html#tymethod.ping' class='fnname'>ping</a>(&amp;self) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+</div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="../../sda_server/stores/trait.AggregationsStore.html" title="trait sda_server::stores::AggregationsStore">AggregationsStore</a> for <a class="struct" href="../../sda_server/jfs_stores/struct.JfsAggregationsStore.html" title="struct sda_server::jfs_stores::JfsAggregationsStore">JfsAggregationsStore</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sda_server/jfs_stores/aggregations.rs.html#59-172' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.list_aggregations' class="method"><span id='list_aggregations.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.list_aggregations' class='fnname'>list_aggregations</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filter: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; recipient: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;AgentId&gt;)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html" title="struct collections::vec::Vec">Vec</a>&lt;AggregationId&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Search for aggregations by title and/or by recipient.</p>
+</div><h4 id='method.create_aggregation' class="method"><span id='create_aggregation.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.create_aggregation' class='fnname'>create_aggregation</a>(&amp;self, aggregation: &amp;Aggregation) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+<div class='docblock'><p>Create a new aggregation on the service (without any associated result). If successful, the original id has been replaced by the returned id. <a href="../../sda_server/stores/trait.AggregationsStore.html#tymethod.create_aggregation">Read more</a></p>
+</div><h4 id='method.get_aggregation' class="method"><span id='get_aggregation.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.get_aggregation' class='fnname'>get_aggregation</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aggregation: &amp;AggregationId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Aggregation&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Retrieve an aggregation and its description.</p>
+</div><h4 id='method.delete_aggregation' class="method"><span id='delete_aggregation.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.delete_aggregation' class='fnname'>delete_aggregation</a>(&amp;self, aggregation: &amp;AggregationId) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+<div class='docblock'><p>Delete all information (including results) regarding an aggregation.</p>
+</div><h4 id='method.get_committee' class="method"><span id='get_committee.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.get_committee' class='fnname'>get_committee</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; owner: &amp;AggregationId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Committee&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Retrieve the associated committee.</p>
+</div><h4 id='method.create_committee' class="method"><span id='create_committee.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.create_committee' class='fnname'>create_committee</a>(&amp;self, committee: &amp;Committee) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+<h4 id='method.create_participation' class="method"><span id='create_participation.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.create_participation' class='fnname'>create_participation</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; participation: &amp;Participation)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+<h4 id='method.create_snapshot' class="method"><span id='create_snapshot.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.create_snapshot' class='fnname'>create_snapshot</a>(&amp;self, snapshot: &amp;Snapshot) -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+<h4 id='method.count_participations' class="method"><span id='count_participations.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.count_participations' class='fnname'>count_participations</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aggregation: &amp;AggregationId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;</code></span></h4>
+<h4 id='method.snapshot_participations' class="method"><span id='snapshot_participations.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.snapshot_participations' class='fnname'>snapshot_participations</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aggregation: &amp;AggregationId,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snapshot: &amp;SnapshotId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+<h4 id='method.list_snapshots' class="method"><span id='list_snapshots.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.list_snapshots' class='fnname'>list_snapshots</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aggregation: &amp;AggregationId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html" title="struct collections::vec::Vec">Vec</a>&lt;SnapshotId&gt;&gt;</code></span></h4>
+<h4 id='method.get_snapshot' class="method"><span id='get_snapshot.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.get_snapshot' class='fnname'>get_snapshot</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; _aggregation: &amp;AggregationId,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snapshot: &amp;SnapshotId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Snapshot&gt;&gt;</code></span></h4>
+<h4 id='method.iter_snapped_participations' class="method"><span id='iter_snapped_participations.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.iter_snapped_participations' class='fnname'>iter_snapped_participations</a>&lt;'a, 'b&gt;(&amp;'b self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aggregation: &amp;AggregationId,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snapshot: &amp;SnapshotId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;<a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html" title="trait core::iter::iterator::Iterator">Iterator</a>&lt;Item=<a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;Participation&gt;&gt; + 'a&gt;&gt; <span class="where fmt-newline">where 'b: 'a</span></code></span></h4>
+<h4 id='method.create_snapshot_mask' class="method"><span id='create_snapshot_mask.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.create_snapshot_mask' class='fnname'>create_snapshot_mask</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snapshot: &amp;SnapshotId,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mask: <a class="struct" href="https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html" title="struct collections::vec::Vec">Vec</a>&lt;Encryption&gt;)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span></h4>
+<h4 id='method.get_snapshot_mask' class="method"><span id='get_snapshot_mask.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#tymethod.get_snapshot_mask' class='fnname'>get_snapshot_mask</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snapshot: &amp;SnapshotId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html" title="struct collections::vec::Vec">Vec</a>&lt;Encryption&gt;&gt;&gt;</code></span></h4>
+<h4 id='method.count_participations_snapshot' class="method"><span id='count_participations_snapshot.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#method.count_participations_snapshot' class='fnname'>count_participations_snapshot</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aggregation: &amp;AggregationId,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snapshot: &amp;SnapshotId)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;</code></span></h4>
+<h4 id='method.iter_snapshot_clerk_jobs_data' class="method"><span id='iter_snapshot_clerk_jobs_data.v' class='invisible'><code>fn <a href='../../sda_server/stores/trait.AggregationsStore.html#method.iter_snapshot_clerk_jobs_data' class='fnname'>iter_snapshot_clerk_jobs_data</a>&lt;'a, 'b&gt;(&amp;'b self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aggregation: &amp;AggregationId,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snapshot: &amp;SnapshotId,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; clerks_number: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;<a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html" title="trait core::iter::iterator::Iterator">Iterator</a>&lt;Item=<a class="type" href="../../sda_server/errors/type.SdaServerResult.html" title="type sda_server::errors::SdaServerResult">SdaServerResult</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html" title="struct collections::vec::Vec">Vec</a>&lt;Encryption&gt;&gt;&gt; + 'a&gt;&gt; <span class="where fmt-newline">where 'b: 'a</span></code></span></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "sda_server";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>
