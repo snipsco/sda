@@ -17,45 +17,45 @@
 //! Serialization as setup in `sda_protocol::resources`
 //!
 //! ```
-//! (GET)  (/ping) => SdaBaseService::ping
+//! (GET)  (/v1/ping) => SdaBaseService::ping
 //! 
-//! (GET)  (/agents/{AgentId}) => SdaAgentService::get_agent
-//! (POST) (/agents/me) => SdaAgentService::create_agent
+//! (GET)  (/v1/agents/{AgentId}) => SdaAgentService::get_agent
+//! (POST) (/v1/agents/me) => SdaAgentService::create_agent
 //! 
-//! (GET)  (/agents/{AgentId}/profile) => SdaAgentService::get_profile
-//! (POST) (/agents/me/profile) => SdaAgentService::upsert_profile
+//! (GET)  (/v1/agents/{AgentId}/profile) => SdaAgentService::get_profile
+//! (POST) (/v1/agents/me/profile) => SdaAgentService::upsert_profile
 //! 
-//! (GET)   (/agents/any/keys/{EncryptionKeyId}) =>
+//! (GET)   (/v1/agents/any/keys/{EncryptionKeyId}) =>
 //!                         SdaAgentService::get_encryption_key
-//! (POST)  (/agents/me/keys) => SdaAgentService::create_encryption_key
+//! (POST)  (/v1/agents/me/keys) => SdaAgentService::create_encryption_key
 //! 
-//! (POST)  (/aggregations) => SdaRecipientService::create_aggregation
-//! (GET)   (/aggregations) => SdaAggregationService::list_aggregations
-//! (GET)   (/aggregations/{AggregationId}) =>
+//! (POST)  (/v1/aggregations) => SdaRecipientService::create_aggregation
+//! (GET)   (/v1/aggregations) => SdaAggregationService::list_aggregations
+//! (GET)   (/v1/aggregations/{AggregationId}) =>
 //!                         SdaAggregationService::get_aggregation
-//! (DELETE)(/aggregations/{AggregationId}) =>
+//! (DELETE)(/v1/aggregations/{AggregationId}) =>
 //!                         SdaRecipientService::delete_aggregation
 //! 
-//! (GET)   (/aggregations/{AggregationId}/committee/suggestions) =>
+//! (GET)   (/v1/aggregations/{AggregationId}/committee/suggestions) =>
 //!                         SdaRecipientService::suggest_committee
-//! (POST)  (/aggregations/implied/committee) =>
+//! (POST)  (/v1/aggregations/implied/committee) =>
 //!                         SdaRecipientService::create_committee
-//! (GET)   (/aggregations/{AggregationId}/committee)
+//! (GET)   (/v1/aggregations/{AggregationId}/committee)
 //!                         SdaAggregationService::get_committee
 //! 
-//! (POST)  (/aggregations/participations) =>
+//! (POST)  (/v1/aggregations/participations) =>
 //!                         SdaParticipationService::create_participation
-//! (GET)   (/aggregations/{AggregationId}/status) =>
+//! (GET)   (/v1/aggregations/{AggregationId}/status) =>
 //!                         SdaRecipientService::get_aggregation_status
 //! 
-//! (POST)  (/aggregations/implied/snapshot) =>
+//! (POST)  (/v1/aggregations/implied/snapshot) =>
 //!                         SdaRecipientService::create_committee
 //! 
-//! (GET)   (/aggregations/any/jobs) => SdaClerkingService::get_clerking_job
-//! (POST)  (/aggregations/implied/jobs/{id}/result) =>
+//! (GET)   (/v1/aggregations/any/jobs) => SdaClerkingService::get_clerking_job
+//! (POST)  (/v1/aggregations/implied/jobs/{id}/result) =>
 //!                         SdaClerkingService::create_clerking_result
 //! 
-//! (GET)   (/aggregations/{AggregationId}/snapshots/{SnapshotId}/result) =>
+//! (GET)   (/v1/aggregations/{AggregationId}/snapshots/{SnapshotId}/result) =>
 //!                         SdaRecipientService::get_snapshot_result
 //! ```
 //!
@@ -134,40 +134,40 @@ pub fn listen<A>(addr: A, server: sync::Arc<sda_server::SdaServerService>) -> !
 pub fn handle(server: &sda_server::SdaServerService, req: &Request) -> Response {
     debug!("Incoming {} {}", req.method(), req.raw_url());
     wrap! { req, router! { req,
-        (GET)  (/ping) => { H(&server).ping(req) },
+        (GET)  (/v1/ping) => { H(&server).ping(req) },
 
-        (GET)  (/agents/{id: AgentId}) => { H(&server).get_agent(&id, req) },
-        (POST) (/agents/me) => { H(&server).create_agent(req) },
+        (GET)  (/v1/agents/{id: AgentId}) => { H(&server).get_agent(&id, req) },
+        (POST) (/v1/agents/me) => { H(&server).create_agent(req) },
 
-        (GET)  (/agents/{id: AgentId}/profile) => { H(&server).get_profile(&id, req) },
-        (POST) (/agents/me/profile) => { H(&server).upsert_profile(req) },
+        (GET)  (/v1/agents/{id: AgentId}/profile) => { H(&server).get_profile(&id, req) },
+        (POST) (/v1/agents/me/profile) => { H(&server).upsert_profile(req) },
 
-        (GET)    (/agents/any/keys/{id: EncryptionKeyId}) =>
+        (GET)    (/v1/agents/any/keys/{id: EncryptionKeyId}) =>
             { H(&server).get_encryption_key(&id, req) },
-        (POST)   (/agents/me/keys) => { H(&server).create_encryption_key(req) },
+        (POST)   (/v1/agents/me/keys) => { H(&server).create_encryption_key(req) },
 
-        (POST)  (/aggregations) => { H(&server).create_aggregation(req) },
-        (GET)   (/aggregations) => { H(&server).list_aggregations(req) },
-        (GET)   (/aggregations/{id: AggregationId}) => { H(&server).get_aggregation(&id, req) },
-        (DELETE)(/aggregations/{id: AggregationId}) => { H(&server).delete_aggregation(&id, req) },
+        (POST)  (/v1/aggregations) => { H(&server).create_aggregation(req) },
+        (GET)   (/v1/aggregations) => { H(&server).list_aggregations(req) },
+        (GET)   (/v1/aggregations/{id: AggregationId}) => { H(&server).get_aggregation(&id, req) },
+        (DELETE)(/v1/aggregations/{id: AggregationId}) => { H(&server).delete_aggregation(&id, req) },
 
-        (GET)   (/aggregations/{id: AggregationId}/committee/suggestions) =>
+        (GET)   (/v1/aggregations/{id: AggregationId}/committee/suggestions) =>
             { H(&server).suggest_committee(&id, req) },
-        (POST)  (/aggregations/implied/committee) => { H(&server).create_committee(req) },
-        (GET)   (/aggregations/{id: AggregationId}/committee) =>
+        (POST)  (/v1/aggregations/implied/committee) => { H(&server).create_committee(req) },
+        (GET)   (/v1/aggregations/{id: AggregationId}/committee) =>
             { H(&server).get_committee(&id, req) },
 
-        (POST)  (/aggregations/participations) => { H(&server).create_participation(req) },
-        (GET)   (/aggregations/{id: AggregationId}/status) =>
+        (POST)  (/v1/aggregations/participations) => { H(&server).create_participation(req) },
+        (GET)   (/v1/aggregations/{id: AggregationId}/status) =>
             { H(&server).get_aggregation_status(&id, req) },
 
-        (POST)  (/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
+        (POST)  (/v1/aggregations/implied/snapshot) => { H(&server).create_snapshot(req) },
 
         // FIXME. should we revisit these 3 ? the urls feel a bit awkward
-        (GET)   (/aggregations/any/jobs) => { H(&server).get_clerking_job(req) },
-        (POST)  (/aggregations/implied/jobs/{id}/result) => { H(&server).create_clerking_result(&id, req) },
+        (GET)   (/v1/aggregations/any/jobs) => { H(&server).get_clerking_job(req) },
+        (POST)  (/v1/aggregations/implied/jobs/{id}/result) => { H(&server).create_clerking_result(&id, req) },
 
-        (GET)   (/aggregations/{aid}/snapshots/{sid}/result) =>
+        (GET)   (/v1/aggregations/{aid}/snapshots/{sid}/result) =>
             { H(&server).get_snapshot_result(&aid, &sid, req) },
 
         _ => {

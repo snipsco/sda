@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-#[macro_use]
 extern crate lazy_static;
 #[cfg(feature="mongo")]
 extern crate mongodb;
