@@ -139,6 +139,23 @@ sda -i tmp/simple-data/agent/recipient aggregations reveal $AGGID
 
 In our case, it should read: `0 2 2 4 4 6 6 8 8 10`.
 
+## Doing more, with APIs
+
+The command line only expose a subset of the API, at least for now. It is not
+meant to be the primary mode of interaction with sda. The Rust API to the
+client, or the Rest API to the server allow more flexibility:
+
+* tweaking the sharing scheme: the Packed Shamir Scheme provides resilience
+    over clerks failure, as well as reducing message size.
+* using a masking scheme to protect participants privacy against a collusion
+    between clerks
+* using Paillier Cryptosystem to scale up the system to any number of
+    participants
+* allowing candidates Clerks to link their profile to some external
+    authenticating system to improve participants trust in the system
+* allow recipient to actually chose Clerks that should get in the committee for
+    its aggregation
+
 ## Structure
 
 ### Core
